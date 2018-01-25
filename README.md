@@ -1,5 +1,9 @@
 # go-picturebook
 
+Create a PDF file (a "picturebook") from a folder (containing images).
+
+## Important
+
 Too soon. Move along.
 
 ## Install
