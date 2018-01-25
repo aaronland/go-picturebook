@@ -23,25 +23,25 @@ func main() {
 
 func Picturebook() error {
 
-	var orientation = flag.String("orientation", "P", "...")
-	var size = flag.String("size", "letter", "...")
-	var width = flag.Float64("width", 8.5, "...")
-	var height = flag.Float64("height", 11, "...")
-	var dpi = flag.Float64("dpi", 150, "...")
-	var border = flag.Float64("border", 0.01, "...")
-	var caption = flag.String("caption", "default", "...")
-	var filter = flag.String("filter", "", "...")
-	var filename = flag.String("filename", "picturebook.pdf", "...")
-	var target = flag.String("target", "", "...")
+	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
+	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
+	var width = flag.Float64("width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag.")
+	var height = flag.Float64("height", 11, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag.")
+	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
+	var border = flag.Float64("border", 0.01, "The size of the border around images.")
+	var caption = flag.String("caption", "default", "Valid filters are: cooperhewitt; default; flickr; orthis")
+	var filter = flag.String("filter", "", "Valid filters are: cooperhewitt; flickr; orthis")
+	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
+	var target = flag.String("target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly.")
 	var debug = flag.Bool("debug", false, "...")
 
 	var include flags.RegexpFlag
 	var exclude flags.RegexpFlag
 	var preprocess flags.PreProcessFlag
 
-	flag.Var(&include, "include", "...")
-	flag.Var(&exclude, "exclude", "...")
-	flag.Var(&preprocess, "pre-process", "...")
+	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
+	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
+	flag.Var(&preprocess, "pre-process", "Valid processes are: rotate; halftone")
 
 	flag.Parse()
 

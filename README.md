@@ -20,33 +20,33 @@ All of this package's dependencies are bundled with the code in the `vendor` dir
 ./bin/picturebook -h
 Usage of ./bin/picturebook:
   -border float
-    	... (default 0.01)
+    	The size of the border around images. (default 0.01)
   -caption string
-    	... (default "default")
+    	Valid filters are: cooperhewitt; default; flickr; orthis (default "default")
   -debug
     	...
   -dpi float
-    	... (default 150)
+    	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -exclude value
-    	...
+    	A valid regular expression to use for testing whether a file should be excluded from your picturebook.
   -filename string
-    	... (default "picturebook.pdf")
+    	The filename (path) for your picturebook. (default "picturebook.pdf")
   -filter string
-    	...
+    	Valid filters are: cooperhewitt; flickr; orthis
   -height float
-    	... (default 11)
+    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 11)
   -include value
-    	...
+    	A valid regular expression to use for testing whether a file should be included in your picturebook.
   -orientation string
-    	... (default "P")
+    	The orientation of your picturebook. Valid orientations are: [please write me] (default "P")
   -pre-process value
-    	...
+    	Valid processes are: rotate; halftone
   -size string
-    	... (default "letter")
+    	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -target string
-    	...
+    	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly.
   -width float
-    	... (default 8.5)
+    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 8.5)
 ```
 
 ## See also
