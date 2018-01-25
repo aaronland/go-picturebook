@@ -16,6 +16,8 @@ All of this package's dependencies are bundled with the code in the `vendor` dir
 
 ### picturebook
 
+Create a PDF file (a "picturebook") from a folder (containing images).
+
 ```
 ./bin/picturebook -h
 Usage of ./bin/picturebook:
@@ -48,6 +50,40 @@ Usage of ./bin/picturebook:
   -width float
     	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 8.5)
 ```
+
+## Functions
+
+### Caption functions
+
+#### Cooper Hewitt (shoebox) caption functions
+
+#### Filename caption functions
+
+#### Filename and parent caption functions
+
+#### Flickr caption functions
+
+#### Or This caption functions
+
+### Filter functions
+
+#### Cooper Hewitt (shoebox) filter functions
+
+Only include files ending in `_b.jpg`
+
+#### Flickr filter functions
+
+Only include files matching `o_\.\.*$`
+
+#### Or This filter functions
+
+Only include files ending in `-or-this.jpg`
+
+### Pre-process functions
+
+#### Rotate preprocess functions
+
+#### Halftone preprocess functions
 
 ## See also
 
