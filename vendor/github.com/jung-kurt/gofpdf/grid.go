@@ -162,6 +162,22 @@ func (g GridType) Wd(dataWd float64) float64 {
 	return g.xm * dataWd
 }
 
+// XY converts dataX and dataY, specified in logical data units, to the X and Y
+// position on the current page.
+func (g GridType) XY(dataX, dataY float64) (x, y float64) {
+	return g.xm*dataX + g.xb, g.ym*dataY + g.yb
+}
+
+// Pos returns the point, in page units, indicated by the relative positions
+// xRel and yRel. These are values between 0 and 1. xRel specifies the relative
+// position between the grid's left and right edges. yRel specifies the
+// relative position between the grid's bottom and top edges.
+func (g GridType) Pos(xRel, yRel float64) (x, y float64) {
+	x = g.w*xRel + g.x
+	y = g.h*(1-yRel) + g.y
+	return
+}
+
 // X converts dataX, specified in logical data units, to the X position on the
 // current page.
 func (g GridType) X(dataX float64) float64 {
@@ -184,6 +200,24 @@ func (g GridType) Ht(dataHt float64) float64 {
 // current page.
 func (g GridType) Y(dataY float64) float64 {
 	return g.ym*dataY + g.yb
+}
+
+// XRange returns the minimum and maximum values for the current tickmark
+// sequence. These correspond to the data values of the graph's left and right
+// edges.
+func (g GridType) XRange() (min, max float64) {
+	min = g.xTicks[0]
+	max = g.xTicks[len(g.xTicks)-1]
+	return
+}
+
+// YRange returns the minimum and maximum values for the current tickmark
+// sequence. These correspond to the data values of the graph's bottom and top
+// edges.
+func (g GridType) YRange() (min, max float64) {
+	min = g.yTicks[0]
+	max = g.yTicks[len(g.yTicks)-1]
+	return
 }
 
 // TickmarksContainX sets the tickmarks to be shown by Grid() in the horizontal

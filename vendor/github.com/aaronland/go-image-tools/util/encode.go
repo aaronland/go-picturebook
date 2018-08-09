@@ -51,6 +51,10 @@ func EncodeImage(im image.Image, format string, wr io.Writer) error {
 
 	var err error
 
+	if format == "jpg" {
+		format = "jpeg"
+	}
+
 	switch format {
 	case "jpeg":
 		opts := jpeg.Options{Quality: 100}

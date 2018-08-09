@@ -3,5 +3,6 @@ pkg
 src
 !vendor/src
 bin
+!bin/.gitignore
 *.pdf
 .DS_Store

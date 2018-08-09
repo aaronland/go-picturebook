@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/aaronland/go-image-tools/util"
 	"github.com/iand/salience"
-	"github.com/straup/go-image-tools/util"
 	"log"
 	"os"
 	"path/filepath"

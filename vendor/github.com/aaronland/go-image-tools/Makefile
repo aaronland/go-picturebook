@@ -5,9 +5,10 @@ prep:
 	if test -d pkg; then rm -rf pkg; fi
 
 self:   prep rmdeps
-	if test ! -d src/github.com/straup/go-image-tools; then mkdir -p src/github.com/straup/go-image-tools; fi
-	cp -r halftone src/github.com/straup/go-image-tools/
-	cp -r util src/github.com/straup/go-image-tools/
+	if test ! -d src/github.com/aaronland/go-image-tools; then mkdir -p src/github.com/aaronland/go-image-tools; fi
+	cp -r halftone src/github.com/aaronland/go-image-tools/
+	cp -r resize src/github.com/aaronland/go-image-tools/
+	cp -r util src/github.com/aaronland/go-image-tools/
 	cp -r vendor/* src/
 
 rmdeps:
@@ -22,6 +23,7 @@ deps:
 	# @GOPATH=$(GOPATH) go get -u "github.com/rwcarlsen/goexif/exif"
 	@GOPATH=$(GOPATH) go get -u "github.com/nfnt/resize/"
 	@GOPATH=$(GOPATH) go get -u "github.com/tidwall/gjson/"
+	@GOPATH=$(GOPATH) go get -u "github.com/facebookgo/atomicfile"
 
 vendor-deps: rmdeps deps
 	if test ! -d vendor; then mkdir vendor; fi
@@ -33,8 +35,10 @@ vendor-deps: rmdeps deps
 fmt:
 	go fmt cmd/*.go
 	go fmt halftone/*.go
+	go fmt resize/*.go
 	go fmt util/*.go
 
 bin: 	self
 	@GOPATH=$(GOPATH) go build -o bin/crop cmd/crop.go
 	@GOPATH=$(GOPATH) go build -o bin/halftone cmd/halftone.go
+	@GOPATH=$(GOPATH) go build -o bin/resize cmd/resize.go

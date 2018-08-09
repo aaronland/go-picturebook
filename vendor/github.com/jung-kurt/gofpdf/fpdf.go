@@ -350,6 +350,15 @@ func (f *Fpdf) SetFontLoader(loader FontLoader) {
 	f.fontLoader = loader
 }
 
+// SetHeaderFuncMode sets the function that lets the application render the
+// page header. See SetHeaderFunc() for more details. The value for homeMode
+// should be set to true to have the current position set to the left and top
+// margin after the header function is called.
+func (f *Fpdf) SetHeaderFuncMode(fnc func(), homeMode bool) {
+	f.headerFnc = fnc
+	f.headerHomeMode = homeMode
+}
+
 // SetHeaderFunc sets the function that lets the application render the page
 // header. The specified function is automatically called by AddPage() and
 // should not be called directly by the application. The implementation in Fpdf
@@ -676,6 +685,9 @@ func (f *Fpdf) AddPageFormat(orientationStr string, size SizeType) {
 		f.inHeader = true
 		f.headerFnc()
 		f.inHeader = false
+		if f.headerHomeMode {
+			f.SetHomeXY()
+		}
 	}
 	// 	Restore line width
 	if f.lineWidth != lw {
@@ -2409,7 +2421,7 @@ func (f *Fpdf) ImageTypeFromMime(mimeStr string) (tp string) {
 	return
 }
 
-func (f *Fpdf) imageOut(info *ImageInfoType, x, y, w, h float64, flow bool, link int, linkStr string) {
+func (f *Fpdf) imageOut(info *ImageInfoType, x, y, w, h float64, allowNegativeX, flow bool, link int, linkStr string) {
 	// Automatic width and height calculation if needed
 	if w == 0 && h == 0 {
 		// Put image at 96 dpi
@@ -2452,8 +2464,10 @@ func (f *Fpdf) imageOut(info *ImageInfoType, x, y, w, h float64, flow bool, link
 		y = f.y
 		f.y += h
 	}
-	if x < 0 {
-		x = f.x
+	if !allowNegativeX {
+		if x < 0 {
+			x = f.x
+		}
 	}
 	// dbg("h %.2f", h)
 	// q 85.04 0 0 NaN 28.35 NaN cm /I2 Do Q
@@ -2519,7 +2533,7 @@ func (f *Fpdf) ImageOptions(imageNameStr string, x, y, w, h float64, flow bool, 
 	if f.err != nil {
 		return
 	}
-	f.imageOut(info, x, y, w, h, flow, link, linkStr)
+	f.imageOut(info, x, y, w, h, options.AllowNegativePosition, flow, link, linkStr)
 	return
 }
 
@@ -2547,9 +2561,13 @@ func (f *Fpdf) RegisterImageReader(imgName, tp string, r io.Reader) (info *Image
 // to true (understanding that not all images will have this info
 // available). However, for backwards compatibility with previous
 // versions of the API, it defaults to false.
+//
+// AllowNegativePosition can be set to true in order to prevent the default
+// coercion of negative x values to the current x position.
 type ImageOptions struct {
-	ImageType string
-	ReadDpi   bool
+	ImageType             string
+	ReadDpi               bool
+	AllowNegativePosition bool
 }
 
 // RegisterImageOptionsReader registers an image, reading it from Reader r, adding it
@@ -2702,6 +2720,13 @@ func (f *Fpdf) SetY(y float64) {
 	}
 }
 
+// SetHomeXY is a convenience method that sets the current position to the left
+// and top margins.
+func (f *Fpdf) SetHomeXY() {
+	f.SetY(f.tMargin)
+	f.SetX(f.lMargin)
+}
+
 // SetXY defines the abscissa and ordinate of the current position. If the
 // passed values are negative, they are relative respectively to the right and
 // bottom of the page.
@@ -2798,6 +2823,11 @@ func (f *Fpdf) getpagesizestr(sizeStr string) (size SizeType) {
 		f.err = fmt.Errorf("unknown page size %s", sizeStr)
 	}
 	return
+}
+
+// GetPageSizeStr returns the SizeType for the given sizeStr (that is A4, A3, etc..)
+func (f *Fpdf) GetPageSizeStr(sizeStr string) (size SizeType) {
+	return f.getpagesizestr(sizeStr)
 }
 
 func (f *Fpdf) _getpagesize(size SizeType) SizeType {
@@ -2971,7 +3001,7 @@ func (f *Fpdf) parsepng(r io.Reader, readdpi bool) (info *ImageInfoType) {
 
 func (f *Fpdf) readBeInt32(r io.Reader) (val int32) {
 	err := binary.Read(r, binary.BigEndian, &val)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		f.err = err
 	}
 	return

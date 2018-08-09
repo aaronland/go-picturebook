@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/straup/go-image-tools/halftone"
-	"github.com/straup/go-image-tools/util"
+	"github.com/aaronland/go-image-tools/halftone"
+	"github.com/aaronland/go-image-tools/util"
 	"log"
 	"os"
 	"path/filepath"
