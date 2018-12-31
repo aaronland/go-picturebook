@@ -4,8 +4,8 @@ import (
 	"errors"
 	"flag"
 	"github.com/aaronland/picturebook"
-	"github.com/aaronland/picturebook/functions"
 	"github.com/aaronland/picturebook/flags"
+	"github.com/aaronland/picturebook/functions"
 	"log"
 	"os"
 )

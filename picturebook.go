@@ -9,6 +9,7 @@ import (
 	"github.com/rainycape/unidecode"
 	"github.com/aaronland/picturebook/functions"
 	"github.com/aaronland/go-image-tools/util"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -56,6 +57,7 @@ type PictureBook struct {
 	Text    PictureBookText
 	Options PictureBookOptions
 	pages   int
+	tmpfiles []string
 }
 
 func NewPictureBookDefaultOptions() PictureBookOptions {
@@ -63,7 +65,7 @@ func NewPictureBookDefaultOptions() PictureBookOptions {
 	filter := functions.DefaultFilterFunc
 	prep := functions.DefaultPreProcessFunc
 	capt := functions.DefaultCaptionFunc
-
+	
 	opts := PictureBookOptions{
 		Orientation: "P",
 		Size:        "letter",
@@ -144,6 +146,7 @@ func NewPictureBook(opts PictureBookOptions) (*PictureBook, error) {
 		Height: canvas_h,
 	}
 
+	tmpfiles := make([]string, 0)
 	mu := new(sync.Mutex)
 
 	pb := PictureBook{
@@ -154,6 +157,7 @@ func NewPictureBook(opts PictureBookOptions) (*PictureBook, error) {
 		Text:    t,
 		Options: opts,
 		pages:   0,
+				tmpfiles:    tmpfiles,
 	}
 
 	return &pb, nil
@@ -240,6 +244,8 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		return err
 	}
 
+	// trap gofpdf "16-bit depth not supported in PNG file" errors
+	
 	if format == "png" {
 
 		buf := new(bytes.Buffer)
@@ -249,6 +255,9 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		if err != nil {
 			return err
 		}
+
+		// this bit is cribbed from https://github.com/jung-kurt/gofpdf/blob/7d57599b9d9c5fb48ea733596cbb812d7f84a8d6/png.go
+		// (20181231/thisisaaronland)
 		
 		_ = buf.Next(12)
 
@@ -260,9 +269,36 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		}
 		
 		if bpc > 8 {
-			return errors.New("16-bit depth not supported in PNG file")
-		}
 
+			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
+
+			if err != nil {
+				return err
+			}
+
+			tmpfile_path := tmpfile.Name()
+			
+			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)	
+
+			err = util.EncodeImage(im, "jpeg", tmpfile)
+			defer tmpfile.Close()
+			
+			if err != nil {
+				return err
+			}
+
+			im, format, err = util.DecodeImage(tmpfile_path)			
+
+			if err != nil {
+				return err
+			}
+
+			if pb.Options.Debug {			
+				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
+			}
+			
+			abs_path = tmpfile_path		
+		}
 	}
 	
 	dims := im.Bounds()
@@ -434,6 +470,18 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 
 func (pb *PictureBook) Save(path string) error {
 
+	defer func(){
+
+		for _, path := range pb.tmpfiles {
+			
+			if pb.Options.Debug {			
+				log.Println("REMOVE TMPFILE", path)
+			}
+			
+			os.Remove(path)
+		}
+	}()
+	
 	if pb.Options.Debug {
 		log.Printf("save %s\n", path)
 	}
