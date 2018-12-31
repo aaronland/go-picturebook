@@ -755,7 +755,7 @@ func parseArrayPath(path string) (r arrayPathResult) {
 					if i < len(path) {
 						s = i
 						if path[i] == '!' {
-							if i < len(path)-1 && path[i+1] == '=' {
+							if i < len(path)-1 && (path[i+1] == '=' || path[i+1] == '%') {
 								i++
 							}
 						} else if path[i] == '<' || path[i] == '>' {
@@ -1099,6 +1099,8 @@ func queryMatches(rp *arrayPathResult, value Result) bool {
 			return value.Str >= rpv
 		case "%":
 			return match.Match(value.Str, rpv)
+		case "!%":
+			return !match.Match(value.Str, rpv)
 		}
 	case Number:
 		rpvn, _ := strconv.ParseFloat(rpv, 64)
@@ -1626,7 +1628,11 @@ func GetMany(json string, path ...string) []Result {
 // The return value is a Result array where the number of items
 // will be equal to the number of input paths.
 func GetManyBytes(json []byte, path ...string) []Result {
-	return GetMany(string(json), path...)
+	res := make([]Result, len(path))
+	for i, path := range path {
+		res[i] = GetBytes(json, path)
+	}
+	return res
 }
 
 var fieldsmu sync.RWMutex

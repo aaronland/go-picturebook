@@ -77,12 +77,14 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.pages = make([]*bytes.Buffer, 0, 8)
 	f.pages = append(f.pages, bytes.NewBufferString("")) // pages[0] is unused (1-based)
 	f.pageSizes = make(map[int]SizeType)
+	f.pageBoxes = make(map[int]map[string]PageBox)
+	f.defPageBoxes = make(map[string]PageBox)
 	f.state = 0
 	f.fonts = make(map[string]fontDefType)
 	f.fontFiles = make(map[string]fontFileType)
 	f.diffs = make([]string, 0, 8)
-	f.templates = make(map[int64]Template)
-	f.templateObjects = make(map[int64]int)
+	f.templates = make(map[string]Template)
+	f.templateObjects = make(map[string]int)
 	f.images = make(map[string]*ImageInfoType)
 	f.pageLinks = make([][]linkType, 0, 8)
 	f.pageLinks = append(f.pageLinks, make([]linkType, 0, 0)) // pageLinks[0] is unused (1-based)
@@ -335,6 +337,53 @@ func (f *Fpdf) SetCellMargin(margin float64) {
 	f.cMargin = margin
 }
 
+// SetPageBoxRec sets the page box for the current page, and any following
+// pages. Allowable types are trim, trimbox, crop, cropbox, bleed, bleedbox,
+// art and artbox box types are case insensitive. See SetPageBox() for a method
+// that specifies the coordinates and extent of the page box individually.
+func (f *Fpdf) SetPageBoxRec(t string, pb PageBox) {
+	switch strings.ToLower(t) {
+	case "trim":
+		fallthrough
+	case "trimbox":
+		t = "TrimBox"
+	case "crop":
+		fallthrough
+	case "cropbox":
+		t = "CropBox"
+	case "bleed":
+		fallthrough
+	case "bleedbox":
+		t = "BleedBox"
+	case "art":
+		fallthrough
+	case "artbox":
+		t = "ArtBox"
+	default:
+		f.err = fmt.Errorf("%s is not a valid page box type", t)
+		return
+	}
+
+	pb.X = pb.X * f.k
+	pb.Y = pb.Y * f.k
+	pb.Wd = (pb.Wd * f.k) + pb.X
+	pb.Ht = (pb.Ht * f.k) + pb.Y
+
+	if f.page > 0 {
+		f.pageBoxes[f.page][t] = pb
+	}
+
+	// always override. page defaults are supplied in addPage function
+	f.defPageBoxes[t] = pb
+}
+
+// SetPageBox sets the page box for the current page, and any following pages.
+// Allowable types are trim, trimbox, crop, cropbox, bleed, bleedbox, art and
+// artbox box types are case insensitive.
+func (f *Fpdf) SetPageBox(t string, x, y, wd, ht float64) {
+	f.SetPageBoxRec(t, PageBox{SizeType{Wd: wd, Ht: ht}, PointType{X: x, Y: y}})
+}
+
 // SetFontLocation sets the location in the file system of the font and font
 // definition files.
 func (f *Fpdf) SetFontLocation(fontDirStr string) {
@@ -549,7 +598,7 @@ func (f *Fpdf) AliasNbPages(aliasStr string) {
 	f.aliasNbPagesStr = aliasStr
 }
 
-// Begin document
+// open begins a document
 func (f *Fpdf) open() {
 	f.state = 1
 }
@@ -1083,12 +1132,12 @@ func (f *Fpdf) Beziergon(points []PointType, styleStr string) {
 	f.DrawPath(styleStr)
 }
 
-// Outputs current point
+// point outputs current point
 func (f *Fpdf) point(x, y float64) {
 	f.outf("%.2f %.2f m", x*f.k, (f.h-y)*f.k)
 }
 
-// Outputs a single cubic Bézier curve segment from current point
+// curve outputs a single cubic Bézier curve segment from current point
 func (f *Fpdf) curve(cx0, cy0, cx1, cy1, x, y float64) {
 	// Thanks, Robert Lillack, for straightening this out
 	f.outf("%.5f %.5f %.5f %.5f %.5f %.5f c", cx0*f.k, (f.h-cy0)*f.k, cx1*f.k,
@@ -1229,7 +1278,7 @@ func (f *Fpdf) gradientClipEnd() {
 	f.out("Q")
 }
 
-func (f *Fpdf) gradient(tp int, r1, g1, b1 int, r2, g2, b2 int, x1, y1 float64, x2, y2 float64, r float64) {
+func (f *Fpdf) gradient(tp, r1, g1, b1, r2, g2, b2 int, x1, y1, x2, y2, r float64) {
 	pos := len(f.gradientList)
 	clr1 := rgbColorValue(r1, g1, b1, "", "")
 	clr2 := rgbColorValue(r2, g2, b2, "", "")
@@ -1254,7 +1303,7 @@ func (f *Fpdf) gradient(tp int, r1, g1, b1 int, r2, g2, b2 int, x1, y1 float64, 
 // anchored on the rectangle edge. Color 1 is used up to the origin of the
 // vector and color 2 is used beyond the vector's end point. Between the points
 // the colors are gradually blended.
-func (f *Fpdf) LinearGradient(x, y, w, h float64, r1, g1, b1 int, r2, g2, b2 int, x1, y1, x2, y2 float64) {
+func (f *Fpdf) LinearGradient(x, y, w, h float64, r1, g1, b1, r2, g2, b2 int, x1, y1, x2, y2 float64) {
 	f.gradientClipStart(x, y, w, h)
 	f.gradient(2, r1, g1, b1, r2, g2, b2, x1, y1, x2, y2, 0)
 	f.gradientClipEnd()
@@ -1278,7 +1327,7 @@ func (f *Fpdf) LinearGradient(x, y, w, h float64, r1, g1, b1 int, r2, g2, b2 int
 // the circle to avoid rendering problems.
 //
 // The LinearGradient() example demonstrates this method.
-func (f *Fpdf) RadialGradient(x, y, w, h float64, r1, g1, b1 int, r2, g2, b2 int, x1, y1, x2, y2, r float64) {
+func (f *Fpdf) RadialGradient(x, y, w, h float64, r1, g1, b1, r2, g2, b2 int, x1, y1, x2, y2, r float64) {
 	f.gradientClipStart(x, y, w, h)
 	f.gradient(3, r1, g1, b1, r2, g2, b2, x1, y1, x2, y2, r)
 	f.gradientClipEnd()
@@ -1502,7 +1551,7 @@ func (f *Fpdf) AddFont(familyStr, styleStr, fileStr string) {
 // jsonFileBytes contain all bytes of JSON file.
 //
 // zFileBytes contain all bytes of Z file.
-func (f *Fpdf) AddFontFromBytes(familyStr string, styleStr string, jsonFileBytes []byte, zFileBytes []byte) {
+func (f *Fpdf) AddFontFromBytes(familyStr, styleStr string, jsonFileBytes, zFileBytes []byte) {
 	if f.err != nil {
 		return
 	}
@@ -1528,9 +1577,12 @@ func (f *Fpdf) AddFontFromBytes(familyStr string, styleStr string, jsonFileBytes
 		return
 	}
 
-	// search existing encodings
-	info.I = len(f.fonts)
+	if info.i, err = generateFontID(info); err != nil {
+		f.err = err
+		return
+	}
 
+	// search existing encodings
 	if len(info.Diff) > 0 {
 		n := -1
 
@@ -1599,7 +1651,6 @@ func (f *Fpdf) AddFontFromReader(familyStr, styleStr string, r io.Reader) {
 	if f.err != nil {
 		return
 	}
-	info.I = len(f.fonts)
 	if len(info.Diff) > 0 {
 		// Search existing encodings
 		n := -1
@@ -1734,7 +1785,7 @@ func (f *Fpdf) SetFont(familyStr, styleStr string, size float64) {
 	f.fontSize = size / f.k
 	f.currentFont = f.fonts[fontkey]
 	if f.page > 0 {
-		f.outf("BT /F%d %.2f Tf ET", f.currentFont.I, f.fontSizePt)
+		f.outf("BT /F%s %.2f Tf ET", f.currentFont.i, f.fontSizePt)
 	}
 	return
 }
@@ -1748,7 +1799,7 @@ func (f *Fpdf) SetFontSize(size float64) {
 	f.fontSizePt = size
 	f.fontSize = size / f.k
 	if f.page > 0 {
-		f.outf("BT /F%d %.2f Tf ET", f.currentFont.I, f.fontSizePt)
+		f.outf("BT /F%s %.2f Tf ET", f.currentFont.i, f.fontSizePt)
 	}
 }
 
@@ -1761,7 +1812,7 @@ func (f *Fpdf) SetFontUnitSize(size float64) {
 	f.fontSizePt = size * f.k
 	f.fontSize = size
 	if f.page > 0 {
-		f.outf("BT /F%d %.2f Tf ET", f.currentFont.I, f.fontSizePt)
+		f.outf("BT /F%s %.2f Tf ET", f.currentFont.i, f.fontSizePt)
 	}
 }
 
@@ -1792,7 +1843,7 @@ func (f *Fpdf) SetLink(link int, y float64, page int) {
 	f.links[link] = intLinkType{page, y}
 }
 
-// Add a new clickable link on current page
+// newLink adds a new clickable link on current page
 func (f *Fpdf) newLink(x, y, w, h float64, link int, linkStr string) {
 	// linkList, ok := f.pageLinks[f.page]
 	// if !ok {
@@ -1900,7 +1951,7 @@ func (f *Fpdf) SetAcceptPageBreakFunc(fnc func() bool) {
 //
 // linkStr is a target URL or empty for no external link. A non--zero value for
 // link takes precedence over linkStr.
-func (f *Fpdf) CellFormat(w, h float64, txtStr string, borderStr string, ln int,
+func (f *Fpdf) CellFormat(w, h float64, txtStr, borderStr string, ln int,
 	alignStr string, fill bool, link int, linkStr string) {
 	// dbg("CellFormat. h = %.2f, borderStr = %s", h, borderStr)
 	if f.err != nil {
@@ -1978,19 +2029,22 @@ func (f *Fpdf) CellFormat(w, h float64, txtStr string, borderStr string, ln int,
 	if len(txtStr) > 0 {
 		var dx, dy float64
 		// Horizontal alignment
-		if strings.Contains(alignStr, "R") {
+		switch {
+		case strings.Contains(alignStr, "R"):
 			dx = w - f.cMargin - f.GetStringWidth(txtStr)
-		} else if strings.Contains(alignStr, "C") {
+		case strings.Contains(alignStr, "C"):
 			dx = (w - f.GetStringWidth(txtStr)) / 2
-		} else {
+		default:
 			dx = f.cMargin
 		}
+
 		// Vertical alignment
-		if strings.Contains(alignStr, "T") {
+		switch {
+		case strings.Contains(alignStr, "T"):
 			dy = (f.fontSize - h) / 2.0
-		} else if strings.Contains(alignStr, "B") {
+		case strings.Contains(alignStr, "B"):
 			dy = (h - f.fontSize) / 2.0
-		} else if strings.Contains(alignStr, "A") {
+		case strings.Contains(alignStr, "A"):
 			var descent float64
 			d := f.currentFont.Desc
 			if d.Descent == 0 {
@@ -2000,7 +2054,7 @@ func (f *Fpdf) CellFormat(w, h float64, txtStr string, borderStr string, ln int,
 				descent = float64(d.Descent) * f.fontSize / float64(d.Ascent-d.Descent)
 			}
 			dy = (h-f.fontSize)/2.0 - descent
-		} else {
+		default:
 			dy = 0
 		}
 		if f.colorFlag {
@@ -2128,7 +2182,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 	if w == 0 {
 		w = f.w - f.rMargin - f.x
 	}
-	wmax := (w - 2*f.cMargin) * 1000 / f.fontSize
+	wmax := int(math.Ceil((w - 2*f.cMargin) * 1000 / f.fontSize))
 	s := strings.Replace(txtStr, "\r", "", -1)
 	nb := len(s)
 	// if nb > 0 && s[nb-1:nb] == "\n" {
@@ -2162,8 +2216,8 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 	sep := -1
 	i := 0
 	j := 0
-	l := 0.0
-	ls := 0.0
+	l := 0
+	ls := 0
 	ns := 0
 	nl := 1
 	for i < nb {
@@ -2192,7 +2246,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 			ls = l
 			ns++
 		}
-		l += float64(cw[c])
+		l += cw[c]
 		if l > wmax {
 			// Automatic line break
 			if sep == -1 {
@@ -2207,7 +2261,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 			} else {
 				if alignStr == "J" {
 					if ns > 1 {
-						f.ws = (wmax - ls) / 1000 * f.fontSize / float64(ns-1)
+						f.ws = float64((wmax-ls)/1000) * f.fontSize / float64(ns-1)
 					} else {
 						f.ws = 0
 					}
@@ -2240,7 +2294,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 	f.x = f.lMargin
 }
 
-// Output text in flowing mode
+// write outputs text in flowing mode
 func (f *Fpdf) write(h float64, txtStr string, link int, linkStr string) {
 	// dbg("Write")
 	cw := &f.currentFont.Cw
@@ -2369,7 +2423,7 @@ func (f *Fpdf) WriteAligned(width, lineHeight float64, textStr, alignStr string)
 	lines := f.SplitLines([]byte(textStr), width)
 
 	for _, lineBt := range lines {
-		lineStr := string(lineBt[:])
+		lineStr := string(lineBt)
 		lineWidth := f.GetStringWidth(lineStr)
 
 		switch alignStr {
@@ -2471,7 +2525,7 @@ func (f *Fpdf) imageOut(info *ImageInfoType, x, y, w, h float64, allowNegativeX,
 	}
 	// dbg("h %.2f", h)
 	// q 85.04 0 0 NaN 28.35 NaN cm /I2 Do Q
-	f.outf("q %.5f 0 0 %.5f %.5f %.5f cm /I%d Do Q", w*f.k, h*f.k, x*f.k, (f.h-(y+h))*f.k, info.i)
+	f.outf("q %.5f 0 0 %.5f %.5f %.5f cm /I%s Do Q", w*f.k, h*f.k, x*f.k, (f.h-(y+h))*f.k, info.i)
 	if link > 0 || len(linkStr) > 0 {
 		f.newLink(x, y, w, h, link, linkStr)
 	}
@@ -2608,7 +2662,10 @@ func (f *Fpdf) RegisterImageOptionsReader(imgName string, options ImageOptions, 
 	if f.err != nil {
 		return
 	}
-	info.i = len(f.images) + 1
+
+	if info.i, f.err = generateImageID(info); f.err != nil {
+		return
+	}
 	f.images[imgName] = info
 
 	return
@@ -2842,6 +2899,11 @@ func (f *Fpdf) beginpage(orientationStr string, size SizeType) {
 		return
 	}
 	f.page++
+	// add the default page boxes, if any exist, to the page
+	f.pageBoxes[f.page] = make(map[string]PageBox)
+	for box, pb := range f.defPageBoxes {
+		f.pageBoxes[f.page][box] = pb
+	}
 	f.pages = append(f.pages, bytes.NewBufferString(""))
 	f.pageLinks = append(f.pageLinks, make([]linkType, 0, 0))
 	f.state = 2
@@ -2895,6 +2957,11 @@ func (f *Fpdf) loadfont(r io.Reader) (def fontDefType) {
 	err = json.Unmarshal(buf.Bytes(), &def)
 	if err != nil {
 		f.err = err
+		return
+	}
+
+	if def.i, err = generateFontID(def); err != nil {
+		f.err = err
 	}
 	// dump(def)
 	return
@@ -2909,7 +2976,7 @@ func (f *Fpdf) escape(s string) string {
 	return s
 }
 
-// Format a text string
+// textstring formats a text string
 func (f *Fpdf) textstring(s string) string {
 	if f.protect.encrypted {
 		b := []byte(s)
@@ -2951,7 +3018,7 @@ func (f *Fpdf) newImageInfo() *ImageInfoType {
 	return &ImageInfoType{scale: f.k, dpi: 72}
 }
 
-// Extract info from io.Reader with JPEG data
+// parsejpg extracts info from io.Reader with JPEG data
 // Thank you, Bruno Michel, for providing this code.
 func (f *Fpdf) parsejpg(r io.Reader) (info *ImageInfoType) {
 	info = f.newImageInfo()
@@ -2989,7 +3056,7 @@ func (f *Fpdf) parsejpg(r io.Reader) (info *ImageInfoType) {
 	return
 }
 
-// Extract info from a PNG data
+// parsepng extracts info from a PNG data
 func (f *Fpdf) parsepng(r io.Reader, readdpi bool) (info *ImageInfoType) {
 	buf, err := bufferFromReader(r)
 	if err != nil {
@@ -3015,7 +3082,7 @@ func (f *Fpdf) readByte(r io.Reader) (val byte) {
 	return
 }
 
-// Extract info from a GIF data (via PNG conversion)
+// parsegif extracts info from a GIF data (via PNG conversion)
 func (f *Fpdf) parsegif(r io.Reader) (info *ImageInfoType) {
 	data, err := bufferFromReader(r)
 	if err != nil {
@@ -3037,7 +3104,7 @@ func (f *Fpdf) parsegif(r io.Reader) (info *ImageInfoType) {
 	return f.parsepngstream(pngBuf, false)
 }
 
-// Begin a new object
+// newobj begins a new object
 func (f *Fpdf) newobj() {
 	// dbg("newobj")
 	f.n++
@@ -3058,7 +3125,7 @@ func (f *Fpdf) putstream(b []byte) {
 	f.out("endstream")
 }
 
-// Add a line to the document
+// out; Add a line to the document
 func (f *Fpdf) out(s string) {
 	if f.state == 2 {
 		f.pages[f.page].WriteString(s)
@@ -3069,7 +3136,7 @@ func (f *Fpdf) out(s string) {
 	}
 }
 
-// Add a buffered line to the document
+// outbuf adds a buffered line to the document
 func (f *Fpdf) outbuf(r io.Reader) {
 	if f.state == 2 {
 		f.pages[f.page].ReadFrom(r)
@@ -3096,7 +3163,7 @@ func (f *Fpdf) RawWriteBuf(r io.Reader) {
 	f.outbuf(r)
 }
 
-// Add a formatted line to the document
+// outf adds a formatted line to the document
 func (f *Fpdf) outf(fmtStr string, args ...interface{}) {
 	f.out(sprintf(fmtStr, args...))
 }
@@ -3181,6 +3248,9 @@ func (f *Fpdf) putpages() {
 		pageSize, ok = f.pageSizes[n]
 		if ok {
 			f.outf("/MediaBox [0 0 %.2f %.2f]", pageSize.Wd, pageSize.Ht)
+		}
+		for t, pb := range f.pageBoxes[n] {
+			f.outf("/%s [%.2f %.2f %.2f %.2f]", t, pb.X, pb.Y, pb.Wd, pb.Ht)
 		}
 		f.out("/Resources 2 0 R")
 		// Links
@@ -3321,7 +3391,8 @@ func (f *Fpdf) putfonts() {
 			f.fonts[key] = font
 			tp := font.Tp
 			name := font.Name
-			if tp == "Core" {
+			switch tp {
+			case "Core":
 				// Core font
 				f.newobj()
 				f.out("<</Type /Font")
@@ -3332,7 +3403,9 @@ func (f *Fpdf) putfonts() {
 				}
 				f.out(">>")
 				f.out("endobj")
-			} else if tp == "Type1" || tp == "TrueType" {
+			case "Type1":
+				fallthrough
+			case "TrueType":
 				// Additional Type1 or TrueType/OpenType font
 				f.newobj()
 				f.out("<</Type /Font")
@@ -3378,14 +3451,9 @@ func (f *Fpdf) putfonts() {
 				s.printf("/FontFile%s %d 0 R>>", suffix, f.fontFiles[font.File].n)
 				f.out(s.String())
 				f.out("endobj")
-			} else {
+			default:
 				f.err = fmt.Errorf("unsupported font type: %s", tp)
 				return
-				// Allow for additional types
-				// 			$mtd = 'put'.strtolower($type);
-				// 			if(!method_exists($this,$mtd))
-				// 				$this->Error('Unsupported font type: '.$type);
-				// 			$this->$mtd($font);
 			}
 		}
 	}
@@ -3497,12 +3565,12 @@ func (f *Fpdf) putxobjectdict() {
 		}
 		for _, key = range keyList {
 			image = f.images[key]
-			f.outf("/I%d %d 0 R", image.i, image.n)
+			f.outf("/I%s %d 0 R", image.i, image.n)
 		}
 	}
 	{
-		var keyList []int64
-		var key int64
+		var keyList []string
+		var key string
 		var tpl Template
 		keyList = templateKeyList(f.templates, f.catalogSort)
 		for _, key = range keyList {
@@ -3510,7 +3578,7 @@ func (f *Fpdf) putxobjectdict() {
 			// for _, tpl := range f.templates {
 			id := tpl.ID()
 			if objID, ok := f.templateObjects[id]; ok {
-				f.outf("/TPL%d %d 0 R", id, objID)
+				f.outf("/TPL%s %d 0 R", id, objID)
 			}
 		}
 	}
@@ -3527,11 +3595,11 @@ func (f *Fpdf) putresourcedict() {
 			keyList = append(keyList, key)
 		}
 		if f.catalogSort {
-			sort.SliceStable(keyList, func(i, j int) bool { return f.fonts[keyList[i]].I < f.fonts[keyList[j]].I })
+			sort.SliceStable(keyList, func(i, j int) bool { return f.fonts[keyList[i]].i < f.fonts[keyList[j]].i })
 		}
 		for _, key = range keyList {
 			font = f.fonts[key]
-			f.outf("/F%d %d 0 R", font.I, font.N)
+			f.outf("/F%s %d 0 R", font.i, font.N)
 		}
 	}
 	f.out(">>")

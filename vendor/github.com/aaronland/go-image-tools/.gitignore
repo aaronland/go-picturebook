@@ -5,4 +5,7 @@ src
 bin
 !bin/.gitignore
 *.pdf
+*.png
+*.gif
+*.jpg
 .DS_Store

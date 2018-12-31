@@ -45,8 +45,8 @@ func Halftone(im image.Image, opts HalftoneOptions) (image.Image, error) {
 		return nil, errors.New("Invalid or unsupported mode")
 	}
 
-	dither := resize.Resize(w, h, grey, resize.Lanczos3)
-	dither = halfgone.ImageToGray(dither)
+	dither := resize.Resize(w, h, grey, resize.NearestNeighbor)
+	grey = halfgone.ImageToGray(dither)
 
-	return dither, nil
+	return grey, nil
 }
