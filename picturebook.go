@@ -1,6 +1,8 @@
 package picturebook
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"github.com/jung-kurt/gofpdf"
@@ -208,9 +210,8 @@ func (pb *PictureBook) AddPictures(paths []string) error {
 
 		err = pb.AddPicture(pagenum, processed_path, caption)
 
-		if err != nil {
-			// log.Println("ADD", abs_path, err)
-			return nil
+		if err != nil && pb.Options.Debug {
+			log.Println("ADD", abs_path, err)
 		}
 
 		return nil
@@ -239,6 +240,31 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		return err
 	}
 
+	if format == "png" {
+
+		buf := new(bytes.Buffer)
+
+		err = util.EncodeImage(im, format, buf)
+
+		if err != nil {
+			return err
+		}
+		
+		_ = buf.Next(12)
+
+		var bpc int32
+		err := binary.Read(buf, binary.BigEndian, &bpc)
+		
+		if err != nil {
+			return err
+		}
+		
+		if bpc > 8 {
+			return errors.New("16-bit depth not supported in PNG file")
+		}
+
+	}
+	
 	dims := im.Bounds()
 
 	info := pb.PDF.GetImageInfo(abs_path)
@@ -258,7 +284,6 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 	}
 
 	info.SetDpi(pb.Options.DPI)
-
 	w := float64(dims.Max.X)
 	h := float64(dims.Max.Y)
 
