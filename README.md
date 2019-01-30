@@ -2,10 +2,6 @@
 
 Create a PDF file (a "picturebook") from a folder (containing images).
 
-## Important
-
-Too soon. Move along.
-
 ## Install
 
 You will need to have both `Go` (specifically a version of Go more recent than 1.6 so let's just assume you need [Go 1.8](https://golang.org/dl/) or higher) and the `make` programs installed on your computer. Assuming you do just type:
@@ -61,13 +57,23 @@ Usage of ./bin/picturebook:
 
 #### Cooper Hewitt (shoebox) caption functions
 
+_Please write me_
+
 #### Filename caption functions
+
+_Please write me_
 
 #### Filename and parent caption functions
 
+_Please write me_
+
 #### Flickr caption functions
 
+_Please write me_
+
 #### Or This caption functions
+
+_Please write me_
 
 ### Filter functions
 
@@ -87,8 +93,13 @@ Only include files ending in `-or-this.jpg`
 
 #### Rotate preprocess functions
 
+_Please write me_
+
 #### Halftone preprocess functions
+
+_Please write me_
 
 ## See also
 
+* https://github.com/jung-kurt/gofpdf
 * https://github.com/aaronland/go-image-tools
