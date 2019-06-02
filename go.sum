@@ -3,6 +3,7 @@ github.com/MaxHalford/halfgone v0.0.0-20171017000000-482157b86ccb239d6172d85b15d
 github.com/aaronland/go-image-tools v0.1.0 h1:voZT7CEI2f6oI/cbSw5NA7PCQz5xF3gx53zisX9zwrQ=
 github.com/aaronland/go-image-tools v0.1.0/go.mod h1:C4O1wV3Kp3vbRDD7DqExzVtIBVs+6ebrt3XAFqpwSPk=
 github.com/boombuler/barcode v1.0.0/go.mod h1:paBWMcWSl3LHKBqUq+rly7CNSldXjb2rDl3JlRe0mD8=
+github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/facebookgo/atomicfile v0.0.0-20151019000000-2de1f203e7d5e386a6833233882782932729f27e/go.mod h1:JpoxHjuQauoxiFMl1ie8Xc/7TfLuMZ5eOCONd1sUBHg=
 github.com/iand/salience v0.0.0-20170827000000-dfa33044e20159970855823c3553164f405d8dd3/go.mod h1:5VjozFkGLcIORGjQM8LVZSd84b4wW/7rGWuGSDCWj5M=
@@ -13,12 +14,14 @@ github.com/microcosm-cc/exifutil v0.0.0-20140910000000-36de169162e20bbf2ba5763d3
 github.com/microcosm-cc/exifutil v0.0.0-20140910000000-36de169162e20bbf2ba5763d36acae7d44a9e097/go.mod h1:rw75SouXX/hywyTQcQevWQD35Mxs8nZcoU/lIXaROhU=
 github.com/nfnt/resize v0.0.0-20180221000000-83c6a9932646f83e3267f353373d47347b6036b2 h1:oezOsPm/5xdSDR8wGKg1GP2bzeBY2iDZxOrkZ8XqRb4=
 github.com/nfnt/resize v0.0.0-20180221000000-83c6a9932646f83e3267f353373d47347b6036b2/go.mod h1:jpp1/29i3P1S/RLdc7JQKbRpFeM1dOBd8T9ki5s+AY8=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rainycape/unidecode v0.0.0-20150906000000-cb7f23ec59bec0d61b19c56cd88cee3d0cc1870c h1:l8WEdcNRYme8MqxfAOELACcgzNbqWx2JQKoTVBAXrJM=
 github.com/rainycape/unidecode v0.0.0-20150906000000-cb7f23ec59bec0d61b19c56cd88cee3d0cc1870c/go.mod h1:MIDFMn7db1kT65GmV94GzpX9Qdi7N/pQlwb+AN8wh+Q=
 github.com/ruudk/golang-pdf417 v0.0.0-20181029194003-1af4ab5afa58/go.mod h1:6lfFZQK844Gfx8o5WFuvpxWRwnSoipWe/p622j1v06w=
 github.com/rwcarlsen/goexif v0.0.0-20190401000000-9e8deecbddbd4989a3e8d003684b783412b41e7a h1:Vh5bLI9rG6mBx+0dMNUPGAS6Ps/7mSETZniqvHUEznY=
 github.com/rwcarlsen/goexif v0.0.0-20190401000000-9e8deecbddbd4989a3e8d003684b783412b41e7a/go.mod h1:hPqNNc0+uJM6H+SuU8sEs5K5IQeKccPqeSjfgcKGgPk=
+github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/tidwall/gjson v1.2.1 h1:j0efZLrZUvNerEf6xqoi0NjWMK5YlLrR7Guo/dxY174=
 github.com/tidwall/gjson v1.2.1/go.mod h1:c/nTNbUr0E0OrXEhq1pwa8iEgc2DOt4ZZqAt1HtCkPA=

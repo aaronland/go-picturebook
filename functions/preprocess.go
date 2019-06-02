@@ -1,10 +1,10 @@
 package functions
 
 import (
-	"github.com/microcosm-cc/exifutil"
-	"github.com/rwcarlsen/goexif/exif"
 	"github.com/aaronland/go-image-tools/halftone"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/microcosm-cc/exifutil"
+	"github.com/rwcarlsen/goexif/exif"
 	_ "log"
 	"os"
 	"path/filepath"

@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/aaronland/picturebook"
-	"github.com/aaronland/picturebook/flags"
-	"github.com/aaronland/picturebook/functions"
+	"github.com/aaronland/go-picturebook"
+	"github.com/aaronland/go-picturebook/flags"
+	"github.com/aaronland/go-picturebook/functions"
 	"log"
 	"os"
 )
