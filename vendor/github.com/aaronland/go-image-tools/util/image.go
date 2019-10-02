@@ -1,7 +1,6 @@
 package util
 
 import (
-	"github.com/aaronland/go-image-tools/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
 	"image"
@@ -48,32 +47,22 @@ func NewImageWithRotationFromReader(r io.ReadSeeker) (image.Image, string, error
 
 	x, err := exif.Decode(r)
 
-	if err == nil {
-
-		o, err := x.Get(exif.Orientation)
-
-		if err == nil {
-			orientation = o.String()
-		}
+	if err != nil {
+		return im, format, nil
 	}
 
-	switch orientation {
-	case "1":
-		// pass
-	case "2":
-		im = imaging.FlipV(im)
-	case "3":
-		im = imaging.Rotate180(im)
-	case "4":
-		im = imaging.Rotate180(imaging.FlipV(im))
-	case "5":
-		im = imaging.Rotate270(imaging.FlipV(im))
-	case "6":
-		im = imaging.Rotate270(im)
-	case "7":
-		im = imaging.Rotate90(imaging.FlipV(im))
-	case "8":
-		im = imaging.Rotate90(im)
+	o, err := x.Get(exif.Orientation)
+
+	if err != nil {
+		return im, format, nil
+	}
+
+	orientation = o.String()
+
+	im, err = RotateWithOrientation(im, orientation)
+
+	if err != nil {
+		return nil, "", err
 	}
 
 	return im, format, nil

@@ -9,6 +9,7 @@ import (
 	"github.com/aaronland/go-picturebook/functions"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
+	"github.com/sfomuseum/go-font-ocra"
 	"io/ioutil"
 	"log"
 	"os"
@@ -116,7 +117,17 @@ func NewPictureBook(opts PictureBookOptions) (*PictureBook, error) {
 		Colour: []int{128, 128, 128},
 	}
 
-	pdf.SetFont(t.Font, t.Style, t.Size)
+	// pdf.SetFont(t.Font, t.Style, t.Size)
+	
+	font, err := ocra.LoadFPDFFont()
+
+	if err != nil {
+		return nil, err
+	}
+
+	pdf.AddFontFromBytes(font.Family, font.Style, font.JSON, font.Z)
+	pdf.SetFont(font.Family, "", 8.0)
+	
 	pdf.SetTextColor(t.Colour[0], t.Colour[1], t.Colour[2])
 
 	w, h, _ := pdf.PageSize(1)
