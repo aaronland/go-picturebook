@@ -4,10 +4,10 @@ go 1.12
 
 require (
 	github.com/aaronland/go-image-tools v0.1.3
-	github.com/jung-kurt/gofpdf v1.12.4
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/microcosm-cc/exifutil v0.0.0-20140910154058-36de169162e2
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sfomuseum/go-font-ocra v0.0.1
-	github.com/tidwall/gjson v1.3.2
+	github.com/tidwall/gjson v1.3.5
 )

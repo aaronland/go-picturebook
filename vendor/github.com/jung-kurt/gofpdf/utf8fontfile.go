@@ -215,6 +215,7 @@ func (utf *utf8FontFile) getUint16(pos int) int {
 }
 
 func (utf *utf8FontFile) splice(stream []byte, offset int, value []byte) []byte {
+	stream = append([]byte{}, stream...)
 	return append(append(stream[:offset], value...), stream[offset+len(value):]...)
 }
 
@@ -225,7 +226,7 @@ func (utf *utf8FontFile) insertUint16(stream []byte, offset int, value int) []by
 }
 
 func (utf *utf8FontFile) getRange(pos, length int) []byte {
-	utf.fileReader.seek(int64(pos), 0)
+	_, _ = utf.fileReader.seek(int64(pos), 0)
 	if length < 1 {
 		return make([]byte, 0)
 	}
@@ -241,7 +242,7 @@ func (utf *utf8FontFile) getTableData(name string) []byte {
 	if desckrip.size == 0 {
 		return nil
 	}
-	utf.fileReader.seek(int64(desckrip.position), 0)
+	_, _ = utf.fileReader.seek(int64(desckrip.position), 0)
 	s := utf.fileReader.Read(desckrip.size)
 	return s
 }
@@ -634,8 +635,8 @@ func (utf *utf8FontFile) generateCMAPTable(cidSymbolPairCollection map[int]int, 
 	return cmapstr
 }
 
-//GenerateСutFont fill utf8FontFile from .utf file, only with runes from usedRunes
-func (utf *utf8FontFile) GenerateСutFont(usedRunes map[int]int) []byte {
+//GenerateCutFont fill utf8FontFile from .utf file, only with runes from usedRunes
+func (utf *utf8FontFile) GenerateCutFont(usedRunes map[int]int) []byte {
 	utf.fileReader.readerPosition = 0
 	utf.symbolPosition = make([]int, 0)
 	utf.charSymbolDictionary = make(map[int]int)
@@ -1014,7 +1015,7 @@ func (utf *utf8FontFile) assembleTables() []byte {
 	}
 
 	for _, key := range tablesNames {
-		data := tables[key]
+		data := append([]byte{}, tables[key]...)
 		data = append(data, []byte{0, 0, 0}...)
 		answer = append(answer, data[:(len(data)&^3)]...)
 	}
@@ -1148,6 +1149,6 @@ func UTF8CutFont(inBuf []byte, cutset string) (outBuf []byte) {
 	for i, r := range cutset {
 		runes[i] = int(r)
 	}
-	outBuf = f.GenerateСutFont(runes)
+	outBuf = f.GenerateCutFont(runes)
 	return
 }

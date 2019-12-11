@@ -551,6 +551,8 @@ type Fpdf struct {
 	aliasMap         map[string]string          // map of alias->replacement
 	pageLinks        [][]linkType               // pageLinks[page][link], both 1-based
 	links            []intLinkType              // array of internal links
+	attachments      []Attachment               // slice of content to embed globally
+	pageAttachments  [][]annotationAttach       // 1-based array of annotation for file attachments (per page)
 	outlines         []outlineType              // array of outlines
 	outlineRoot      int                        // root of outlines
 	autoPageBreak    bool                       // automatic page breaking
@@ -571,7 +573,8 @@ type Fpdf struct {
 	author           string                     // author
 	keywords         string                     // keywords
 	creator          string                     // creator
-	creationDate     time.Time                  // override for dcoument CreationDate value
+	creationDate     time.Time                  // override for document CreationDate value
+	modDate          time.Time                  // override for document ModDate value
 	aliasNbPagesStr  string                     // alias for total number of pages
 	pdfVersion       string                     // PDF version number
 	fontDirStr       string                     // location of font definition files

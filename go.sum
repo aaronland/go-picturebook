@@ -15,6 +15,8 @@ github.com/jung-kurt/gofpdf v1.4.2/go.mod h1:rZsO0wEsunjT/L9stF3fJjYbAHgqNYuQB4B
 github.com/jung-kurt/gofpdf v1.12.2/go.mod h1:PUFlk38sbwAJn0qocZnkWxDXLFa+Mqry8o6ilSOzWw8=
 github.com/jung-kurt/gofpdf v1.12.4 h1:/AY2AjnkSW2JQlKNnmr0xv54D8QyNMygHob7XBGwqQY=
 github.com/jung-kurt/gofpdf v1.12.4/go.mod h1:PUFlk38sbwAJn0qocZnkWxDXLFa+Mqry8o6ilSOzWw8=
+github.com/jung-kurt/gofpdf v1.16.2 h1:jgbatWHfRlPYiK85qgevsZTHviWXKwB1TTiKdz5PtRc=
+github.com/jung-kurt/gofpdf v1.16.2/go.mod h1:1hl7y57EsiPAkLbOwzpzqgx1A30nQCk/YmFV8S2vmK0=
 github.com/microcosm-cc/exifutil v0.0.0-20140910000000-36de169162e20bbf2ba5763d36acae7d44a9e097 h1:Dwz9lMvHN4we1PHU5dbneIaz0b3w407mCIlKmDsgk5s=
 github.com/microcosm-cc/exifutil v0.0.0-20140910000000-36de169162e20bbf2ba5763d36acae7d44a9e097/go.mod h1:rw75SouXX/hywyTQcQevWQD35Mxs8nZcoU/lIXaROhU=
 github.com/microcosm-cc/exifutil v0.0.0-20140910154058-36de169162e2 h1:7vdAKwusZET1a/MuNG9T1FwQeQh409If/FT6f4R4Czc=
@@ -42,6 +44,8 @@ github.com/tidwall/gjson v1.2.1 h1:j0efZLrZUvNerEf6xqoi0NjWMK5YlLrR7Guo/dxY174=
 github.com/tidwall/gjson v1.2.1/go.mod h1:c/nTNbUr0E0OrXEhq1pwa8iEgc2DOt4ZZqAt1HtCkPA=
 github.com/tidwall/gjson v1.3.2 h1:+7p3qQFaH3fOMXAJSrdZwGKcOO/lYdGS0HqGhPqDdTI=
 github.com/tidwall/gjson v1.3.2/go.mod h1:P256ACg0Mn+j1RXIDXoss50DeIABTYK1PULOJHhxOls=
+github.com/tidwall/gjson v1.3.5 h1:2oW9FBNu8qt9jy5URgrzsVx/T/KSn3qn/smJQ0crlDQ=
+github.com/tidwall/gjson v1.3.5/go.mod h1:P256ACg0Mn+j1RXIDXoss50DeIABTYK1PULOJHhxOls=
 github.com/tidwall/match v1.0.1 h1:PnKP62LPNxHKTwvHHZZzdOAOCtsJTjo6dZLCwpKm5xc=
 github.com/tidwall/match v1.0.1/go.mod h1:LujAq0jyVjBy028G1WhWfIzbpQfMO8bBZ6Tyb0+pL9E=
 github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 h1:rQ229MBgvW68s1/g6f1/63TgYwYxfF4E+bi/KC19P8g=

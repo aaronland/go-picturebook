@@ -4,7 +4,7 @@ github.com/MaxHalford/halfgone
 github.com/aaronland/go-image-tools/util
 github.com/aaronland/go-image-tools/halftone
 github.com/aaronland/go-image-tools/imaging
-# github.com/jung-kurt/gofpdf v1.12.4
+# github.com/jung-kurt/gofpdf v1.16.2
 github.com/jung-kurt/gofpdf
 # github.com/microcosm-cc/exifutil v0.0.0-20140910154058-36de169162e2
 github.com/microcosm-cc/exifutil
@@ -19,7 +19,7 @@ github.com/rwcarlsen/goexif/tiff
 # github.com/sfomuseum/go-font-ocra v0.0.1
 github.com/sfomuseum/go-font-ocra
 github.com/sfomuseum/go-font-ocra/fonts
-# github.com/tidwall/gjson v1.3.2
+# github.com/tidwall/gjson v1.3.5
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
