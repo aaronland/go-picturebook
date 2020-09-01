@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
-	"log"
+	_ "log"
 	"os"
 	"path/filepath"
-	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -40,33 +40,65 @@ func DefaultFilterFunc(ctx context.Context, path string) (bool, error) {
 
 func OrThisFilterFunc(ctx context.Context, path string) (bool, error) {
 
-	// 1713123275_UX0eXIRbF8fXzrX0nlAqYVl3m0hMsV08_o.jpg
-
-	pat, err := regexp.Compile(`^\d+_[a-zA-Z0-9]+_o\.jpg$`)
-
-	if err != nil {
-		return false, err
-	}
-
 	fname := filepath.Base(path)
 
-	if !pat.MatchString(fname) {
+	if !orthis_re.MatchString(fname) {
 		return false, nil
 	}
 
-	log.Println(path)	
 	return true, nil
+}
+
+func MakeOrThisYearFilterFunc(ctx context.Context, year int) PictureBookFilterFunc {
+
+	fn := func(ctx context.Context, path string) (bool, error) {
+
+		fname := filepath.Base(path)
+
+		if !orthis_re.MatchString(fname) {
+			return false, nil
+		}
+
+		root := filepath.Dir(path)
+		root = filepath.Dir(root)
+
+		index := filepath.Join(root, "index.json")
+
+		fh, err := os.Open(index)
+
+		if err != nil {
+			return false, err
+		}
+
+		defer fh.Close()
+
+		body, err := ioutil.ReadAll(fh)
+
+		if err != nil {
+			return false, err
+		}
+
+		date_rsp := gjson.GetBytes(body, "date")
+
+		if !date_rsp.Exists() {
+			return false, nil
+		}
+
+		str_year := strconv.Itoa(year)
+
+		if !strings.HasPrefix(date_rsp.String(), str_year) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	return fn
 }
 
 func FlickrArchiveFilterFunc(ctx context.Context, path string) (bool, error) {
 
-	re, err := regexp.Compile(`o_\.\.*$`)
-
-	if err != nil {
-		return false, err
-	}
-
-	if !re.MatchString(path) {
+	if !flickr_re.MatchString(path) {
 		return false, nil
 	}
 

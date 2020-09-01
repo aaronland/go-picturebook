@@ -36,6 +36,8 @@ func Picturebook() error {
 	var target = flag.String("target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly.")
 	var debug = flag.Bool("debug", false, "...")
 
+	var year = flag.Int("year", -1, "...")
+
 	var include flags.RegexpFlag
 	var exclude flags.RegexpFlag
 	var preprocess flags.PreProcessFlag
@@ -102,25 +104,47 @@ func Picturebook() error {
 				return false, err
 			}
 
-			return f(ctx, path)
-		} else {
+			ok, err := f(ctx, path)
 
-			for _, pat := range include {
-
-				if !pat.MatchString(path) {
-					return false, nil
-				}
+			if err != nil {
+				return false, err
 			}
 
-			for _, pat := range exclude {
-
-				if pat.MatchString(path) {
-					return false, nil
-				}
+			if !ok {
+				return false, nil
 			}
-
-			return true, nil
 		}
+
+		if *year > 1 {
+
+			fn := functions.MakeOrThisYearFilterFunc(ctx, *year)
+
+			ok, err := fn(ctx, path)
+
+			if err != nil {
+				return false, err
+			}
+
+			if !ok {
+				return false, nil
+			}
+		}
+
+		for _, pat := range include {
+
+			if !pat.MatchString(path) {
+				return false, nil
+			}
+		}
+
+		for _, pat := range exclude {
+
+			if pat.MatchString(path) {
+				return false, nil
+			}
+		}
+
+		return true, nil
 	}
 
 	prep := func(ctx context.Context, path string) (string, error) {
