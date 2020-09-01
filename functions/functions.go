@@ -1,7 +1,11 @@
 package functions
 
-type PictureBookFilterFunc func(string) (bool, error)
+import (
+	"context"
+)
 
-type PictureBookPreProcessFunc func(string) (string, error)
+type PictureBookFilterFunc func(context.Context, string) (bool, error)
 
-type PictureBookCaptionFunc func(string) (string, error)
+type PictureBookPreProcessFunc func(context.Context, string) (string, error)
+
+type PictureBookCaptionFunc func(context.Context, string) (string, error)

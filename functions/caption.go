@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -42,17 +43,17 @@ func PictureBookCaptionFuncFromString(caption string) (PictureBookCaptionFunc, e
 	return capt, nil
 }
 
-func DefaultCaptionFunc(path string) (string, error) {
-	return FilenameCaptionFunc(path)
+func DefaultCaptionFunc(ctx context.Context, path string) (string, error) {
+	return FilenameCaptionFunc(ctx, path)
 }
 
-func FilenameCaptionFunc(path string) (string, error) {
+func FilenameCaptionFunc(ctx context.Context, path string) (string, error) {
 
 	fname := filepath.Base(path)
 	return fname, nil
 }
 
-func FilenameAndParentCaptionFunc(path string) (string, error) {
+func FilenameAndParentCaptionFunc(ctx context.Context, path string) (string, error) {
 
 	root := filepath.Dir(path)
 	parent := filepath.Base(root)
@@ -61,7 +62,7 @@ func FilenameAndParentCaptionFunc(path string) (string, error) {
 	return filepath.Join(parent, fname), nil
 }
 
-func OrThisCaptionFunc(path string) (string, error) {
+func OrThisCaptionFunc(ctx context.Context, path string) (string, error) {
 
 	fname := filepath.Base(path)
 	pat := "-or-this.jpg"
@@ -84,11 +85,11 @@ func OrThisCaptionFunc(path string) (string, error) {
 	return caption, nil
 }
 
-func NoneCaptionFunc(path string) (string, error) {
+func NoneCaptionFunc(ctx context.Context, path string) (string, error) {
 	return "", nil
 }
 
-func FlickrArchiveCaptionFunc(path string) (string, error) {
+func FlickrArchiveCaptionFunc(ctx context.Context, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 
@@ -164,7 +165,7 @@ func FlickrArchiveCaptionFunc(path string) (string, error) {
 	return caption, nil
 }
 
-func CooperHewittShoeboxCaptionFunc(path string) (string, error) {
+func CooperHewittShoeboxCaptionFunc(ctx context.Context, path string) (string, error) {
 
 	root := filepath.Dir(path)
 	info := filepath.Join(root, "index.json")

@@ -2,6 +2,7 @@ package picturebook
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -163,9 +164,16 @@ func NewPictureBook(opts PictureBookOptions) (*PictureBook, error) {
 	return &pb, nil
 }
 
-func (pb *PictureBook) AddPictures(paths []string) error {
+func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 	cb := func(path string, info os.FileInfo, err error) error {
+
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			// pass
+		}
 
 		if err != nil {
 			return err
@@ -182,7 +190,7 @@ func (pb *PictureBook) AddPictures(paths []string) error {
 			return nil
 		}
 
-		ok, err := pb.Options.Filter(abs_path)
+		ok, err := pb.Options.Filter(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("FILTER", abs_path, err)
@@ -193,14 +201,14 @@ func (pb *PictureBook) AddPictures(paths []string) error {
 			return nil
 		}
 
-		processed_path, err := pb.Options.PreProcess(abs_path)
+		processed_path, err := pb.Options.PreProcess(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("PROCESS", abs_path, err)
 			return nil
 		}
 
-		caption, err := pb.Options.Caption(abs_path)
+		caption, err := pb.Options.Caption(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("CAPTION", abs_path, err)
@@ -468,7 +476,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 	return nil
 }
 
-func (pb *PictureBook) Save(path string) error {
+func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
 	defer func() {
 

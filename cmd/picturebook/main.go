@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"github.com/aaronland/go-picturebook"
@@ -44,6 +45,8 @@ func Picturebook() error {
 	flag.Var(&preprocess, "pre-process", "Valid processes are: rotate; halftone")
 
 	flag.Parse()
+
+	ctx := context.Background()
 
 	switch *target {
 	case "":
@@ -89,7 +92,7 @@ func Picturebook() error {
 		}
 	}()
 
-	filter_func := func(path string) (bool, error) {
+	filter_func := func(ctx context.Context, path string) (bool, error) {
 
 		if *filter != "" {
 
@@ -99,7 +102,7 @@ func Picturebook() error {
 				return false, err
 			}
 
-			return f(path)
+			return f(ctx, path)
 		} else {
 
 			for _, pat := range include {
@@ -120,7 +123,7 @@ func Picturebook() error {
 		}
 	}
 
-	prep := func(path string) (string, error) {
+	prep := func(ctx context.Context, path string) (string, error) {
 
 		final := path
 
@@ -130,7 +133,7 @@ func Picturebook() error {
 
 			case "rotate":
 
-				processed_path, err := functions.RotatePreProcessFunc(final)
+				processed_path, err := functions.RotatePreProcessFunc(ctx, final)
 
 				if err != nil {
 					return "", err
@@ -145,7 +148,7 @@ func Picturebook() error {
 
 			case "halftone":
 
-				processed_path, err := functions.HalftonePreProcessFunc(final)
+				processed_path, err := functions.HalftonePreProcessFunc(ctx, final)
 
 				if err != nil {
 					return "", err
@@ -184,13 +187,13 @@ func Picturebook() error {
 
 	sources := flag.Args()
 
-	err = pb.AddPictures(sources)
+	err = pb.AddPictures(ctx, sources)
 
 	if err != nil {
 		return err
 	}
 
-	err = pb.Save(*filename)
+	err = pb.Save(ctx, *filename)
 
 	if err != nil {
 		return err

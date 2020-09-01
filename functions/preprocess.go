@@ -11,14 +11,14 @@ import (
 	"path/filepath"
 )
 
-func DefaultPreProcessFunc(path string) (string, error) {
+func DefaultPreProcessFunc(ctx context.Context, path string) (string, error) {
 	return "", nil
 }
 
 // PLEASE MOVE ME TO go-image-tools (2018-01-22/thisisaaronland)
 // https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
 
-func RotatePreProcessFunc(path string) (string, error) {
+func RotatePreProcessFunc(ctx context.Context, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 
@@ -70,9 +70,7 @@ func RotatePreProcessFunc(path string) (string, error) {
 	return util.EncodeTempImage(rotated, format)
 }
 
-func HalftonePreProcessFunc(path string) (string, error) {
-
-	ctx := context.Background()
+func HalftonePreProcessFunc(ctx context.Context, path string) (string, error) {
 
 	im, format, err := util.DecodeImage(path)
 

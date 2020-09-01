@@ -1,6 +1,7 @@
 package functions
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
@@ -33,11 +34,11 @@ func PictureBookFilterFuncFromString(str_filter string) (PictureBookFilterFunc, 
 	return filter, nil
 }
 
-func DefaultFilterFunc(string) (bool, error) {
+func DefaultFilterFunc(ctx context.Context, path string) (bool, error) {
 	return true, nil
 }
 
-func OrThisFilterFunc(path string) (bool, error) {
+func OrThisFilterFunc(ctx context.Context, path string) (bool, error) {
 
 	fname := filepath.Base(path)
 	pat := "-or-this.jpg"
@@ -49,7 +50,7 @@ func OrThisFilterFunc(path string) (bool, error) {
 	return true, nil
 }
 
-func FlickrArchiveFilterFunc(path string) (bool, error) {
+func FlickrArchiveFilterFunc(ctx context.Context, path string) (bool, error) {
 
 	re, err := regexp.Compile(`o_\.\.*$`)
 
@@ -64,7 +65,7 @@ func FlickrArchiveFilterFunc(path string) (bool, error) {
 	return true, nil
 }
 
-func CooperHewittShoeboxFilterFunc(path string) (bool, error) {
+func CooperHewittShoeboxFilterFunc(ctx context.Context, path string) (bool, error) {
 
 	if !strings.HasSuffix(path, "_b.jpg") {
 		return false, nil
