@@ -165,20 +165,20 @@ func (p PointType) XY() (float64, float64) {
 // Changes to this structure should be reflected in its GobEncode and GobDecode
 // methods.
 type ImageInfoType struct {
-	data  []byte
-	smask []byte
-	n     int
-	w     float64
-	h     float64
-	cs    string
-	pal   []byte
-	bpc   int
-	f     string
-	dp    string
-	trns  []int
-	scale float64 // document scaling factor
-	dpi   float64
-	i     string
+	data  []byte  // Raw image data
+	smask []byte  // Soft Mask, an 8bit per-pixel transparency mask
+	n     int     // Image object number
+	w     float64 // Width
+	h     float64 // Height
+	cs    string  // Color space
+	pal   []byte  // Image color palette
+	bpc   int     // Bits Per Component
+	f     string  // Image filter
+	dp    string  // DecodeParms
+	trns  []int   // Transparency mask
+	scale float64 // Document scale factor
+	dpi   float64 // Dots-per-inch found from image file (png only)
+	i     string  // SHA-1 checksum of the above values.
 }
 
 func generateImageID(info *ImageInfoType) (string, error) {
@@ -452,6 +452,7 @@ type Pdf interface {
 	SetTextSpotColor(nameStr string, tint byte)
 	SetTitle(titleStr string, isUTF8 bool)
 	SetTopMargin(margin float64)
+	SetUnderlineThickness(thickness float64)
 	SetXmpMetadata(xmpStream []byte)
 	SetX(x float64)
 	SetXY(x, y float64)
@@ -541,6 +542,7 @@ type Fpdf struct {
 	fontFamily       string                     // current font family
 	fontStyle        string                     // current font style
 	underline        bool                       // underlining flag
+	strikeout        bool                       // strike out flag
 	currentFont      fontDefType                // current font info
 	fontSizePt       float64                    // current font size in points
 	fontSize         float64                    // current font size in user unit
@@ -549,6 +551,8 @@ type Fpdf struct {
 	aliasMap         map[string]string          // map of alias->replacement
 	pageLinks        [][]linkType               // pageLinks[page][link], both 1-based
 	links            []intLinkType              // array of internal links
+	attachments      []Attachment               // slice of content to embed globally
+	pageAttachments  [][]annotationAttach       // 1-based array of annotation for file attachments (per page)
 	outlines         []outlineType              // array of outlines
 	outlineRoot      int                        // root of outlines
 	autoPageBreak    bool                       // automatic page breaking
@@ -563,12 +567,14 @@ type Fpdf struct {
 	zoomMode         string                     // zoom display mode
 	layoutMode       string                     // layout display mode
 	xmp              []byte                     // XMP metadata
+	producer         string                     // producer
 	title            string                     // title
 	subject          string                     // subject
 	author           string                     // author
 	keywords         string                     // keywords
 	creator          string                     // creator
-	creationDate     time.Time                  // override for dcoument CreationDate value
+	creationDate     time.Time                  // override for document CreationDate value
+	modDate          time.Time                  // override for document ModDate value
 	aliasNbPagesStr  string                     // alias for total number of pages
 	pdfVersion       string                     // PDF version number
 	fontDirStr       string                     // location of font definition files
@@ -594,7 +600,8 @@ type Fpdf struct {
 		// Composite values of colors
 		draw, fill, text colorType
 	}
-	spotColorMap map[string]spotColorType // Map of named ink-based colors
+	spotColorMap           map[string]spotColorType // Map of named ink-based colors
+	userUnderlineThickness float64                  // A custom user underline thickness multiplier.
 }
 
 type encType struct {

@@ -46,6 +46,7 @@ var gl struct {
 	catalogSort  bool
 	noCompress   bool // Initial zero value indicates compression
 	creationDate time.Time
+	modDate      time.Time
 }
 
 type fmtBuffer struct {
@@ -94,6 +95,8 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.pageLinks = append(f.pageLinks, make([]linkType, 0, 0)) // pageLinks[0] is unused (1-based)
 	f.links = make([]intLinkType, 0, 8)
 	f.links = append(f.links, intLinkType{}) // links[0] is unused (1-based)
+	f.pageAttachments = make([][]annotationAttach, 0, 8)
+	f.pageAttachments = append(f.pageAttachments, []annotationAttach{}) //
 	f.aliasMap = make(map[string]string)
 	f.inHeader = false
 	f.inFooter = false
@@ -102,6 +105,7 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.fontStyle = ""
 	f.SetFontSize(12)
 	f.underline = false
+	f.strikeout = false
 	f.setDrawColor(0, 0, 0)
 	f.setFillColor(0, 0, 0)
 	f.setTextColor(0, 0, 0)
@@ -198,9 +202,12 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.gradientList = append(f.gradientList, gradientType{}) // gradientList[0] is unused
 	// Set default PDF version number
 	f.pdfVersion = "1.3"
+	f.SetProducer("FPDF "+cnFpdfVersion, true)
 	f.layerInit()
 	f.catalogSort = gl.catalogSort
 	f.creationDate = gl.creationDate
+	f.modDate = gl.modDate
+	f.userUnderlineThickness = 1
 	return
 }
 
@@ -559,6 +566,15 @@ func (f *Fpdf) SetCompression(compress bool) {
 	f.compress = compress
 }
 
+// SetProducer defines the producer of the document. isUTF8 indicates if the string
+// is encoded in ISO-8859-1 (false) or UTF-8 (true).
+func (f *Fpdf) SetProducer(producerStr string, isUTF8 bool) {
+	if isUTF8 {
+		producerStr = utf8toutf16(producerStr)
+	}
+	f.producer = producerStr
+}
+
 // SetTitle defines the title of the document. isUTF8 indicates if the string
 // is encoded in ISO-8859-1 (false) or UTF-8 (true).
 func (f *Fpdf) SetTitle(titleStr string, isUTF8 bool) {
@@ -714,6 +730,9 @@ func (f *Fpdf) AddPageFormat(orientationStr string, size SizeType) {
 	style := f.fontStyle
 	if f.underline {
 		style += "U"
+	}
+	if f.strikeout {
+		style += "S"
 	}
 	fontsize := f.fontSizePt
 	lw := f.lineWidth
@@ -1103,6 +1122,43 @@ func (f *Fpdf) Rect(x, y, w, h float64, styleStr string) {
 	f.outf("%.2f %.2f %.2f %.2f re %s", x*f.k, (f.h-y)*f.k, w*f.k, -h*f.k, fillDrawOp(styleStr))
 }
 
+// RoundedRect outputs a rectangle of width w and height h with the upper left
+// corner positioned at point (x, y). It can be drawn (border only), filled
+// (with no border) or both. styleStr can be "F" for filled, "D" for outlined
+// only, or "DF" or "FD" for outlined and filled. An empty string will be
+// replaced with "D". Drawing uses the current draw color and line width
+// centered on the rectangle's perimeter. Filling uses the current fill color.
+// The rounded corners of the rectangle are specified by radius r. corners is a
+// string that includes "1" to round the upper left corner, "2" to round the
+// upper right corner, "3" to round the lower right corner, and "4" to round
+// the lower left corner. The RoundedRect example demonstrates this method.
+func (f *Fpdf) RoundedRect(x, y, w, h, r float64, corners string, stylestr string) {
+	// This routine was adapted by Brigham Thompson from a script by Christophe Prugnaud
+	var rTL, rTR, rBR, rBL float64 // zero means no rounded corner
+	if strings.Contains(corners, "1") {
+		rTL = r
+	}
+	if strings.Contains(corners, "2") {
+		rTR = r
+	}
+	if strings.Contains(corners, "3") {
+		rBR = r
+	}
+	if strings.Contains(corners, "4") {
+		rBL = r
+	}
+	f.RoundedRectExt(x, y, w, h, rTL, rTR, rBR, rBL, stylestr)
+}
+
+// RoundedRectExt behaves the same as RoundedRect() but supports a different
+// radius for each corner. A zero radius means squared corner. See
+// RoundedRect() for more details. This method is demonstrated in the
+// RoundedRect() example.
+func (f *Fpdf) RoundedRectExt(x, y, w, h, rTL, rTR, rBR, rBL float64, stylestr string) {
+	f.roundedRectPath(x, y, w, h, rTL, rTR, rBR, rBL)
+	f.out(fillDrawOp(stylestr))
+}
+
 // Circle draws a circle centered on point (x, y) with radius r.
 //
 // styleStr can be "F" for filled, "D" for outlined only, or "DF" or "FD" for
@@ -1429,28 +1485,51 @@ func (f *Fpdf) clipArc(x1, y1, x2, y2, x3, y3 float64) {
 //
 // This ClipText() example demonstrates this method.
 func (f *Fpdf) ClipRoundedRect(x, y, w, h, r float64, outline bool) {
+	f.ClipRoundedRectExt(x, y, w, h, r, r, r, r, outline)
+}
+
+// ClipRoundedRectExt behaves the same as ClipRoundedRect() but supports a
+// different radius for each corner, given by rTL (top-left), rTR (top-right)
+// rBR (bottom-right), rBL (bottom-left). See ClipRoundedRect() for more
+// details. This method is demonstrated in the ClipText() example.
+func (f *Fpdf) ClipRoundedRectExt(x, y, w, h, rTL, rTR, rBR, rBL float64, outline bool) {
 	f.clipNest++
+	f.roundedRectPath(x, y, w, h, rTL, rTR, rBR, rBL)
+	f.outf(" W %s", strIf(outline, "S", "n"))
+}
+
+// add a rectangle path with rounded corners.
+// routine shared by RoundedRect() and ClipRoundedRect(), which add the
+// drawing operation
+func (f *Fpdf) roundedRectPath(x, y, w, h, rTL, rTR, rBR, rBL float64) {
 	k := f.k
 	hp := f.h
 	myArc := (4.0 / 3.0) * (math.Sqrt2 - 1.0)
-	f.outf("q %.5f %.5f m", (x+r)*k, (hp-y)*k)
-	xc := x + w - r
-	yc := y + r
+	f.outf("q %.5f %.5f m", (x+rTL)*k, (hp-y)*k)
+	xc := x + w - rTR
+	yc := y + rTR
 	f.outf("%.5f %.5f l", xc*k, (hp-y)*k)
-	f.clipArc(xc+r*myArc, yc-r, xc+r, yc-r*myArc, xc+r, yc)
-	xc = x + w - r
-	yc = y + h - r
+	if rTR != 0 {
+		f.clipArc(xc+rTR*myArc, yc-rTR, xc+rTR, yc-rTR*myArc, xc+rTR, yc)
+	}
+	xc = x + w - rBR
+	yc = y + h - rBR
 	f.outf("%.5f %.5f l", (x+w)*k, (hp-yc)*k)
-	f.clipArc(xc+r, yc+r*myArc, xc+r*myArc, yc+r, xc, yc+r)
-	xc = x + r
-	yc = y + h - r
+	if rBR != 0 {
+		f.clipArc(xc+rBR, yc+rBR*myArc, xc+rBR*myArc, yc+rBR, xc, yc+rBR)
+	}
+	xc = x + rBL
+	yc = y + h - rBL
 	f.outf("%.5f %.5f l", xc*k, (hp-(y+h))*k)
-	f.clipArc(xc-r*myArc, yc+r, xc-r, yc+r*myArc, xc-r, yc)
-	xc = x + r
-	yc = y + r
+	if rBL != 0 {
+		f.clipArc(xc-rBL*myArc, yc+rBL, xc-rBL, yc+rBL*myArc, xc-rBL, yc)
+	}
+	xc = x + rTL
+	yc = y + rTL
 	f.outf("%.5f %.5f l", x*k, (hp-yc)*k)
-	f.clipArc(xc-r, yc-r*myArc, xc-r*myArc, yc-r, xc, yc-r)
-	f.outf(" W %s", strIf(outline, "S", "n"))
+	if rTL != 0 {
+		f.clipArc(xc-rTL, yc-rTL*myArc, xc-rTL*myArc, yc-rTL, xc, yc-rTL)
+	}
 }
 
 // ClipEllipse begins an elliptical clipping operation. The ellipse is centered
@@ -1562,7 +1641,7 @@ func (f *Fpdf) ClipEnd() {
 // definition file to be added. The file will be loaded from the font directory
 // specified in the call to New() or SetFontLocation().
 func (f *Fpdf) AddFont(familyStr, styleStr, fileStr string) {
-	f.addFont(familyStr, styleStr, fileStr, false)
+	f.addFont(fontFamilyEscape(familyStr), styleStr, fileStr, false)
 }
 
 // AddUTF8Font imports a TrueType font with utf-8 symbols and makes it available.
@@ -1586,7 +1665,7 @@ func (f *Fpdf) AddFont(familyStr, styleStr, fileStr string) {
 // definition file to be added. The file will be loaded from the font directory
 // specified in the call to New() or SetFontLocation().
 func (f *Fpdf) AddUTF8Font(familyStr, styleStr, fileStr string) {
-	f.addFont(familyStr, styleStr, fileStr, true)
+	f.addFont(fontFamilyEscape(familyStr), styleStr, fileStr, true)
 }
 
 func (f *Fpdf) addFont(familyStr, styleStr, fileStr string, isUTF8 bool) {
@@ -1712,7 +1791,7 @@ func makeSubsetRange(end int) map[int]int {
 //
 // zFileBytes contain all bytes of Z file.
 func (f *Fpdf) AddFontFromBytes(familyStr, styleStr string, jsonFileBytes, zFileBytes []byte) {
-	f.addFontFromBytes(familyStr, styleStr, jsonFileBytes, zFileBytes, nil)
+	f.addFontFromBytes(fontFamilyEscape(familyStr), styleStr, jsonFileBytes, zFileBytes, nil)
 }
 
 // AddUTF8FontFromBytes  imports a TrueType font with utf-8 symbols from static
@@ -1731,7 +1810,7 @@ func (f *Fpdf) AddFontFromBytes(familyStr, styleStr string, jsonFileBytes, zFile
 //
 // zFileBytes contain all bytes of Z file.
 func (f *Fpdf) AddUTF8FontFromBytes(familyStr, styleStr string, utf8Bytes []byte) {
-	f.addFontFromBytes(familyStr, styleStr, nil, nil, utf8Bytes)
+	f.addFontFromBytes(fontFamilyEscape(familyStr), styleStr, nil, nil, utf8Bytes)
 }
 
 func (f *Fpdf) addFontFromBytes(familyStr, styleStr string, jsonFileBytes, zFileBytes, utf8Bytes []byte) {
@@ -1870,6 +1949,7 @@ func (f *Fpdf) AddFontFromReader(familyStr, styleStr string, r io.Reader) {
 		return
 	}
 	// dbg("Adding family [%s], style [%s]", familyStr, styleStr)
+	familyStr = fontFamilyEscape(familyStr)
 	var ok bool
 	fontkey := getFontKey(familyStr, styleStr)
 	_, ok = f.fonts[fontkey]
@@ -1918,7 +1998,7 @@ func (f *Fpdf) GetFontDesc(familyStr, styleStr string) FontDescType {
 	if familyStr == "" {
 		return f.currentFont.Desc
 	}
-	return f.fonts[getFontKey(familyStr, styleStr)].Desc
+	return f.fonts[getFontKey(fontFamilyEscape(familyStr), styleStr)].Desc
 }
 
 // SetFont sets the font used to print character strings. It is mandatory to
@@ -1941,9 +2021,9 @@ func (f *Fpdf) GetFontDesc(familyStr, styleStr string) FontDescType {
 // insensitive): "Courier" for fixed-width, "Helvetica" or "Arial" for sans
 // serif, "Times" for serif, "Symbol" or "ZapfDingbats" for symbolic.
 //
-// styleStr can be "B" (bold), "I" (italic), "U" (underscore) or any
-// combination. The default value (specified with an empty string) is regular.
-// Bold and italic styles do not apply to Symbol and ZapfDingbats.
+// styleStr can be "B" (bold), "I" (italic), "U" (underscore), "S" (strike-out)
+// or any combination. The default value (specified with an empty string) is
+// regular. Bold and italic styles do not apply to Symbol and ZapfDingbats.
 //
 // size is the font size measured in points. The default value is the current
 // size. If no size has been specified since the beginning of the document, the
@@ -1955,6 +2035,7 @@ func (f *Fpdf) SetFont(familyStr, styleStr string, size float64) {
 		return
 	}
 	// dbg("SetFont")
+	familyStr = fontFamilyEscape(familyStr)
 	var ok bool
 	if familyStr == "" {
 		familyStr = f.fontFamily
@@ -1965,6 +2046,10 @@ func (f *Fpdf) SetFont(familyStr, styleStr string, size float64) {
 	f.underline = strings.Contains(styleStr, "U")
 	if f.underline {
 		styleStr = strings.Replace(styleStr, "U", "", -1)
+	}
+	f.strikeout = strings.Contains(styleStr, "S")
+	if f.strikeout {
+		styleStr = strings.Replace(styleStr, "S", "", -1)
 	}
 	if styleStr == "IB" {
 		styleStr = "BI"
@@ -2110,6 +2195,9 @@ func (f *Fpdf) Bookmark(txtStr string, level int, y float64) {
 	if y == -1 {
 		y = f.y
 	}
+	if f.isCurrentUTF8 {
+		txtStr = utf8toutf16(txtStr)
+	}
 	f.outlines = append(f.outlines, outlineType{text: txtStr, level: level, y: y, p: f.PageNo(), prev: -1, last: -1, next: -1, first: -1})
 }
 
@@ -2135,6 +2223,9 @@ func (f *Fpdf) Text(x, y float64, txtStr string) {
 	if f.underline && txtStr != "" {
 		s += " " + f.dounderline(x, y, txtStr)
 	}
+	if f.strikeout && txtStr != "" {
+		s += " " + f.dostrikeout(x, y, txtStr)
+	}
 	if f.colorFlag {
 		s = sprintf("q %s %s Q", f.color.text.str, s)
 	}
@@ -2145,6 +2236,23 @@ func (f *Fpdf) Text(x, y float64, txtStr string) {
 // WriteAligned() example for a demonstration of its use.
 func (f *Fpdf) SetWordSpacing(space float64) {
 	f.out(sprintf("%.5f Tw", space*f.k))
+}
+
+// SetTextRenderingMode sets the rendering mode of following text.
+// The mode can be as follows:
+// 0: Fill text
+// 1: Stroke text
+// 2: Fill, then stroke text
+// 3: Neither fill nor stroke text (invisible)
+// 4: Fill text and add to path for clipping
+// 5: Stroke text and add to path for clipping
+// 6: Fills then stroke text and add to path for clipping
+// 7: Add text to path for clipping
+// This method is demonstrated in the SetTextRenderingMode example.
+func (f *Fpdf) SetTextRenderingMode(mode int) {
+	if mode >= 0 && mode <= 7 {
+		f.out(sprintf("%d Tr", mode))
+	}
 }
 
 // SetAcceptPageBreakFunc allows the application to control where page breaks
@@ -2359,6 +2467,9 @@ func (f *Fpdf) CellFormat(w, h float64, txtStr, borderStr string, ln int,
 		if f.underline {
 			s.printf(" %s", f.dounderline(f.x+dx, f.y+dy+.5*h+.3*f.fontSize, txtStr))
 		}
+		if f.strikeout {
+			s.printf(" %s", f.dostrikeout(f.x+dx, f.y+dy+.5*h+.3*f.fontSize, txtStr))
+		}
 		if f.colorFlag {
 			s.printf(" Q")
 		}
@@ -2395,7 +2506,7 @@ func reverseText(text string) string {
 }
 
 // Cell is a simpler version of CellFormat with no fill, border, links or
-// special alignment.
+// special alignment. The Cell_strikeout() example demonstrates this method.
 func (f *Fpdf) Cell(w, h float64, txtStr string) {
 	f.CellFormat(w, h, txtStr, "", 0, "L", false, 0, "")
 }
@@ -2475,7 +2586,19 @@ func (f *Fpdf) SplitLines(txt []byte, w float64) [][]byte {
 // the right margin.
 //
 // h indicates the line height of each cell in the unit of measure specified in New().
+//
+// Note: this method has a known bug that treats UTF-8 fonts differently than
+// non-UTF-8 fonts. With UTF-8 fonts, all trailing newlines in txtStr are
+// removed. With a non-UTF-8 font, if txtStr has one or more trailing newlines,
+// only the last is removed. In the next major module version, the UTF-8 logic
+// will be changed to match the non-UTF-8 logic. To prepare for that change,
+// applications that use UTF-8 fonts and depend on having all trailing newlines
+// removed should call strings.TrimRight(txtStr, "\r\n") before calling this
+// method.
 func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill bool) {
+	if f.err != nil {
+		return
+	}
 	// dbg("MultiCell")
 	if alignStr == "" {
 		alignStr = "J"
@@ -2486,20 +2609,31 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 	}
 	wmax := int(math.Ceil((w - 2*f.cMargin) * 1000 / f.fontSize))
 	s := strings.Replace(txtStr, "\r", "", -1)
+	srune := []rune(s)
 
+	// remove extra line breaks
 	var nb int
 	if f.isCurrentUTF8 {
-		nb = len([]rune(s))
-		for nb > 0 && []rune(s)[nb-1] == '\n' {
+		nb = len(srune)
+		for nb > 0 && srune[nb-1] == '\n' {
 			nb--
-			s = string([]rune(s)[0:nb])
 		}
+		srune = srune[0:nb]
 	} else {
 		nb = len(s)
-		if nb > 0 && []byte(s)[nb-1] == '\n' {
+		bytes2 := []byte(s)
+
+		// for nb > 0 && bytes2[nb-1] == '\n' {
+
+		// Prior to August 2019, if s ended with a newline, this code stripped it.
+		// After that date, to be compatible with the UTF-8 code above, *all*
+		// trailing newlines were removed. Because this regression caused at least
+		// one application to break (see issue #333), the original behavior has been
+		// reinstated with a caveat included in the documentation.
+		if nb > 0 && bytes2[nb-1] == '\n' {
 			nb--
-			s = s[0:nb]
 		}
+		s = s[0:nb]
 	}
 	// dbg("[%s]\n", s)
 	var b, b2 string
@@ -2535,9 +2669,9 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 		// Get next character
 		var c rune
 		if f.isCurrentUTF8 {
-			c = []rune(s)[i]
+			c = srune[i]
 		} else {
-			c = rune([]byte(s)[i])
+			c = rune(s[i])
 		}
 		if c == '\n' {
 			// Explicit line break
@@ -2555,7 +2689,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 						newAlignStr = "L"
 					}
 				}
-				f.CellFormat(w, h, string([]rune(s)[j:i]), b, 2, newAlignStr, fill, 0, "")
+				f.CellFormat(w, h, string(srune[j:i]), b, 2, newAlignStr, fill, 0, "")
 			} else {
 				f.CellFormat(w, h, s[j:i], b, 2, alignStr, fill, 0, "")
 			}
@@ -2570,10 +2704,14 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 			}
 			continue
 		}
-		if c == ' ' {
+		if c == ' ' || isChinese(c) {
 			sep = i
 			ls = l
 			ns++
+		}
+		if int(c) >= len(cw) {
+			f.err = fmt.Errorf("character outside the supported range: %s", string(c))
+			return
 		}
 		if cw[int(c)] == 0 { //Marker width 0 used for missing symbols
 			l += f.currentFont.Desc.MissingWidth
@@ -2591,7 +2729,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 					f.out("0 Tw")
 				}
 				if f.isCurrentUTF8 {
-					f.CellFormat(w, h, string([]rune(s)[j:i]), b, 2, alignStr, fill, 0, "")
+					f.CellFormat(w, h, string(srune[j:i]), b, 2, alignStr, fill, 0, "")
 				} else {
 					f.CellFormat(w, h, s[j:i], b, 2, alignStr, fill, 0, "")
 				}
@@ -2605,7 +2743,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 					f.outf("%.3f Tw", f.ws*f.k)
 				}
 				if f.isCurrentUTF8 {
-					f.CellFormat(w, h, string([]rune(s)[j:sep]), b, 2, alignStr, fill, 0, "")
+					f.CellFormat(w, h, string(srune[j:sep]), b, 2, alignStr, fill, 0, "")
 				} else {
 					f.CellFormat(w, h, s[j:sep], b, 2, alignStr, fill, 0, "")
 				}
@@ -2639,7 +2777,7 @@ func (f *Fpdf) MultiCell(w, h float64, txtStr, borderStr, alignStr string, fill 
 				alignStr = ""
 			}
 		}
-		f.CellFormat(w, h, string([]rune(s)[j:i]), b, 2, alignStr, fill, 0, "")
+		f.CellFormat(w, h, string(srune[j:i]), b, 2, alignStr, fill, 0, "")
 	} else {
 		f.CellFormat(w, h, s[j:i], b, 2, alignStr, fill, 0, "")
 	}
@@ -2674,7 +2812,7 @@ func (f *Fpdf) write(h float64, txtStr string, link int, linkStr string) {
 		if f.isCurrentUTF8 {
 			c = []rune(s)[i]
 		} else {
-			c = rune([]byte(s)[i])
+			c = rune(byte(s[i]))
 		}
 		if c == '\n' {
 			// Explicit line break
@@ -2797,12 +2935,20 @@ func (f *Fpdf) WriteLinkID(h float64, displayStr string, linkID int) {
 func (f *Fpdf) WriteAligned(width, lineHeight float64, textStr, alignStr string) {
 	lMargin, _, rMargin, _ := f.GetMargins()
 
+	pageWidth, _ := f.GetPageSize()
 	if width == 0 {
-		pageWidth, _ := f.GetPageSize()
 		width = pageWidth - (lMargin + rMargin)
 	}
 
-	lines := f.SplitLines([]byte(textStr), width)
+	var lines []string
+
+	if f.isCurrentUTF8 {
+		lines = f.SplitText(textStr, width)
+	} else {
+		for _, line := range f.SplitLines([]byte(textStr), width) {
+			lines = append(lines, string(line))
+		}
+	}
 
 	for _, lineBt := range lines {
 		lineStr := string(lineBt)
@@ -2818,7 +2964,9 @@ func (f *Fpdf) WriteAligned(width, lineHeight float64, textStr, alignStr string)
 			f.Write(lineHeight, lineStr)
 			f.SetLeftMargin(lMargin)
 		default:
+			f.SetRightMargin(pageWidth - lMargin - width)
 			f.Write(lineHeight, lineStr)
+			f.SetRightMargin(rMargin)
 		}
 	}
 }
@@ -3174,12 +3322,14 @@ func (f *Fpdf) putImportedTemplates() {
 	}
 }
 
-// UseImportedTemplate uses imported template from gofpdi - draws imported PDF page onto page
+// UseImportedTemplate uses imported template from gofpdi. It draws imported
+// PDF page onto page.
 func (f *Fpdf) UseImportedTemplate(tplName string, scaleX float64, scaleY float64, tX float64, tY float64) {
 	f.outf("q 0 J 1 w 0 j 0 G 0 g q %.4F 0 0 %.4F %.4F %.4F cm %s Do Q Q\n", scaleX*f.k, scaleY*f.k, tX*f.k, (tY+f.h)*f.k, tplName)
 }
 
-// ImportTemplates imports gofpdi template names into importedTplObjs - to be included in the procset dictionary
+// ImportTemplates imports gofpdi template names into importedTplObjs for
+// inclusion in the procset dictionary
 func (f *Fpdf) ImportTemplates(tpls map[string]string) {
 	for tplName, tplID := range tpls {
 		f.importedTplObjs[tplName] = tplID
@@ -3368,6 +3518,7 @@ func (f *Fpdf) beginpage(orientationStr string, size SizeType) {
 	}
 	f.pages = append(f.pages, bytes.NewBufferString(""))
 	f.pageLinks = append(f.pageLinks, make([]linkType, 0, 0))
+	f.pageAttachments = append(f.pageAttachments, []annotationAttach{})
 	f.state = 2
 	f.x = f.lMargin
 	f.y = f.tMargin
@@ -3458,13 +3609,27 @@ func blankCount(str string) (count int) {
 	return
 }
 
+// SetUnderlineThickness accepts a multiplier for adjusting the text underline
+// thickness, defaulting to 1. See SetUnderlineThickness example.
+func (f *Fpdf) SetUnderlineThickness(thickness float64) {
+	f.userUnderlineThickness = thickness
+}
+
 // Underline text
 func (f *Fpdf) dounderline(x, y float64, txt string) string {
+	up := float64(f.currentFont.Up)
+	ut := float64(f.currentFont.Ut) * f.userUnderlineThickness
+	w := f.GetStringWidth(txt) + f.ws*float64(blankCount(txt))
+	return sprintf("%.2f %.2f %.2f %.2f re f", x*f.k,
+		(f.h-(y-up/1000*f.fontSize))*f.k, w*f.k, -ut/1000*f.fontSizePt)
+}
+
+func (f *Fpdf) dostrikeout(x, y float64, txt string) string {
 	up := float64(f.currentFont.Up)
 	ut := float64(f.currentFont.Ut)
 	w := f.GetStringWidth(txt) + f.ws*float64(blankCount(txt))
 	return sprintf("%.2f %.2f %.2f %.2f re f", x*f.k,
-		(f.h-(y-up/1000*f.fontSize))*f.k, w*f.k, -ut/1000*f.fontSizePt)
+		(f.h-(y+4*up/1000*f.fontSize))*f.k, w*f.k, -ut/1000*f.fontSizePt)
 }
 
 func bufEqual(buf []byte, str string) bool {
@@ -3651,6 +3816,13 @@ func SetDefaultCreationDate(tm time.Time) {
 	gl.creationDate = tm
 }
 
+// SetDefaultModificationDate sets the default value of the document modification date
+// that will be used when initializing a new Fpdf instance. See
+// SetCreationDate() for more details.
+func SetDefaultModificationDate(tm time.Time) {
+	gl.modDate = tm
+}
+
 // SetCreationDate fixes the document's internal CreationDate value. By
 // default, the time when the document is generated is used for this value.
 // This method is typically only used for testing purposes to facilitate PDF
@@ -3659,26 +3831,44 @@ func (f *Fpdf) SetCreationDate(tm time.Time) {
 	f.creationDate = tm
 }
 
+// SetModificationDate fixes the document's internal ModDate value.
+// See `SetCreationDate` for more details.
+func (f *Fpdf) SetModificationDate(tm time.Time) {
+	f.modDate = tm
+}
+
 // SetJavascript adds Adobe JavaScript to the document.
 func (f *Fpdf) SetJavascript(script string) {
 	f.javascript = &script
 }
 
 // RegisterAlias adds an (alias, replacement) pair to the document so we can
-// replace all occurrences of that alias after writing but before the
-// document is closed.
+// replace all occurrences of that alias after writing but before the document
+// is closed. Functions ExampleFpdf_RegisterAlias() and
+// ExampleFpdf_RegisterAlias_utf8() in fpdf_test.go demonstrate this method.
 func (f *Fpdf) RegisterAlias(alias, replacement string) {
+	// Note: map[string]string assignments embed literal escape ("\00") sequences
+	// into utf16 key and value strings. Consequently, subsequent search/replace
+	// operations will fail unexpectedly if utf8toutf16() conversions take place
+	// here. Instead, conversions are deferred until the actual search/replace
+	// operation takes place when the PDF output is generated.
 	f.aliasMap[alias] = replacement
 }
 
 func (f *Fpdf) replaceAliases() {
-	for alias, replacement := range f.aliasMap {
-		for n := 1; n <= f.page; n++ {
-			s := f.pages[n].String()
-			if strings.Contains(s, alias) {
-				s = strings.Replace(s, alias, replacement, -1)
-				f.pages[n].Truncate(0)
-				f.pages[n].WriteString(s)
+	for mode := 0; mode < 2; mode++ {
+		for alias, replacement := range f.aliasMap {
+			if mode == 1 {
+				alias = utf8toutf16(alias, false)
+				replacement = utf8toutf16(replacement, false)
+			}
+			for n := 1; n <= f.page; n++ {
+				s := f.pages[n].String()
+				if strings.Contains(s, alias) {
+					s = strings.Replace(s, alias, replacement, -1)
+					f.pages[n].Truncate(0)
+					f.pages[n].WriteString(s)
+				}
 			}
 		}
 	}
@@ -3687,14 +3877,10 @@ func (f *Fpdf) replaceAliases() {
 func (f *Fpdf) putpages() {
 	var wPt, hPt float64
 	var pageSize SizeType
-	// var linkList []linkType
 	var ok bool
 	nb := f.page
 	if len(f.aliasNbPagesStr) > 0 {
 		// Replace number of pages
-		alias := utf8toutf16(f.aliasNbPagesStr, false)
-		r := utf8toutf16(sprintf("%d", nb), false)
-		f.RegisterAlias(alias, r)
 		f.RegisterAlias(f.aliasNbPagesStr, sprintf("%d", nb))
 	}
 	f.replaceAliases()
@@ -3705,9 +3891,11 @@ func (f *Fpdf) putpages() {
 		wPt = f.defPageSize.Ht * f.k
 		hPt = f.defPageSize.Wd * f.k
 	}
+	pagesObjectNumbers := make([]int, nb+1) // 1-based
 	for n := 1; n <= nb; n++ {
 		// Page
 		f.newobj()
+		pagesObjectNumbers[n] = f.n // save for /Kids
 		f.out("<</Type /Page")
 		f.out("/Parent 1 0 R")
 		pageSize, ok = f.pageSizes[n]
@@ -3719,7 +3907,7 @@ func (f *Fpdf) putpages() {
 		}
 		f.out("/Resources 2 0 R")
 		// Links
-		if len(f.pageLinks[n]) > 0 {
+		if len(f.pageLinks[n])+len(f.pageAttachments[n]) > 0 {
 			var annots fmtBuffer
 			annots.printf("/Annots [")
 			for _, pl := range f.pageLinks[n] {
@@ -3741,6 +3929,7 @@ func (f *Fpdf) putpages() {
 					annots.printf("/Dest [%d 0 R /XYZ 0 %.2f null]>>", 1+2*l.page, h-l.y*f.k)
 				}
 			}
+			f.putAttachmentAnnotationLinks(&annots, n)
 			annots.printf("]")
 			f.out(annots.String())
 		}
@@ -3767,8 +3956,8 @@ func (f *Fpdf) putpages() {
 	f.out("<</Type /Pages")
 	var kids fmtBuffer
 	kids.printf("/Kids [")
-	for i := 0; i < nb; i++ {
-		kids.printf("%d 0 R ", 3+2*i)
+	for i := 1; i <= nb; i++ {
+		kids.printf("%d 0 R ", pagesObjectNumbers[i])
 	}
 	kids.printf("]")
 	f.out(kids.String())
@@ -3919,7 +4108,7 @@ func (f *Fpdf) putfonts() {
 				fontName := "utf8" + font.Name
 				usedRunes := font.usedRunes
 				delete(usedRunes, 0)
-				utf8FontStream := font.utf8File.GenerateСutFont(usedRunes)
+				utf8FontStream := font.utf8File.GenerateCutFont(usedRunes)
 				utf8FontSize := len(utf8FontStream)
 				compressedFontStream := sliceCompress(utf8FontStream)
 				CodeSignDictionary := font.utf8File.CodeSymbolDictionary
@@ -4128,6 +4317,7 @@ func implode(sep string, arr []int) string {
 	return s.String()
 }
 
+// arrayCountValues counts the occurrences of each item in the $mp array.
 func arrayCountValues(mp []int) map[int]int {
 	answer := make(map[int]int)
 	for _, v := range mp {
@@ -4156,11 +4346,31 @@ func (f *Fpdf) putimages() {
 	for key = range f.images {
 		keyList = append(keyList, key)
 	}
+
+	// Sort the keyList []string by the corresponding image's width.
 	if f.catalogSort {
 		sort.SliceStable(keyList, func(i, j int) bool { return f.images[keyList[i]].w < f.images[keyList[j]].w })
 	}
+
+	// Maintain a list of inserted image SHA-1 hashes, with their
+	// corresponding object ID number.
+	insertedImages := map[string]int{}
+
 	for _, key = range keyList {
-		f.putimage(f.images[key])
+		image := f.images[key]
+
+		// Check if this image has already been inserted using it's SHA-1 hash.
+		insertedImageObjN, isFound := insertedImages[image.i]
+
+		// If found, skip inserting the image as a new object, and
+		// use the object ID from the insertedImages map.
+		// If not, insert the image into the PDF and store the object ID.
+		if isFound {
+			image.n = insertedImageObjN
+		} else {
+			f.putimage(image)
+			insertedImages[image.i] = image.n
+		}
 	}
 }
 
@@ -4404,9 +4614,18 @@ func (f *Fpdf) putresources() {
 	return
 }
 
+// returns Now() if tm is zero
+func timeOrNow(tm time.Time) time.Time {
+	if tm.IsZero() {
+		return time.Now()
+	}
+	return tm
+}
+
 func (f *Fpdf) putinfo() {
-	var tm time.Time
-	f.outf("/Producer %s", f.textstring("FPDF "+cnFpdfVersion))
+	if len(f.producer) > 0 {
+		f.outf("/Producer %s", f.textstring(f.producer))
+	}
 	if len(f.title) > 0 {
 		f.outf("/Title %s", f.textstring(f.title))
 	}
@@ -4422,12 +4641,10 @@ func (f *Fpdf) putinfo() {
 	if len(f.creator) > 0 {
 		f.outf("/Creator %s", f.textstring(f.creator))
 	}
-	if f.creationDate.IsZero() {
-		tm = time.Now()
-	} else {
-		tm = f.creationDate
-	}
-	f.outf("/CreationDate %s", f.textstring("D:"+tm.Format("20060102150405")))
+	creation := timeOrNow(f.creationDate)
+	f.outf("/CreationDate %s", f.textstring("D:"+creation.Format("20060102150405")))
+	mod := timeOrNow(f.modDate)
+	f.outf("/ModDate %s", f.textstring("D:"+mod.Format("20060102150405")))
 }
 
 func (f *Fpdf) putcatalog() {
@@ -4465,10 +4682,17 @@ func (f *Fpdf) putcatalog() {
 	}
 	// Layers
 	f.layerPutCatalog()
+	// Name dictionary :
+	//	-> Javascript
+	//	-> Embedded files
+	f.out("/Names <<")
 	// JavaScript
 	if f.javascript != nil {
-		f.outf("/Names <</JavaScript %d 0 R>>", f.nJs)
+		f.outf("/JavaScript %d 0 R", f.nJs)
 	}
+	// Embedded files
+	f.outf("/EmbeddedFiles %s", f.getEmbeddedFiles())
+	f.out(">>")
 }
 
 func (f *Fpdf) putheader() {
@@ -4557,6 +4781,9 @@ func (f *Fpdf) enddoc() {
 	}
 	f.layerEndDoc()
 	f.putheader()
+	// Embedded files
+	f.putAttachments()
+	f.putAnnotationsAttachments()
 	f.putpages()
 	f.putresources()
 	if f.err != nil {

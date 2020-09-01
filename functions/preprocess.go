@@ -1,7 +1,8 @@
 package functions
 
 import (
-	"github.com/aaronland/go-image-tools/halftone"
+	"context"
+	"github.com/aaronland/go-image-halftone"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
@@ -71,6 +72,8 @@ func RotatePreProcessFunc(path string) (string, error) {
 
 func HalftonePreProcessFunc(path string) (string, error) {
 
+	ctx := context.Background()
+
 	im, format, err := util.DecodeImage(path)
 
 	if err != nil {
@@ -78,7 +81,7 @@ func HalftonePreProcessFunc(path string) (string, error) {
 	}
 
 	opts := halftone.NewDefaultHalftoneOptions()
-	dithered, err := halftone.Halftone(im, opts)
+	dithered, err := halftone.HalftoneImage(ctx, im, opts)
 
 	if err != nil {
 		return "", err

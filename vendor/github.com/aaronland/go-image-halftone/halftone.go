@@ -3,6 +3,7 @@ package halftone
 // https://maxhalford.github.io/blog/halftoning-1/
 
 import (
+	"context"
 	"errors"
 	"github.com/MaxHalford/halfgone"
 	"github.com/nfnt/resize"
@@ -14,9 +15,9 @@ type HalftoneOptions struct {
 	ScaleFactor float64
 }
 
-func NewDefaultHalftoneOptions() HalftoneOptions {
+func NewDefaultHalftoneOptions() *HalftoneOptions {
 
-	opts := HalftoneOptions{
+	opts := &HalftoneOptions{
 		Mode:        "atkinson",
 		ScaleFactor: 2.0,
 	}
@@ -24,7 +25,7 @@ func NewDefaultHalftoneOptions() HalftoneOptions {
 	return opts
 }
 
-func Halftone(im image.Image, opts HalftoneOptions) (image.Image, error) {
+func HalftoneImage(ctx context.Context, im image.Image, opts *HalftoneOptions) (image.Image, error) {
 
 	dims := im.Bounds()
 	w := uint(dims.Max.X)
