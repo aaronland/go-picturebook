@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -64,23 +66,46 @@ func FilenameAndParentCaptionFunc(ctx context.Context, path string) (string, err
 
 func OrThisCaptionFunc(ctx context.Context, path string) (string, error) {
 
-	fname := filepath.Base(path)
-	pat := "-or-this.jpg"
+	log.Println(path)
 
-	if !strings.HasSuffix(fname, pat) {
-		return "", nil
-	}
+	// 1713123275_UX0eXIRbF8fXzrX0nlAqYVl3m0hMsV08_o.jpg
 
-	ymd := strings.Replace(fname, pat, "", -1)
-
-	tm, err := time.Parse("2006-01-02", ymd)
+	pat, err := regexp.Compile(`^\d+_[a-zA-Z0-9]+_o\.jpg$`)
 
 	if err != nil {
+		return "", err
+	}
+
+	fname := filepath.Base(path)
+
+	if !pat.MatchString(fname) {
 		return "", nil
 	}
 
-	dt := tm.Format("January 02 2006")
-	caption := fmt.Sprintf("%s / or this...", strings.ToLower(dt))
+	root := filepath.Dir(path)
+	index := filepath.Join(root, "index.json")
+
+	fh, err := os.Open(index)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer fh.Close()
+
+	body, err := ioutil.ReadAll(fh)
+
+	if err != nil {
+		return "", err
+	}
+
+	caption := fmt.Sprintf("untitled ...")
+
+	caption_rsp := gjson.GetBytes(body, "caption")
+
+	if caption_rsp.Exists() {
+		caption = caption_rsp.String()
+	}
 
 	return caption, nil
 }

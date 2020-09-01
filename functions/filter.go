@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
-	_ "log"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -40,13 +40,21 @@ func DefaultFilterFunc(ctx context.Context, path string) (bool, error) {
 
 func OrThisFilterFunc(ctx context.Context, path string) (bool, error) {
 
-	fname := filepath.Base(path)
-	pat := "-or-this.jpg"
+	// 1713123275_UX0eXIRbF8fXzrX0nlAqYVl3m0hMsV08_o.jpg
 
-	if !strings.HasSuffix(fname, pat) {
+	pat, err := regexp.Compile(`^\d+_[a-zA-Z0-9]+_o\.jpg$`)
+
+	if err != nil {
+		return false, err
+	}
+
+	fname := filepath.Base(path)
+
+	if !pat.MatchString(fname) {
 		return false, nil
 	}
 
+	log.Println(path)	
 	return true, nil
 }
 
@@ -58,7 +66,7 @@ func FlickrArchiveFilterFunc(ctx context.Context, path string) (bool, error) {
 		return false, err
 	}
 
-	if !re.Match([]byte(path)) {
+	if !re.MatchString(path) {
 		return false, nil
 	}
 
