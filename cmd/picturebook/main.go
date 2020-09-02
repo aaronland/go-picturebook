@@ -27,6 +27,8 @@ func main() {
 
 func Picturebook() error {
 
+	// available_filters := filter.
+	
 	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
 	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
 	var width = flag.Float64("width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag.")
@@ -36,7 +38,7 @@ func Picturebook() error {
 
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
-	var debug = flag.Bool("debug", false, "...")
+	var verbose = flag.Bool("verbose", false, "Display verbose output as the picturebook is created.")
 
 	var caption_uri = flag.String("caption", "", "...")
 	var filter_uris multi.MultiString
@@ -143,7 +145,7 @@ func Picturebook() error {
 	opts.Height = *height
 	opts.DPI = *dpi
 	opts.Border = *border
-	opts.Debug = *debug
+	opts.Verbose = *verbose
 
 	processed := make([]string, 0)
 

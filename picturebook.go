@@ -29,7 +29,7 @@ type PictureBookOptions struct {
 	Filter      filter.Filter
 	PreProcess  process.Process
 	Caption     caption.Caption
-	Debug       bool
+	Verbose       bool
 }
 
 type PictureBookBorder struct {
@@ -93,7 +93,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Filter:      filter_handler,
 		PreProcess:  process_handler,
 		Caption:     caption_handler,
-		Debug:       false,
+		Verbose:       false,
 	}
 
 	return opts, nil
@@ -238,7 +238,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		err = pb.AddPicture(pagenum, processed_path, caption)
 
-		if err != nil && pb.Options.Debug {
+		if err != nil && pb.Options.Verbose {
 			log.Println("ADD", abs_path, err)
 		}
 
@@ -317,7 +317,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 				return err
 			}
 
-			if pb.Options.Debug {
+			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
 
@@ -347,7 +347,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 	w := float64(dims.Max.X)
 	h := float64(dims.Max.Y)
 
-	if pb.Options.Debug {
+	if pb.Options.Verbose {
 		log.Printf("[%d] %s %02.f x %02.f\n", pagenum, abs_path, w, h)
 	}
 
@@ -364,7 +364,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 	max_w := pb.Canvas.Width
 	max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
 
-	if pb.Options.Debug {
+	if pb.Options.Verbose {
 		log.Printf("[%d] canvas: %0.2f (%0.2f) x %0.2f (%0.2f) image: %0.2f x %0.2f\n", pagenum, max_w, pb.Canvas.Width, max_h, pb.Canvas.Height, w, h)
 	}
 
@@ -410,7 +410,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		y = y + pb.Border.Top
 	}
 
-	if pb.Options.Debug {
+	if pb.Options.Verbose {
 		log.Printf("[%d] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
 	}
 
@@ -465,7 +465,7 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 		txt_x := cur_x
 		txt_y := cur_y + line_h
 
-		if pb.Options.Debug {
+		if pb.Options.Verbose {
 			log.Printf("[%d] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, txt_x, txt_y, txt_w, txt_h)
 		}
 
@@ -498,7 +498,7 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
 		for _, path := range pb.tmpfiles {
 
-			if pb.Options.Debug {
+			if pb.Options.Verbose {
 				log.Println("REMOVE TMPFILE", path)
 			}
 
@@ -506,7 +506,7 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 		}
 	}()
 
-	if pb.Options.Debug {
+	if pb.Options.Verbose {
 		log.Printf("save %s\n", path)
 	}
 
