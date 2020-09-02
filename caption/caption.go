@@ -4,7 +4,16 @@ import (
 	"context"
 	"github.com/aaronland/go-roster"
 	"net/url"
+	"regexp"
 )
+
+var flickr_re *regexp.Regexp
+var orthis_re *regexp.Regexp
+
+func init() {
+	flickr_re = regexp.MustCompile(`o_\.\.*$`)
+	orthis_re = regexp.MustCompile(`^(\d+)_[a-zA-Z0-9]+_o\.jpg$`)
+}
 
 type Caption interface {
 	Text(context.Context, string) (string, error)

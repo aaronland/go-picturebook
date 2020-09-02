@@ -36,7 +36,7 @@ func Picturebook() error {
 
 	var debug = flag.Bool("debug", false, "...")
 
-	var caption_uri = flag.String("caption", "", "...")	
+	var caption_uri = flag.String("caption", "", "...")
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
 
