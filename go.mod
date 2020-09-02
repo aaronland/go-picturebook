@@ -9,5 +9,6 @@ require (
 	github.com/microcosm-cc/exifutil v0.0.0-20140910154058-36de169162e2
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
+	github.com/sfomuseum/go-flags v0.4.1
 	github.com/tidwall/gjson v1.6.1
 )

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flag"
 	"github.com/aaronland/go-picturebook"
-	"github.com/aaronland/go-picturebook/flags"
 	"github.com/aaronland/go-picturebook/functions"
+	"github.com/sfomuseum/go-flags/multi"
 	"log"
 	"os"
 )
@@ -38,9 +38,9 @@ func Picturebook() error {
 
 	var year = flag.Int("year", -1, "...")
 
-	var include flags.RegexpFlag
-	var exclude flags.RegexpFlag
-	var preprocess flags.PreProcessFlag
+	var include multi.MultiRegexp
+	var exclude multi.MultiRegexp
+	var preprocess multi.MultiString
 
 	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
 	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
