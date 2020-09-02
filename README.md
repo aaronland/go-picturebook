@@ -48,6 +48,40 @@ Usage of ./bin/picturebook:
     	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 8.5)
 ```
 
+## Captions
+
+### cooperhewitt://
+
+### filename://
+
+### flickr://
+
+### orthis://
+
+## Filters
+
+### any://
+
+### cooperhewitt://
+
+### flickr://
+
+### orthis://
+
+Optional parameters are:
+
+* `year=YYYY`
+
+### regexp://exclude
+
+### regexp://include
+
+## Processes
+
+### halftone://
+
+### rotate://
+
 ## See also
 
 * https://github.com/jung-kurt/gofpdf
