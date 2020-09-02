@@ -1,25 +1,46 @@
-package functions
+package process
+
+// update to use go-image-rotate
 
 import (
 	"context"
-	"github.com/aaronland/go-image-halftone"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "log"
+	"net/url"
 	"os"
 	"path/filepath"
 )
 
-func DefaultPreProcessFunc(ctx context.Context, path string) (string, error) {
-	return "", nil
+func init() {
+
+	ctx := context.Background()
+	err := RegisterProcess(ctx, "rotate", NewRotateProcess)
+
+	if err != nil {
+		panic(err)
+	}
 }
 
-// PLEASE MOVE ME TO go-image-tools (2018-01-22/thisisaaronland)
-// https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+type RotateProcess struct {
+	Process
+}
 
-func RotatePreProcessFunc(ctx context.Context, path string) (string, error) {
+func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 
+	_, err := url.Parse(uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	f := &RotateProcess{}
+
+	return f, nil
+}
+
+func (f *RotateProcess) Continue(ctx context.Context, path string) (string, error) {
 	ext := filepath.Ext(path)
 
 	if ext != ".jpg" && ext != ".jpeg" {
@@ -68,22 +89,4 @@ func RotatePreProcessFunc(ctx context.Context, path string) (string, error) {
 	rotated := exifutil.Rotate(im, angle)
 
 	return util.EncodeTempImage(rotated, format)
-}
-
-func HalftonePreProcessFunc(ctx context.Context, path string) (string, error) {
-
-	im, format, err := util.DecodeImage(path)
-
-	if err != nil {
-		return "", err
-	}
-
-	opts := halftone.NewDefaultHalftoneOptions()
-	dithered, err := halftone.HalftoneImage(ctx, im, opts)
-
-	if err != nil {
-		return "", err
-	}
-
-	return util.EncodeTempImage(dithered, format)
 }

@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
-	"github.com/aaronland/go-picturebook/functions"
+	"github.com/aaronland/go-picturebook/process"
 	"github.com/sfomuseum/go-flags/multi"
 	"log"
 	"os"
@@ -40,14 +39,16 @@ func Picturebook() error {
 	var debug = flag.Bool("debug", false, "...")
 
 	var filter_uris multi.MultiString
+	var process_uris multi.MultiString
+
 	var include multi.MultiRegexp
 	var exclude multi.MultiRegexp
-	var preprocess multi.MultiString
 
 	flag.Var(&filter_uris, "filter", "Valid filters are: cooperhewitt; flickr; orthis")
+	flag.Var(&process_uris, "pre-process", "Valid processes are: rotate; halftone")
+
 	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
 	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
-	flag.Var(&preprocess, "pre-process", "Valid processes are: rotate; halftone")
 
 	flag.Parse()
 
@@ -128,50 +129,28 @@ func Picturebook() error {
 		}
 	*/
 
-	prep := func(ctx context.Context, path string) (string, error) {
+	if len(process_uris) > 0 {
 
-		final := path
+		processs := make([]process.Process, len(process_uris))
 
-		for _, proc := range preprocess {
+		for idx, process_uri := range process_uris {
 
-			switch proc {
+			f, err := process.NewProcess(ctx, process_uri)
 
-			case "rotate":
-
-				processed_path, err := functions.RotatePreProcessFunc(ctx, final)
-
-				if err != nil {
-					return "", err
-				}
-
-				if processed_path == "" {
-					continue
-				}
-
-				processed = append(processed, processed_path)
-				final = processed_path
-
-			case "halftone":
-
-				processed_path, err := functions.HalftonePreProcessFunc(ctx, final)
-
-				if err != nil {
-					return "", err
-				}
-
-				if processed_path == "" {
-					continue
-				}
-
-				processed = append(processed, processed_path)
-				final = processed_path
-
-			default:
-				return "", errors.New("Invalid or unsupported process")
+			if err != nil {
+				log.Fatalf("Failed to create process '%s', %v", process_uri, err)
 			}
+
+			processs[idx] = f
 		}
 
-		return final, nil
+		multi, err := process.NewMultiProcess(ctx, processs...)
+
+		if err != nil {
+			log.Fatalf("Failed to create multi process, %v", err)
+		}
+
+		opts.PreProcess = multi
 	}
 
 	if *caption_uri != "" {
@@ -184,8 +163,6 @@ func Picturebook() error {
 
 		opts.Caption = c
 	}
-
-	opts.PreProcess = prep
 
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 

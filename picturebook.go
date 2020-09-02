@@ -9,7 +9,7 @@ import (
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
-	"github.com/aaronland/go-picturebook/functions"
+	"github.com/aaronland/go-picturebook/process"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"io/ioutil"
@@ -27,7 +27,7 @@ type PictureBookOptions struct {
 	DPI         float64
 	Border      float64
 	Filter      filter.Filter
-	PreProcess  functions.PictureBookPreProcessFunc
+	PreProcess  process.Process
 	Caption     caption.Caption
 	Debug       bool
 }
@@ -71,7 +71,11 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		return nil, err
 	}
 
-	prep := functions.DefaultPreProcessFunc
+	process_handler, err := process.NewProcess(ctx, "null://")
+
+	if err != nil {
+		return nil, err
+	}
 
 	caption_handler, err := caption.NewCaption(ctx, "filename://")
 
@@ -87,7 +91,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		DPI:         150.0,
 		Border:      0.01,
 		Filter:      filter_handler,
-		PreProcess:  prep,
+		PreProcess:  process_handler,
 		Caption:     caption_handler,
 		Debug:       false,
 	}
@@ -213,7 +217,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 			return nil
 		}
 
-		processed_path, err := pb.Options.PreProcess(ctx, abs_path)
+		processed_path, err := pb.Options.PreProcess.Transform(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("PROCESS", abs_path, err)
