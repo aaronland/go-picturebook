@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-picturebook/caption"
+	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/functions"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
@@ -24,9 +26,9 @@ type PictureBookOptions struct {
 	Height      float64
 	DPI         float64
 	Border      float64
-	Filter      functions.PictureBookFilterFunc
+	Filter      filter.Filter
 	PreProcess  functions.PictureBookPreProcessFunc
-	Caption     functions.PictureBookCaptionFunc
+	Caption     caption.Caption
 	Debug       bool
 }
 
@@ -56,34 +58,44 @@ type PictureBook struct {
 	Border   PictureBookBorder
 	Canvas   PictureBookCanvas
 	Text     PictureBookText
-	Options  PictureBookOptions
+	Options  *PictureBookOptions
 	pages    int
 	tmpfiles []string
 }
 
-func NewPictureBookDefaultOptions() PictureBookOptions {
+func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
 
-	filter := functions.DefaultFilterFunc
+	filter_handler, err := filter.NewFilter(ctx, "any://")
+
+	if err != nil {
+		return nil, err
+	}
+
 	prep := functions.DefaultPreProcessFunc
-	capt := functions.DefaultCaptionFunc
 
-	opts := PictureBookOptions{
+	caption_handler, err := caption.NewCaption(ctx, "filename://")
+
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &PictureBookOptions{
 		Orientation: "P",
 		Size:        "letter",
 		Width:       0.0,
 		Height:      0.0,
 		DPI:         150.0,
 		Border:      0.01,
-		Filter:      filter,
+		Filter:      filter_handler,
 		PreProcess:  prep,
-		Caption:     capt,
+		Caption:     caption_handler,
 		Debug:       false,
 	}
 
-	return opts
+	return opts, nil
 }
 
-func NewPictureBook(opts PictureBookOptions) (*PictureBook, error) {
+func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook, error) {
 
 	var pdf *gofpdf.Fpdf
 
@@ -190,7 +202,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 			return nil
 		}
 
-		ok, err := pb.Options.Filter(ctx, abs_path)
+		ok, err := pb.Options.Filter.Continue(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("FILTER", abs_path, err)
@@ -208,7 +220,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 			return nil
 		}
 
-		caption, err := pb.Options.Caption(ctx, abs_path)
+		caption, err := pb.Options.Caption.Text(ctx, abs_path)
 
 		if err != nil {
 			// log.Println("CAPTION", abs_path, err)

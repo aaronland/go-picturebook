@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"github.com/aaronland/go-picturebook"
+	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/functions"
 	"github.com/sfomuseum/go-flags/multi"
@@ -32,7 +33,7 @@ func Picturebook() error {
 	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	var border = flag.Float64("border", 0.01, "The size of the border around images.")
 
-	var caption = flag.String("caption", "default", "Valid filters are: cooperhewitt; default; flickr; orthis")
+	var caption_uri = flag.String("caption", "default", "Valid filters are: cooperhewitt; default; flickr; orthis")
 
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
@@ -52,7 +53,12 @@ func Picturebook() error {
 
 	ctx := context.Background()
 
-	opts := picturebook.NewPictureBookDefaultOptions()
+	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
+
+	if err != nil {
+		log.Fatalf("Failed to create default picturebook options, %v", err)
+	}
+
 	opts.Orientation = *orientation
 	opts.Size = *size
 	opts.Width = *width
@@ -81,26 +87,31 @@ func Picturebook() error {
 		}
 	}()
 
-	filter_func := func(ctx context.Context, path string) (bool, error) {
+	if len(filter_uris) > 0 {
 
-		for _, filter_uri := range filter_uris {
+		filters := make([]filter.Filter, len(filter_uris))
+
+		for idx, filter_uri := range filter_uris {
 
 			f, err := filter.NewFilter(ctx, filter_uri)
 
 			if err != nil {
-				return false, err
+				log.Fatalf("Failed to create filter '%s', %v", filter_uri, err)
 			}
 
-			ok, err := f.Continue(ctx, path)
-
-			if err != nil {
-				return false, err
-			}
-
-			if !ok {
-				return false, nil
-			}
+			filters[idx] = f
 		}
+
+		multi, err := filter.NewMultiFilter(ctx, filters...)
+
+		if err != nil {
+			log.Fatalf("Failed to create multi filter, %v", err)
+		}
+
+		opts.Filter = multi
+	}
+
+	/*
 
 		for _, pat := range include {
 
@@ -115,9 +126,7 @@ func Picturebook() error {
 				return false, nil
 			}
 		}
-
-		return true, nil
-	}
+	*/
 
 	prep := func(ctx context.Context, path string) (string, error) {
 
@@ -165,20 +174,23 @@ func Picturebook() error {
 		return final, nil
 	}
 
-	capt, err := functions.PictureBookCaptionFuncFromString(*caption)
+	if *caption_uri != "" {
 
-	if err != nil {
-		log.Fatal(err)
+		c, err := caption.NewCaption(ctx, *caption_uri)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		opts.Caption = c
 	}
 
-	opts.Filter = filter_func
 	opts.PreProcess = prep
-	opts.Caption = capt
 
-	pb, err := picturebook.NewPictureBook(opts)
+	pb, err := picturebook.NewPictureBook(ctx, opts)
 
 	if err != nil {
-		return err
+		log.Fatalf("Failed to create new picturebook, %v", err)
 	}
 
 	sources := flag.Args()
