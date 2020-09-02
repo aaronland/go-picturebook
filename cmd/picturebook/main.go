@@ -39,7 +39,8 @@ func Picturebook() error {
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	var verbose = flag.Bool("verbose", false, "Display verbose output as the picturebook is created.")
-
+	var debug = flag.Bool("debug", false, "DEPRECATED: Please use the -verbose flag instead.")
+	
 	var caption_uri = flag.String("caption", "", "...")
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
@@ -69,6 +70,12 @@ func Picturebook() error {
 		log.Fatalf("Failed to compile URI regular expression, %v", err)
 	}
 
+	if *debug {
+
+		log.Println("WARNING The -debug flag is deprecated. Please use the -verbose flag instead.")		
+		*verbose = *debug
+	}
+	
 	if *target != "" {
 
 		log.Println("WARNING The -target flag is deprecated. Please use specific -filter and -caption flags as needed.")
