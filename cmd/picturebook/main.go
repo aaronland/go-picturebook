@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"github.com/aaronland/go-picturebook"
+	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/functions"
 	"github.com/sfomuseum/go-flags/multi"
 	"log"
@@ -30,24 +31,19 @@ func Picturebook() error {
 	var height = flag.Float64("height", 11, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag.")
 	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	var border = flag.Float64("border", 0.01, "The size of the border around images.")
+
 	var caption = flag.String("caption", "default", "Valid filters are: cooperhewitt; default; flickr; orthis")
 
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
-	/*
-		var target = flag.String("target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly.")
-	*/
-
 	var debug = flag.Bool("debug", false, "...")
 
-	var year = flag.Int("year", -1, "...")
-
-	var filter multi.MultiString
+	var filter_uris multi.MultiString
 	var include multi.MultiRegexp
 	var exclude multi.MultiRegexp
 	var preprocess multi.MultiString
 
-	flag.Var(&filter, "filter", "Valid filters are: cooperhewitt; flickr; orthis")
+	flag.Var(&filter_uris, "filter", "Valid filters are: cooperhewitt; flickr; orthis")
 	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
 	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
 	flag.Var(&preprocess, "pre-process", "Valid processes are: rotate; halftone")
@@ -55,24 +51,6 @@ func Picturebook() error {
 	flag.Parse()
 
 	ctx := context.Background()
-
-	/*
-		switch *target {
-		case "":
-			// pass
-		case "cooperhewitt":
-			*caption = *target
-			*filter = *target
-		case "flickr":
-			*caption = *target
-			*filter = *target
-		case "orthis":
-			*caption = *target
-			*filter = *target
-		default:
-			log.Fatal("Unknown or invalid target")
-		}
-	*/
 
 	opts := picturebook.NewPictureBookDefaultOptions()
 	opts.Orientation = *orientation
@@ -105,30 +83,15 @@ func Picturebook() error {
 
 	filter_func := func(ctx context.Context, path string) (bool, error) {
 
-		for _, filter_uri := range filter {
+		for _, filter_uri := range filter_uris {
 
-			f, err := functions.PictureBookFilterFuncFromString(filter_uri)
-
-			if err != nil {
-				return false, err
-			}
-
-			ok, err := f(ctx, path)
+			f, err := filter.NewFilter(ctx, filter_uri)
 
 			if err != nil {
 				return false, err
 			}
 
-			if !ok {
-				return false, nil
-			}
-		}
-
-		if *year > 1 {
-
-			fn := functions.MakeOrThisYearFilterFunc(ctx, *year)
-
-			ok, err := fn(ctx, path)
+			ok, err := f.Continue(ctx, path)
 
 			if err != nil {
 				return false, err

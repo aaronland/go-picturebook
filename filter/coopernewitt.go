@@ -1,4 +1,4 @@
-package functions
+package filter
 
 import (
 	"context"
@@ -6,106 +6,40 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
-	_ "log"
+	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
-func PictureBookFilterFuncFromString(str_filter string) (PictureBookFilterFunc, error) {
+func init() {
 
-	var filter PictureBookFilterFunc
+	ctx := context.Background()
+	err := RegisterFilter(ctx, "cooperhewitt", NewCooperHewittFilter)
 
-	switch str_filter {
+	if err != nil {
+		panic(err)
+	}
+}
 
-	case "cooperhewitt":
-		filter = CooperHewittShoeboxFilterFunc
-	case "default":
-		filter = DefaultFilterFunc
-	case "flickr":
-		filter = FlickrArchiveFilterFunc
-	case "orthis":
-		filter = OrThisFilterFunc
-	default:
-		return nil, errors.New("Invalid filter type")
+type CooperHewittFilter struct {
+	Filter
+}
+
+func NewCooperHewittFilter(ctx context.Context, uri string) (Filter, error) {
+
+	_, err := url.Parse(uri)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return filter, nil
+	f := &CooperHewittFilter{}
+
+	return f, nil
 }
 
-func DefaultFilterFunc(ctx context.Context, path string) (bool, error) {
-	return true, nil
-}
-
-func OrThisFilterFunc(ctx context.Context, path string) (bool, error) {
-
-	fname := filepath.Base(path)
-
-	if !orthis_re.MatchString(fname) {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func MakeOrThisYearFilterFunc(ctx context.Context, year int) PictureBookFilterFunc {
-
-	fn := func(ctx context.Context, path string) (bool, error) {
-
-		fname := filepath.Base(path)
-
-		if !orthis_re.MatchString(fname) {
-			return false, nil
-		}
-
-		root := filepath.Dir(path)
-		root = filepath.Dir(root)
-
-		index := filepath.Join(root, "index.json")
-
-		fh, err := os.Open(index)
-
-		if err != nil {
-			return false, err
-		}
-
-		defer fh.Close()
-
-		body, err := ioutil.ReadAll(fh)
-
-		if err != nil {
-			return false, err
-		}
-
-		date_rsp := gjson.GetBytes(body, "date")
-
-		if !date_rsp.Exists() {
-			return false, nil
-		}
-
-		str_year := strconv.Itoa(year)
-
-		if !strings.HasPrefix(date_rsp.String(), str_year) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	return fn
-}
-
-func FlickrArchiveFilterFunc(ctx context.Context, path string) (bool, error) {
-
-	if !flickr_re.MatchString(path) {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func CooperHewittShoeboxFilterFunc(ctx context.Context, path string) (bool, error) {
+func (f *CooperHewittFilter) Continue(ctx context.Context, path string) (bool, error) {
 
 	if !strings.HasSuffix(path, "_b.jpg") {
 		return false, nil
