@@ -2,15 +2,14 @@
 
 Create a PDF file (a "picturebook") from a folder (containing images).
 
-## Install
-
-```
-make cli
-```
-
-All of this package's dependencies are bundled with the code in the `vendor` directory.
-
 ## Tools
+
+To build binary versions of these tools run the `cli` Makefile target. For example:
+
+```
+$> make cli
+go build -mod vendor -o bin/picturebook cmd/picturebook/main.go
+```
 
 ### picturebook
 
