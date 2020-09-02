@@ -128,8 +128,6 @@ func Picturebook() error {
 			processes[idx] = f
 		}
 
-		log.Println("PROCESS", processes)
-
 		multi, err := process.NewMultiProcess(ctx, processes...)
 
 		if err != nil {

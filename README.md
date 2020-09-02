@@ -4,10 +4,8 @@ Create a PDF file (a "picturebook") from a folder (containing images).
 
 ## Install
 
-You will need to have both `Go` (specifically version [1.12](https://golang.org/dl/) or higher) and the `make` programs installed on your computer. Assuming you do just type:
-
 ```
-make tools
+make cli
 ```
 
 All of this package's dependencies are bundled with the code in the `vendor` directory.
@@ -50,54 +48,6 @@ Usage of ./bin/picturebook:
   -width float
     	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 8.5)
 ```
-
-## Functions
-
-### Caption functions
-
-#### Cooper Hewitt (shoebox) caption functions
-
-_Please write me_
-
-#### Filename caption functions
-
-_Please write me_
-
-#### Filename and parent caption functions
-
-_Please write me_
-
-#### Flickr caption functions
-
-_Please write me_
-
-#### Or This caption functions
-
-_Please write me_
-
-### Filter functions
-
-#### Cooper Hewitt (shoebox) filter functions
-
-Only include files ending in `_b.jpg`
-
-#### Flickr filter functions
-
-Only include files matching `o_\.\.*$`
-
-#### Or This filter functions
-
-Only include files ending in `-or-this.jpg`
-
-### Pre-process functions
-
-#### Rotate preprocess functions
-
-_Please write me_
-
-#### Halftone preprocess functions
-
-_Please write me_
 
 ## See also
 
