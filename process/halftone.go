@@ -34,7 +34,7 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *HalftoneProcess) Continue(ctx context.Context, path string) (string, error) {
+func (f *HalftoneProcess) Transform(ctx context.Context, path string) (string, error) {
 
 	im, format, err := util.DecodeImage(path)
 

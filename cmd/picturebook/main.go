@@ -32,23 +32,24 @@ func Picturebook() error {
 	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	var border = flag.Float64("border", 0.01, "The size of the border around images.")
 
-	var caption_uri = flag.String("caption", "default", "Valid filters are: cooperhewitt; default; flickr; orthis")
-
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	var debug = flag.Bool("debug", false, "...")
 
+	var caption_uri = flag.String("caption", "", "...")	
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
 
-	var include multi.MultiRegexp
-	var exclude multi.MultiRegexp
+	flag.Var(&filter_uris, "filter", "...")
+	flag.Var(&process_uris, "process", "...")
 
-	flag.Var(&filter_uris, "filter", "Valid filters are: cooperhewitt; flickr; orthis")
-	flag.Var(&process_uris, "pre-process", "Valid processes are: rotate; halftone")
+	/*
+		var include multi.MultiRegexp
+		var exclude multi.MultiRegexp
 
-	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
-	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
+		flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook.")
+		flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook.")
+	*/
 
 	flag.Parse()
 
@@ -112,26 +113,9 @@ func Picturebook() error {
 		opts.Filter = multi
 	}
 
-	/*
-
-		for _, pat := range include {
-
-			if !pat.MatchString(path) {
-				return false, nil
-			}
-		}
-
-		for _, pat := range exclude {
-
-			if pat.MatchString(path) {
-				return false, nil
-			}
-		}
-	*/
-
 	if len(process_uris) > 0 {
 
-		processs := make([]process.Process, len(process_uris))
+		processes := make([]process.Process, len(process_uris))
 
 		for idx, process_uri := range process_uris {
 
@@ -141,10 +125,12 @@ func Picturebook() error {
 				log.Fatalf("Failed to create process '%s', %v", process_uri, err)
 			}
 
-			processs[idx] = f
+			processes[idx] = f
 		}
 
-		multi, err := process.NewMultiProcess(ctx, processs...)
+		log.Println("PROCESS", processes)
+
+		multi, err := process.NewMultiProcess(ctx, processes...)
 
 		if err != nil {
 			log.Fatalf("Failed to create multi process, %v", err)

@@ -1,13 +1,89 @@
 package filter
 
 import (
+	"context"
+	"errors"
+	"net/url"
 	"regexp"
 )
 
-var flickr_re *regexp.Regexp
-var orthis_re *regexp.Regexp
-
 func init() {
-	flickr_re = regexp.MustCompile(`o_\.\.*$`)
-	orthis_re = regexp.MustCompile(`^(\d+)_[a-zA-Z0-9]+_o\.jpg$`)
+
+	ctx := context.Background()
+	err := RegisterFilter(ctx, "regexp", NewRegexpFilter)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+type RegexpFilter struct {
+	Filter
+	mode string
+	re   *regexp.Regexp
+}
+
+func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
+
+	u, err := url.Parse(uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var mode string
+
+	switch u.Host {
+	case "include":
+		mode = "include"
+	case "exclude":
+		mode = "exclude"
+	default:
+		return nil, errors.New("Invalid mode")
+	}
+
+	q := u.Query()
+
+	pat := q.Get("pattern")
+
+	if pat == "" {
+		return nil, errors.New("Missing pattern")
+	}
+
+	re, err := regexp.Compile(pat)
+
+	if err != nil {
+		return nil, err
+	}
+
+	f := &RegexpFilter{
+		mode: mode,
+		re:   re,
+	}
+
+	return f, nil
+}
+
+func (f *RegexpFilter) Continue(ctx context.Context, path string) (bool, error) {
+
+	match := f.re.MatchString(path)
+
+	switch f.mode {
+	case "include":
+
+		if !match {
+			return false, nil
+		}
+
+	case "exclude":
+
+		if match {
+			return false, nil
+		}
+
+	default:
+		// pass
+	}
+
+	return true, nil
 }

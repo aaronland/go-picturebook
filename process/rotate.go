@@ -7,7 +7,6 @@ import (
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
-	_ "log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -40,7 +39,8 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *RotateProcess) Continue(ctx context.Context, path string) (string, error) {
+func (f *RotateProcess) Transform(ctx context.Context, path string) (string, error) {
+
 	ext := filepath.Ext(path)
 
 	if ext != ".jpg" && ext != ".jpeg" {
