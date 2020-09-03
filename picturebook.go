@@ -361,6 +361,8 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 
 	dims := im.Bounds()
 
+	// Do this here: https://github.com/aaronland/go-picturebook/issues/2
+	
 	info := pb.PDF.GetImageInfo(abs_path)
 
 	if info == nil {
