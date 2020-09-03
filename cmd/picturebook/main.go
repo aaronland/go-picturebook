@@ -29,8 +29,13 @@ func main() {
 func Picturebook() error {
 
 	available_filters := strings.Join(filter.AvailableFilters(), ", ")
+	available_filters = strings.ToLower(available_filters)
+
 	available_captions := strings.Join(caption.AvailableCaptions(), ", ")
+	available_captions = strings.ToLower(available_captions)
+
 	available_processes := strings.Join(process.AvailableProcesses(), ", ")
+	available_processes = strings.ToLower(available_processes)
 
 	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s", available_filters)
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
@@ -61,7 +66,7 @@ func Picturebook() error {
 	var include multi.MultiRegexp
 	var exclude multi.MultiRegexp
 
-	flag.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process process://{PROCESS_NAME} instead.")
+	flag.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
 	flag.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.")
 	flag.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.")
 

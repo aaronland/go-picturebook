@@ -21,7 +21,7 @@ Usage of ./bin/picturebook:
   -border float
     	The size of the border around images. (default 0.01)
   -caption string
-    	A valid caption.Caption URI. Valid schemes are: COOPERHEWITT, FILENAME, FLICKR, ORTHIS
+    	A valid caption.Caption URI. Valid schemes are: cooperhewitt, filename, flickr, orthis
   -debug
     	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
@@ -31,7 +31,7 @@ Usage of ./bin/picturebook:
   -filename string
     	The filename (path) for your picturebook. (default "picturebook.pdf")
   -filter value
-    	A valid filter.Filter URI. Valid schemes are: ANY, COOPERHEWITT, FLICKR, ORTHIS, REGEXP
+    	A valid filter.Filter URI. Valid schemes are: any, cooperhewitt, flickr, orthis, regexp
   -height float
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 11)
   -include value
@@ -39,9 +39,9 @@ Usage of ./bin/picturebook:
   -orientation string
     	The orientation of your picturebook. Valid orientations are: [please write me] (default "P")
   -pre-process value
-    	DEPRECATED: Please use -process process://{PROCESS_NAME} instead.
+    	DEPRECATED: Please use -process {PROCESS_NAME}:// instead.
   -process value
-    	A valid process.Process URI. Valid schemes are: HALFTONE, NULL, ROTATE
+    	A valid process.Process URI. Valid schemes are: halftone, null, rotate
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -target string
