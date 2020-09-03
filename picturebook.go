@@ -239,7 +239,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		err = pb.AddPicture(pagenum, processed_path, caption)
 
 		if err != nil && pb.Options.Verbose {
-			log.Println("ADD", abs_path, err)
+			log.Printf("Failed to add %s, %v", abs_path, err)
 		}
 
 		return nil
