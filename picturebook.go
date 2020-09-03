@@ -9,7 +9,9 @@ import (
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
+	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
+	"github.com/aaronland/go-picturebook/sort"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"io/ioutil"
@@ -29,6 +31,7 @@ type PictureBookOptions struct {
 	Filter      filter.Filter
 	PreProcess  process.Process
 	Caption     caption.Caption
+	Sort        sort.Sorter
 	Verbose     bool
 }
 
@@ -50,11 +53,6 @@ type PictureBookText struct {
 	Size   float64
 	Margin float64
 	Colour []int
-}
-
-type PictureBookPicture struct {
-	Path    string
-	Caption string
 }
 
 type PictureBook struct {
@@ -193,7 +191,14 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		return err
 	}
 
-	// SORT pictures here
+	if pb.Options.Sort != nil {
+
+		err := pb.Options.Sort.Sort(ctx, pictures)
+
+		if err != nil {
+			return err
+		}
+	}
 
 	for _, pic := range pictures {
 
@@ -212,9 +217,9 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 	return nil
 }
 
-func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*PictureBookPicture, error) {
+func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
 
-	pictures := make([]*PictureBookPicture, 0)
+	pictures := make([]*picture.PictureBookPicture, 0)
 
 	cb := func(path string, info os.FileInfo, err error) error {
 
@@ -265,7 +270,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*P
 			return nil
 		}
 
-		pic := &PictureBookPicture{
+		pic := &picture.PictureBookPicture{
 			Path:    processed_path,
 			Caption: caption,
 		}
