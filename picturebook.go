@@ -52,6 +52,11 @@ type PictureBookText struct {
 	Colour []int
 }
 
+type PictureBookPicture struct {
+	Path    string
+	Caption string
+}
+
 type PictureBook struct {
 	PDF      *gofpdf.Fpdf
 	Mutex    *sync.Mutex
@@ -182,6 +187,35 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
+	pictures, err := pb.GatherPictures(ctx, paths)
+
+	if err != nil {
+		return err
+	}
+
+	// SORT pictures here
+
+	for _, pic := range pictures {
+
+		pb.Mutex.Lock()
+		pb.pages += 1
+		pagenum := pb.pages
+		pb.Mutex.Unlock()
+
+		err = pb.AddPicture(pagenum, pic.Path, pic.Caption)
+
+		if err != nil && pb.Options.Verbose {
+			log.Printf("Failed to add %s, %v", pic.Path, err)
+		}
+	}
+
+	return nil
+}
+
+func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*PictureBookPicture, error) {
+
+	pictures := make([]*PictureBookPicture, 0)
+
 	cb := func(path string, info os.FileInfo, err error) error {
 
 		select {
@@ -231,17 +265,12 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 			return nil
 		}
 
-		pb.Mutex.Lock()
-		pb.pages += 1
-		pagenum := pb.pages
-		pb.Mutex.Unlock()
-
-		err = pb.AddPicture(pagenum, processed_path, caption)
-
-		if err != nil && pb.Options.Verbose {
-			log.Printf("Failed to add %s, %v", abs_path, err)
+		pic := &PictureBookPicture{
+			Path:    processed_path,
+			Caption: caption,
 		}
 
+		pictures = append(pictures, pic)
 		return nil
 	}
 
@@ -250,11 +279,11 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		err := filepath.Walk(path, cb)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return pictures, nil
 }
 
 func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) error {
