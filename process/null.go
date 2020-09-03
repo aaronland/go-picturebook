@@ -32,6 +32,6 @@ func NewNullProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *NullProcess) Continue(ctx context.Context, path string) (string, error) {
+func (f *NullProcess) Transform(ctx context.Context, path string) (string, error) {
 	return "", nil
 }

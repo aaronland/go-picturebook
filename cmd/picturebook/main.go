@@ -28,7 +28,7 @@ func main() {
 func Picturebook() error {
 
 	// available_filters := filter.
-	
+
 	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
 	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
 	var width = flag.Float64("width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag.")
@@ -40,7 +40,7 @@ func Picturebook() error {
 
 	var verbose = flag.Bool("verbose", false, "Display verbose output as the picturebook is created.")
 	var debug = flag.Bool("debug", false, "DEPRECATED: Please use the -verbose flag instead.")
-	
+
 	var caption_uri = flag.String("caption", "", "...")
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
@@ -72,10 +72,10 @@ func Picturebook() error {
 
 	if *debug {
 
-		log.Println("WARNING The -debug flag is deprecated. Please use the -verbose flag instead.")		
+		log.Println("WARNING The -debug flag is deprecated. Please use the -verbose flag instead.")
 		*verbose = *debug
 	}
-	
+
 	if *target != "" {
 
 		log.Println("WARNING The -target flag is deprecated. Please use specific -filter and -caption flags as needed.")

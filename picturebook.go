@@ -29,7 +29,7 @@ type PictureBookOptions struct {
 	Filter      filter.Filter
 	PreProcess  process.Process
 	Caption     caption.Caption
-	Verbose       bool
+	Verbose     bool
 }
 
 type PictureBookBorder struct {
@@ -93,7 +93,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Filter:      filter_handler,
 		PreProcess:  process_handler,
 		Caption:     caption_handler,
-		Verbose:       false,
+		Verbose:     false,
 	}
 
 	return opts, nil
