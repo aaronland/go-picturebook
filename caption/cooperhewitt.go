@@ -41,6 +41,7 @@ func NewCooperHewittCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 func (c *CooperHewittCaption) Text(ctx context.Context, path string) (string, error) {
+
 	root := filepath.Dir(path)
 	info := filepath.Join(root, "index.json")
 
