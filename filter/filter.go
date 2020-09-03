@@ -76,3 +76,8 @@ func NewFilter(ctx context.Context, uri string) (Filter, error) {
 
 	return filter, nil
 }
+
+func AvailableFilters() []string {
+	ctx := context.Background()
+	return filters.Drivers(ctx)
+}

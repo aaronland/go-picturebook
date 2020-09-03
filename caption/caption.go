@@ -76,3 +76,8 @@ func NewCaption(ctx context.Context, uri string) (Caption, error) {
 
 	return caption, nil
 }
+
+func AvailableCaptions() []string {
+	ctx := context.Background()
+	return captions.Drivers(ctx)
+}

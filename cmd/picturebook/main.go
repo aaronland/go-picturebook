@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 )
 
 func main() {
@@ -27,7 +28,13 @@ func main() {
 
 func Picturebook() error {
 
-	// available_filters := filter.
+	available_filters := strings.Join(filter.AvailableFilters(), ", ")
+	available_captions := strings.Join(caption.AvailableCaptions(), ", ")
+	available_processes := strings.Join(process.AvailableProcesses(), ", ")
+
+	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s", available_filters)
+	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
+	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
 
 	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
 	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
@@ -41,12 +48,12 @@ func Picturebook() error {
 	var verbose = flag.Bool("verbose", false, "Display verbose output as the picturebook is created.")
 	var debug = flag.Bool("debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
-	var caption_uri = flag.String("caption", "", "...")
+	var caption_uri = flag.String("caption", "", desc_captions)
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
 
-	flag.Var(&filter_uris, "filter", "...")
-	flag.Var(&process_uris, "process", "...")
+	flag.Var(&filter_uris, "filter", desc_filters)
+	flag.Var(&process_uris, "process", desc_processes)
 
 	// Deprecated flags
 

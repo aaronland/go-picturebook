@@ -12,11 +12,11 @@ type Process interface {
 
 type ProcessInitializeFunc func(context.Context, string) (Process, error)
 
-var processs roster.Roster
+var processes roster.Roster
 
 func ensureRoster() error {
 
-	if processs == nil {
+	if processes == nil {
 
 		r, err := roster.NewDefaultRoster()
 
@@ -24,7 +24,7 @@ func ensureRoster() error {
 			return err
 		}
 
-		processs = r
+		processes = r
 	}
 
 	return nil
@@ -38,7 +38,7 @@ func RegisterProcess(ctx context.Context, name string, fn ProcessInitializeFunc)
 		return err
 	}
 
-	return processs.Register(ctx, name, fn)
+	return processes.Register(ctx, name, fn)
 }
 
 func NewProcess(ctx context.Context, uri string) (Process, error) {
@@ -51,7 +51,7 @@ func NewProcess(ctx context.Context, uri string) (Process, error) {
 
 	scheme := u.Scheme
 
-	i, err := processs.Driver(ctx, scheme)
+	i, err := processes.Driver(ctx, scheme)
 
 	if err != nil {
 		return nil, err
@@ -66,4 +66,9 @@ func NewProcess(ctx context.Context, uri string) (Process, error) {
 	}
 
 	return process, nil
+}
+
+func AvailableProcesses() []string {
+	ctx := context.Background()
+	return processes.Drivers(ctx)
 }
