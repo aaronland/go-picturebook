@@ -53,6 +53,8 @@ func Picturebook() error {
 	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	var border = flag.Float64("border", 0.01, "The size of the border around images.")
 
+	var fill_page = flag.Bool("fill-page", false, "If necessary rotate image to use the most available page space.")
+
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	var verbose = flag.Bool("verbose", false, "Display verbose output as the picturebook is created.")
@@ -171,6 +173,7 @@ func Picturebook() error {
 	opts.Height = *height
 	opts.DPI = *dpi
 	opts.Border = *border
+	opts.FillPage = *fill_page
 	opts.Verbose = *verbose
 
 	processed := make([]string, 0)

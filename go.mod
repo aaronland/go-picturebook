@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/aaronland/go-image-halftone v0.0.1
+	github.com/aaronland/go-image-rotate v0.0.3
 	github.com/aaronland/go-image-tools v0.1.3
 	github.com/aaronland/go-roster v0.0.1
 	github.com/jung-kurt/gofpdf v1.16.2

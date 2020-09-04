@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-image-rotate"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -32,6 +33,7 @@ type PictureBookOptions struct {
 	PreProcess  process.Process
 	Caption     caption.Caption
 	Sort        sort.Sorter
+	FillPage    bool
 	Verbose     bool
 }
 
@@ -188,7 +190,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		err = pb.AddPicture(pagenum, pic.Path, pic.Caption)
+		err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
 
 		if err != nil && pb.Options.Verbose {
 			log.Printf("Failed to add %s, %v", pic.Path, err)
@@ -298,7 +300,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	return pictures, nil
 }
 
-func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) error {
+func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path string, caption string) error {
 
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
@@ -368,7 +370,47 @@ func (pb *PictureBook) AddPicture(pagenum int, abs_path string, caption string) 
 
 	dims := im.Bounds()
 
-	// Do this here: https://github.com/aaronland/go-picturebook/issues/2
+	// This does not work yet...
+	// https://github.com/aaronland/go-picturebook/issues/2
+
+	if pb.Options.FillPage {
+
+		image_orientation := "U" // unknown
+
+		if dims.Max.Y > dims.Max.X {
+			image_orientation = "P"
+		} else if dims.Max.X > dims.Max.Y {
+			image_orientation = "L"
+		} else {
+			// pass
+		}
+
+		if pb.Options.Orientation == "P" && image_orientation == "L" {
+
+			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 270.0)
+
+			if err != nil {
+				return err
+			}
+
+			im = new_im
+			dims = im.Bounds()
+
+		} else if pb.Options.Orientation == "L" && image_orientation == "P" {
+
+			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 270.0)
+
+			if err != nil {
+				return err
+			}
+
+			im = new_im
+			dims = im.Bounds()
+
+		} else {
+			// pass
+		}
+	}
 
 	info := pb.PDF.GetImageInfo(abs_path)
 

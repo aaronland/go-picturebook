@@ -2,10 +2,13 @@
 github.com/MaxHalford/halfgone
 # github.com/aaronland/go-image-halftone v0.0.1
 github.com/aaronland/go-image-halftone
+# github.com/aaronland/go-image-rotate v0.0.3
+github.com/aaronland/go-image-rotate
+github.com/aaronland/go-image-rotate/imaging
 # github.com/aaronland/go-image-tools v0.1.3
 github.com/aaronland/go-image-tools/imaging
 github.com/aaronland/go-image-tools/util
-# github.com/aaronland/go-image-transform v0.0.0-20200215193528-9bb7b64c2728
+# github.com/aaronland/go-image-transform v0.0.0-20200216021135-f5c5cf8fc134
 github.com/aaronland/go-image-transform
 # github.com/aaronland/go-roster v0.0.1
 github.com/aaronland/go-roster
