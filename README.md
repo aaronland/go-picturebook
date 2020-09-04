@@ -42,7 +42,9 @@ Usage of ./bin/picturebook:
     	DEPRECATED: Please use -process {PROCESS_NAME}:// instead.
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
-  -size string
+  -sort string
+    	A valid sort.Sort URI. Valid schemes are: orthis
+   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -target string
     	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
