@@ -15,7 +15,7 @@ func init() {
 }
 
 type Sorter interface {
-	Sort(context.Context, []*picture.PictureBookPicture) error
+	Sort(context.Context, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
 }
 
 type SorterInitializeFunc func(context.Context, string) (Sorter, error)

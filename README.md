@@ -176,6 +176,20 @@ _This is the default process handler for picturebooks._
 
 This handler will attempt to auto-rotate an image, based on any available EXIF `Orientation` data, before including it in your picturebook.
 
+### Sorters
+
+```
+type Sorter interface {
+	Sort(context.Context, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
+}
+```
+
+#### orthis://
+
+This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
+
+_This handler will eventually be moved in to a separate `go-picturebook-orthis` package._
+
 ## See also
 
 * https://github.com/jung-kurt/gofpdf

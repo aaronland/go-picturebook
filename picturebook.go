@@ -68,24 +68,6 @@ type PictureBook struct {
 
 func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
 
-	filter_handler, err := filter.NewFilter(ctx, "any://")
-
-	if err != nil {
-		return nil, err
-	}
-
-	process_handler, err := process.NewProcess(ctx, "null://")
-
-	if err != nil {
-		return nil, err
-	}
-
-	caption_handler, err := caption.NewCaption(ctx, "filename://")
-
-	if err != nil {
-		return nil, err
-	}
-
 	opts := &PictureBookOptions{
 		Orientation: "P",
 		Size:        "letter",
@@ -93,9 +75,6 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Height:      0.0,
 		DPI:         150.0,
 		Border:      0.01,
-		Filter:      filter_handler,
-		PreProcess:  process_handler,
-		Caption:     caption_handler,
 		Verbose:     false,
 	}
 
@@ -193,11 +172,13 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 	if pb.Options.Sort != nil {
 
-		err := pb.Options.Sort.Sort(ctx, pictures)
+		sorted, err := pb.Options.Sort.Sort(ctx, pictures)
 
 		if err != nil {
 			return err
 		}
+
+		pictures = sorted
 	}
 
 	for _, pic := range pictures {
@@ -245,33 +226,59 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			return nil
 		}
 
-		ok, err := pb.Options.Filter.Continue(ctx, abs_path)
+		if pb.Options.Filter != nil {
 
-		if err != nil {
-			// log.Println("FILTER", abs_path, err)
-			return nil
+			ok, err := pb.Options.Filter.Continue(ctx, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to filter %s, %v\n", abs_path, err)
+				return nil
+			}
+
+			if !ok {
+				return nil
+			}
+
+			if pb.Options.Verbose {
+				log.Printf("Include %s\n", abs_path)
+			}
 		}
 
-		if !ok {
-			return nil
+		caption := ""
+
+		if pb.Options.Caption != nil {
+
+			txt, err := pb.Options.Caption.Text(ctx, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)
+				return nil
+			}
+
+			caption = txt
 		}
 
-		processed_path, err := pb.Options.PreProcess.Transform(ctx, abs_path)
+		final_path := abs_path
 
-		if err != nil {
-			// log.Println("PROCESS", abs_path, err)
-			return nil
-		}
+		if pb.Options.PreProcess != nil {
 
-		caption, err := pb.Options.Caption.Text(ctx, abs_path)
+			if pb.Options.Verbose {
+				log.Printf("Processing %s\n", abs_path)
+			}
 
-		if err != nil {
-			// log.Println("CAPTION", abs_path, err)
-			return nil
+			processed_path, err := pb.Options.PreProcess.Transform(ctx, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to process %s, %v\n", abs_path, err)
+				return nil
+			}
+
+			final_path = processed_path
 		}
 
 		pic := &picture.PictureBookPicture{
-			Path:    processed_path,
+			Source:  abs_path,
+			Path:    final_path,
 			Caption: caption,
 		}
 

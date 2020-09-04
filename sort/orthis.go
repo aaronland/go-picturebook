@@ -6,6 +6,7 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
+	_ "log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -38,14 +39,14 @@ func NewOrThisSorter(ctx context.Context, uri string) (Sorter, error) {
 	return s, nil
 }
 
-func (f *OrThisSorter) Sort(ctx context.Context, pictures []*picture.PictureBookPicture) error {
+func (f *OrThisSorter) Sort(ctx context.Context, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
 	candidates := make([]string, 0)
 
 	for _, pic := range pictures {
 
-		path := pic.Path
+		path := pic.Source
 
 		root := filepath.Dir(path)
 		root = filepath.Dir(root)
@@ -55,7 +56,7 @@ func (f *OrThisSorter) Sort(ctx context.Context, pictures []*picture.PictureBook
 		fh, err := os.Open(index)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		defer fh.Close()
@@ -63,7 +64,7 @@ func (f *OrThisSorter) Sort(ctx context.Context, pictures []*picture.PictureBook
 		body, err := ioutil.ReadAll(fh)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		id_rsp := gjson.GetBytes(body, "id")
@@ -94,6 +95,5 @@ func (f *OrThisSorter) Sort(ctx context.Context, pictures []*picture.PictureBook
 		sorted[idx] = lookup[key]
 	}
 
-	pictures = sorted
-	return nil
+	return sorted, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
+	"github.com/aaronland/go-picturebook/sort"
 	"github.com/sfomuseum/go-flags/multi"
 	"log"
 	"os"
@@ -37,9 +38,13 @@ func Picturebook() error {
 	available_processes := strings.Join(process.AvailableProcesses(), ", ")
 	available_processes = strings.ToLower(available_processes)
 
+	available_sorters := strings.Join(sort.AvailableSorters(), ", ")
+	available_sorters = strings.ToLower(available_sorters)
+
 	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s", available_filters)
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
+	desc_sorters := fmt.Sprintf("A valid sort.Sort URI. Valid schemes are: %s", available_sorters)
 
 	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
 	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
@@ -54,6 +59,8 @@ func Picturebook() error {
 	var debug = flag.Bool("debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
 	var caption_uri = flag.String("caption", "", desc_captions)
+	var sort_uri = flag.String("sort", "", desc_sorters)
+
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
 
@@ -251,6 +258,17 @@ func Picturebook() error {
 		}
 
 		opts.Caption = c
+	}
+
+	if *sort_uri != "" {
+
+		s, err := sort.NewSorter(ctx, *sort_uri)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		opts.Sort = s
 	}
 
 	pb, err := picturebook.NewPictureBook(ctx, opts)
