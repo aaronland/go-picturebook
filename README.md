@@ -43,7 +43,7 @@ Usage of ./bin/picturebook:
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
   -sort string
-    	A valid sort.Sort URI. Valid schemes are: orthis
+    	A valid sort.Sorter URI. Valid schemes are: orthis
    -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -target string

@@ -44,7 +44,7 @@ func Picturebook() error {
 	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s", available_filters)
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
-	desc_sorters := fmt.Sprintf("A valid sort.Sort URI. Valid schemes are: %s", available_sorters)
+	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
 
 	var orientation = flag.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
 	var size = flag.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
