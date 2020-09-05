@@ -68,7 +68,9 @@ type Caption interface {
 }
 ```
 
-The following schemes for caption handlers are supported:
+For an example of how to create and register a custom `Caption` handler take a look at the code in [caption/filename.go](caption/filename.go).
+
+The following schemes for caption handlers are supported by default:
 
 #### cooperhewitt://
 
@@ -79,8 +81,6 @@ _This handler will eventually be moved in to a separate `go-picturebook-cooperhe
 #### filename://
 
 This handler will return the filename for a given path of an image.
-
-_This is the default caption handler for picturebooks._
 
 #### flickr://
 
@@ -106,13 +106,13 @@ type Filter interface {
 }
 ```
 
-The following schemes for filter handlers are supported:
+For an example of how to create and register a custom `Filter` handler take a look at the code in [filter/regexp.go](filter/regexp.go).
+
+The following schemes for filter handlers are supported by default:
 
 #### any://
 
 Allow all images to be included.
-
-_This is the default fitler handler for picturebooks._
 
 #### cooperhewitt://
 
@@ -166,6 +166,10 @@ type Process interface {
 }
 ```
 
+For an example of how to create and register a custom `Process` handler take a look at the code in [process/halftone.go](process/halftone.go).
+
+The following schemes for process handlers are supported by default:
+
 #### halftone://
 
 This handler will dither (halftone) an image before including it in your picturebook.
@@ -173,8 +177,6 @@ This handler will dither (halftone) an image before including it in your picture
 #### null://
 
 This handler doesn't do anything to an image before including it in your picturebook.
-
-_This is the default process handler for picturebooks._
 
 #### rotate://
 
@@ -188,6 +190,10 @@ type Sorter interface {
 }
 ```
 
+For an example of how to create and register a custom `Sorter` handler take a look at the code in [sort/orthis.go](sort/orthis.go).
+
+The following schemes for sorter handlers are supported by default:
+
 #### orthis://
 
 This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
@@ -198,3 +204,4 @@ _This handler will eventually be moved in to a separate `go-picturebook-orthis` 
 
 * https://github.com/jung-kurt/gofpdf
 * https://github.com/aaronland/go-image-tools
+* https://github.com/aaronland/go-image-halftone
