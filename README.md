@@ -30,6 +30,8 @@ Usage of ./bin/picturebook:
     	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.
   -filename string
     	The filename (path) for your picturebook. (default "picturebook.pdf")
+  -fill-page
+    	If necessary rotate image 90 degrees to use the most available page space.
   -filter value
     	A valid filter.Filter URI. Valid schemes are: any, cooperhewitt, flickr, orthis, regexp
   -height float

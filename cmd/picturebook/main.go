@@ -53,7 +53,7 @@ func Picturebook() error {
 	var dpi = flag.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	var border = flag.Float64("border", 0.01, "The size of the border around images.")
 
-	var fill_page = flag.Bool("fill-page", false, "If necessary rotate image to use the most available page space.")
+	var fill_page = flag.Bool("fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
 
 	var filename = flag.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
