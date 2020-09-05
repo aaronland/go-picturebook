@@ -370,8 +370,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 	dims := im.Bounds()
 
-	// This does not work yet...
-	// https://github.com/aaronland/go-picturebook/issues/2
+	w := float64(dims.Max.X)
+	h := float64(dims.Max.Y)
 
 	if pb.Options.FillPage {
 
@@ -385,9 +385,28 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 			// pass
 		}
 
-		if pb.Options.Orientation == "P" && image_orientation == "L" {
+		_, line_h := pb.PDF.GetFontSize()
 
-			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 270.0)
+		max_w := pb.Canvas.Width
+		max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
+
+		rotate_to_fill := false
+
+		if pb.Options.Orientation == "P" && image_orientation == "L" && w > max_w {
+			rotate_to_fill = true
+		}
+
+		if pb.Options.Orientation == "L" && image_orientation == "P" && h > max_h {
+			rotate_to_fill = true
+		}
+
+		if rotate_to_fill {
+
+			if pb.Options.Verbose {
+				log.Printf("Rotate %s\b", abs_path)
+			}
+
+			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 90.0)
 
 			if err != nil {
 				return err
@@ -396,19 +415,33 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 			im = new_im
 			dims = im.Bounds()
 
-		} else if pb.Options.Orientation == "L" && image_orientation == "P" {
+			w = float64(dims.Max.X)
+			h = float64(dims.Max.Y)
 
-			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 270.0)
+			// now save to disk...
+
+			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
 
 			if err != nil {
 				return err
 			}
 
-			im = new_im
-			dims = im.Bounds()
+			tmpfile_path := tmpfile.Name()
 
-		} else {
-			// pass
+			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+
+			err = util.EncodeImage(im, "jpeg", tmpfile)
+			defer tmpfile.Close()
+
+			if err != nil {
+				return err
+			}
+
+			if pb.Options.Verbose {
+				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
+			}
+
+			abs_path = tmpfile_path
 		}
 	}
 
@@ -429,8 +462,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	}
 
 	info.SetDpi(pb.Options.DPI)
-	w := float64(dims.Max.X)
-	h := float64(dims.Max.Y)
 
 	if pb.Options.Verbose {
 		log.Printf("[%d] %s %02.f x %02.f\n", pagenum, abs_path, w, h)
