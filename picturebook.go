@@ -15,6 +15,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
+	"github.com/sfomuseum/go-font-ocra"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,6 +36,7 @@ type PictureBookOptions struct {
 	Sort        sort.Sorter
 	FillPage    bool
 	Verbose     bool
+	OCRAFont    bool
 }
 
 type PictureBookBorder struct {
@@ -117,8 +119,23 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		Colour: []int{128, 128, 128},
 	}
 
-	pdf.SetFont(t.Font, t.Style, t.Size)
-	pdf.SetTextColor(t.Colour[0], t.Colour[1], t.Colour[2])
+	if opts.OCRAFont {
+
+		font, err := ocra.LoadFPDFFont()
+
+		if err != nil {
+			return nil, err
+		}
+
+		pdf.AddFontFromBytes(font.Family, font.Style, font.JSON, font.Z)
+		pdf.SetFont(font.Family, "", 8.0)
+
+		pdf.SetTextColor(t.Colour[0], t.Colour[1], t.Colour[2])
+
+	} else {
+
+		pdf.SetFont(t.Font, t.Style, t.Size)
+	}
 
 	w, h, _ := pdf.PageSize(1)
 

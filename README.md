@@ -38,6 +38,8 @@ Usage of ./bin/picturebook:
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 11)
   -include value
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.
+  -ocra-font
+    	Use an OCR-compatible font for captions.
   -orientation string
     	The orientation of your picturebook. Valid orientations are: [please write me] (default "P")
   -pre-process value

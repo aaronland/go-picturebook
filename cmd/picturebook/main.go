@@ -63,6 +63,8 @@ func Picturebook() error {
 	var caption_uri = flag.String("caption", "", desc_captions)
 	var sort_uri = flag.String("sort", "", desc_sorters)
 
+	var ocra_font = flag.Bool("ocra-font", false, "Use an OCR-compatible font for captions.")
+
 	var filter_uris multi.MultiString
 	var process_uris multi.MultiString
 
@@ -175,6 +177,7 @@ func Picturebook() error {
 	opts.Border = *border
 	opts.FillPage = *fill_page
 	opts.Verbose = *verbose
+	opts.OCRAFont = *ocra_font
 
 	processed := make([]string, 0)
 

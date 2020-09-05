@@ -10,7 +10,7 @@ github.com/aaronland/go-image-tools/imaging
 github.com/aaronland/go-image-tools/util
 # github.com/aaronland/go-image-transform v0.0.0-20200216021135-f5c5cf8fc134
 github.com/aaronland/go-image-transform
-# github.com/aaronland/go-roster v0.0.1
+# github.com/aaronland/go-roster v0.0.2
 github.com/aaronland/go-roster
 # github.com/jung-kurt/gofpdf v1.16.2
 github.com/jung-kurt/gofpdf
@@ -26,9 +26,14 @@ github.com/rwcarlsen/goexif/mknote
 github.com/rwcarlsen/goexif/tiff
 # github.com/sfomuseum/go-flags v0.4.1
 github.com/sfomuseum/go-flags/multi
+# github.com/sfomuseum/go-font-ocra v0.0.1
+github.com/sfomuseum/go-font-ocra
+github.com/sfomuseum/go-font-ocra/fonts
 # github.com/tidwall/gjson v1.6.1
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.0.1
 github.com/tidwall/match
 # github.com/tidwall/pretty v1.0.2
 github.com/tidwall/pretty
+# github.com/whosonfirst/go-bindata-assetfs v1.0.1
+github.com/whosonfirst/go-bindata-assetfs
