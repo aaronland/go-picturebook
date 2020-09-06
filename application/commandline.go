@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/aaronland/go-picturebook/caption"
@@ -98,7 +99,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	uri_re, err := regexp.Compile(`(?:[a-z0-9_]+):\/\/.*`)
 
 	if err != nil {
-		log.Fatalf("Failed to compile URI regular expression, %v", err)
+		msg := fmt.Sprintf("Failed to compile URI regular expression, %v", err)
+		return errors.New(msg)
 	}
 
 	if *debug {
@@ -117,11 +119,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		err := filter_uris.Set(str_filter)
 
 		if err != nil {
-			log.Fatalf("Failed to assign filter '%s', %v", str_filter, err)
+			msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
+			return errors.New(msg)
 		}
 
 		if *caption_uri != "" {
-			log.Fatalf("Can not assign -caption using -target since -caption is already defined.")
+			msg := fmt.Sprintf("Can not assign -caption using -target since -caption is already defined.")
+			return errors.New(msg)
 		}
 
 		*caption_uri = str_caption
@@ -137,7 +141,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			err := process_uris.Set(str_process)
 
 			if err != nil {
-				log.Fatalf("Failed to assign process '%s', %v", str_process, err)
+				msg := fmt.Sprintf("Failed to assign process '%s', %v", str_process, err)
+				return errors.New(msg)
 			}
 		}
 	}
@@ -145,13 +150,15 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	if len(include) > 0 {
 
 		log.Println("WARNING The -include flag is deprecated. Please use -filter regexp://include?pattern=... flags instead.")
+
 		for _, re := range include {
 
 			str_filter := fmt.Sprintf("regexp://include?pattern=%s", re.String())
 			err := filter_uris.Set(str_filter)
 
 			if err != nil {
-				log.Fatalf("Failed to assign filter '%s', %v", str_filter, err)
+				msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
+				return errors.New(msg)
 			}
 		}
 	}
@@ -166,7 +173,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			err := filter_uris.Set(str_filter)
 
 			if err != nil {
-				log.Fatalf("Failed to assign filter '%s', %v", str_filter, err)
+				msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
+				return errors.New(msg)
 			}
 		}
 	}
@@ -174,7 +182,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
-		log.Fatalf("Failed to create default picturebook options, %v", err)
+		msg := fmt.Sprintf("Failed to create default picturebook options, %v", err)
+		return errors.New(msg)
 	}
 
 	opts.Orientation = *orientation
@@ -220,7 +229,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			f, err := filter.NewFilter(ctx, filter_uri)
 
 			if err != nil {
-				log.Fatalf("Failed to create filter '%s', %v", filter_uri, err)
+				msg := fmt.Sprintf("Failed to create filter '%s', %v", filter_uri, err)
+				return errors.New(msg)
 			}
 
 			filters[idx] = f
@@ -229,7 +239,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		multi, err := filter.NewMultiFilter(ctx, filters...)
 
 		if err != nil {
-			log.Fatalf("Failed to create multi filter, %v", err)
+			msg := fmt.Sprintf("Failed to create multi filter, %v", err)
+			return errors.New(msg)
 		}
 
 		opts.Filter = multi
@@ -244,7 +255,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			f, err := process.NewProcess(ctx, process_uri)
 
 			if err != nil {
-				log.Fatalf("Failed to create process '%s', %v", process_uri, err)
+				msg := fmt.Sprintf("Failed to create process '%s', %v", process_uri, err)
+				return errors.New(msg)
 			}
 
 			processes[idx] = f
@@ -279,7 +291,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		s, err := sort.NewSorter(ctx, *sort_uri)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		opts.Sort = s
@@ -288,7 +300,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 
 	if err != nil {
-		log.Fatalf("Failed to create new picturebook, %v", err)
+		msg := fmt.Sprintf("Failed to create new picturebook, %v", err)
+		return errors.New(msg)
 	}
 
 	sources := flag.Args()
