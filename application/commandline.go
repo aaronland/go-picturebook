@@ -17,6 +17,12 @@ import (
 	"strings"
 )
 
+var uri_re *regexp.Regexp
+
+func init() {
+	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
+}
+
 type CommandLineApplication struct {
 	Application
 	flagset *flag.FlagSet
@@ -96,12 +102,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	flagset.Parse(app.flagset)
 
-	uri_re, err := regexp.Compile(`(?:[a-z0-9_]+):\/\/.*`)
-
-	if err != nil {
-		msg := fmt.Sprintf("Failed to compile URI regular expression, %v", err)
-		return errors.New(msg)
-	}
+	// get flags here...
 
 	if *debug {
 
