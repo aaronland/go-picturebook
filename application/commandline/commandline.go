@@ -1,4 +1,4 @@
-package application
+package commandline
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aaronland/go-picturebook"
+	"github.com/aaronland/go-picturebook/application"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
@@ -54,11 +55,11 @@ func init() {
 }
 
 type CommandLineApplication struct {
-	Application
+	application.Application
 	flagset *flag.FlagSet
 }
 
-func CommandLineApplicationDefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
+func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("picturebook")
 
@@ -112,7 +113,7 @@ func CommandLineApplicationDefaultFlagSet(ctx context.Context) (*flag.FlagSet, e
 	return fs, nil
 }
 
-func NewCommandLineApplication(ctx context.Context, fs *flag.FlagSet) (Application, error) {
+func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Application, error) {
 
 	app := &CommandLineApplication{
 		flagset: fs,

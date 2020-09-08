@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/aaronland/go-picturebook/application"
+	"github.com/aaronland/go-picturebook/application/commandline"
 	"log"
 	"os"
 )
@@ -11,13 +11,13 @@ func main() {
 
 	ctx := context.Background()
 
-	fs, err := application.CommandLineApplicationDefaultFlagSet(ctx)
+	fs, err := commandline.DefaultFlagSet(ctx)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	app, err := application.NewCommandLineApplication(ctx, fs)
+	app, err := commandline.NewApplication(ctx, fs)
 
 	if err != nil {
 		log.Fatal(err)
