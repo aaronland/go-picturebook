@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
@@ -19,6 +20,35 @@ import (
 
 var uri_re *regexp.Regexp
 
+var orientation string
+var size string
+var width float64
+var height float64
+var dpi float64
+var border float64
+
+var fill_page bool
+
+var filename string
+
+var verbose bool
+var debug bool
+
+var caption_uri string
+var sort_uri string
+
+var filter_uris multi.MultiString
+var process_uris multi.MultiString
+
+var ocra_font bool
+
+// Deprecated flags
+
+var target string
+var preprocess_uris multi.MultiString
+var include multi.MultiRegexp
+var exclude multi.MultiRegexp
+
 func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
@@ -28,7 +58,7 @@ type CommandLineApplication struct {
 	flagset *flag.FlagSet
 }
 
-func CommandLineApplicationDefaultFlagSet() (*flag.FlagSet, error) {
+func CommandLineApplicationDefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("picturebook")
 
@@ -49,42 +79,35 @@ func CommandLineApplicationDefaultFlagSet() (*flag.FlagSet, error) {
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
 
-	fs.String("orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
-	fs.String("size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
-	fs.Float64("width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
-	fs.Float64("height", 11, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
-	fs.Float64("dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
-	fs.Float64("border", 0.01, "The size of the border around images.")
+	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
+	fs.StringVar(&size, "size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
+	fs.Float64Var(&width, "width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
+	fs.Float64Var(&height, "height", 11, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
+	fs.Float64Var(&dpi, "dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
+	fs.Float64Var(&border, "border", 0.01, "The size of the border around images.")
 
-	fs.Bool("fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
+	fs.BoolVar(&fill_page, "fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
 
-	fs.String("filename", "picturebook.pdf", "The filename (path) for your picturebook.")
+	fs.StringVar(&filename, "filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
-	fs.Bool("verbose", false, "Display verbose output as the picturebook is created.")
-	fs.Bool("debug", false, "DEPRECATED: Please use the -verbose fs.instead.")
+	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
+	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose fs.instead.")
 
-	fs.String("caption", "", desc_captions)
-	fs.String("sort", "", desc_sorters)
+	fs.StringVar(&caption_uri, "caption", "", desc_captions)
+	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
 
-	fs.Bool("ocra-font", false, "Use an OCR-compatible font for captions.")
-
-	var filter_uris multi.MultiString
-	var process_uris multi.MultiString
+	fs.BoolVar(&ocra_font, "ocra-font", false, "Use an OCR-compatible font for captions.")
 
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
 	// Deprecated flags
 
-	var preprocess_uris multi.MultiString
-	var include multi.MultiRegexp
-	var exclude multi.MultiRegexp
-
 	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
 	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.")
 	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.")
 
-	fs.String("target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
+	fs.StringVar(&target, "target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
 
 	return fs, nil
 }
@@ -104,18 +127,18 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	// get flags here...
 
-	if *debug {
+	if debug {
 
 		log.Println("WARNING The -debug flag is deprecated. Please use the -verbose flag instead.")
-		*verbose = *debug
+		verbose = debug
 	}
 
-	if *target != "" {
+	if target != "" {
 
 		log.Println("WARNING The -target flag is deprecated. Please use specific -filter and -caption flags as needed.")
 
-		str_filter := fmt.Sprintf("%s://", *target)
-		str_caption := fmt.Sprintf("%s://", *target)
+		str_filter := fmt.Sprintf("%s://", target)
+		str_caption := fmt.Sprintf("%s://", target)
 
 		err := filter_uris.Set(str_filter)
 
@@ -124,12 +147,12 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			return errors.New(msg)
 		}
 
-		if *caption_uri != "" {
+		if caption_uri != "" {
 			msg := fmt.Sprintf("Can not assign -caption using -target since -caption is already defined.")
 			return errors.New(msg)
 		}
 
-		*caption_uri = str_caption
+		caption_uri = str_caption
 	}
 
 	if len(preprocess_uris) > 0 {
@@ -187,15 +210,15 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return errors.New(msg)
 	}
 
-	opts.Orientation = *orientation
-	opts.Size = *size
-	opts.Width = *width
-	opts.Height = *height
-	opts.DPI = *dpi
-	opts.Border = *border
-	opts.FillPage = *fill_page
-	opts.Verbose = *verbose
-	opts.OCRAFont = *ocra_font
+	opts.Orientation = orientation
+	opts.Size = size
+	opts.Width = width
+	opts.Height = height
+	opts.DPI = dpi
+	opts.Border = border
+	opts.FillPage = fill_page
+	opts.Verbose = verbose
+	opts.OCRAFont = ocra_font
 
 	processed := make([]string, 0)
 
@@ -272,13 +295,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.PreProcess = multi
 	}
 
-	if *caption_uri != "" {
+	if caption_uri != "" {
 
-		if !uri_re.MatchString(*caption_uri) {
-			*caption_uri = fmt.Sprintf("%s://", *caption_uri)
+		if !uri_re.MatchString(caption_uri) {
+			caption_uri = fmt.Sprintf("%s://", caption_uri)
 		}
 
-		c, err := caption.NewCaption(ctx, *caption_uri)
+		c, err := caption.NewCaption(ctx, caption_uri)
 
 		if err != nil {
 			log.Fatal(err)
@@ -287,9 +310,9 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.Caption = c
 	}
 
-	if *sort_uri != "" {
+	if sort_uri != "" {
 
-		s, err := sort.NewSorter(ctx, *sort_uri)
+		s, err := sort.NewSorter(ctx, sort_uri)
 
 		if err != nil {
 			return err
@@ -313,7 +336,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return err
 	}
 
-	err = pb.Save(ctx, *filename)
+	err = pb.Save(ctx, filename)
 
 	if err != nil {
 		return err

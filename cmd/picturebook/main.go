@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aaronland/go-picturebook/application"
 	"log"
+	"os"
 )
 
 func main() {
