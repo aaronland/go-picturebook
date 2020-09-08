@@ -292,7 +292,9 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				return nil
 			}
 
-			final_path = processed_path
+			if processed_path != "" {
+				final_path = processed_path
+			}
 		}
 
 		pic := &picture.PictureBookPicture{

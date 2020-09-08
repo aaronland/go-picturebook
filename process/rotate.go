@@ -7,6 +7,7 @@ import (
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
+	_ "log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -56,8 +57,17 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 	defer fh.Close()
 
 	x, err := exif.Decode(fh)
-
+	
 	if err != nil {
+
+		if exif.IsExifError(err){
+			return "", nil
+		}
+
+		if exif.IsCriticalError(err) {
+			return "", nil
+		}
+		
 		return "", err
 	}
 
@@ -88,5 +98,6 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 	angle, _, _ := exifutil.ProcessOrientation(orientation)
 	rotated := exifutil.Rotate(im, angle)
 
+	
 	return util.EncodeTempImage(rotated, format)
 }
