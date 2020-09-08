@@ -329,7 +329,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return errors.New(msg)
 	}
 
-	sources := flag.Args()
+	sources := app.flagset.Args()
 
 	err = pb.AddPictures(ctx, sources)
 
