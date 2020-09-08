@@ -196,6 +196,10 @@ For an example of how to create and register a custom `Sorter` handler take a lo
 
 The following schemes for sorter handlers are supported by default:
 
+#### modtime://
+
+Sort images, in ascending order, by their modification times. If two or more images have the same modification they will sorted again by their file size.
+
 #### orthis://
 
 This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
