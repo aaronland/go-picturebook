@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"gocloud.dev/blob"
 )
 
 type PictureBookOptions struct {
@@ -181,9 +182,9 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	return &pb, nil
 }
 
-func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
+func (pb *PictureBook) AddPictures(ctx context.Context, bucket *blob.Bucket, paths []string) error {
 
-	pictures, err := pb.GatherPictures(ctx, paths)
+	pictures, err := pb.GatherPictures(ctx, bucket, paths)
 
 	if err != nil {
 		return err
@@ -207,7 +208,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+		err = pb.AddPicture(ctx, pagenum, bucket, pic.Path, pic.Caption)
 
 		if err != nil && pb.Options.Verbose {
 			log.Printf("Failed to add %s, %v", pic.Path, err)
@@ -217,7 +218,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 	return nil
 }
 
-func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
+func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, paths []string) ([]*picture.PictureBookPicture, error) {
 
 	pictures := make([]*picture.PictureBookPicture, 0)
 
@@ -317,7 +318,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	return pictures, nil
 }
 
-func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path string, caption string) error {
+func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob.Bucket, abs_path string, caption string) error {
 
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
@@ -625,8 +626,10 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	return nil
 }
 
-func (pb *PictureBook) Save(ctx context.Context, path string) error {
+func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path string) error {
 
+	// move this out of here...
+	
 	defer func() {
 
 		for _, path := range pb.tmpfiles {
@@ -635,6 +638,8 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 				log.Println("REMOVE TMPFILE", path)
 			}
 
+			// FIX ME - which bucket, though...
+			
 			os.Remove(path)
 		}
 	}()
@@ -643,5 +648,25 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 		log.Printf("save %s\n", path)
 	}
 
-	return pb.PDF.OutputFileAndClose(path)
+	wr, err := bucket.NewWriter(ctx, path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	err = pb.PDF.Output(wr)
+
+	if err != nil {
+		return err
+	}
+
+	err = wr.Close()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+	
+	// return pb.PDF.OutputFileAndClose(path)
 }

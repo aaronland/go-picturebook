@@ -17,6 +17,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"gocloud.dev/blob"
 )
 
 var uri_re *regexp.Regexp
@@ -27,6 +28,9 @@ var width float64
 var height float64
 var dpi float64
 var border float64
+
+var source_uri string
+var target_uri string
 
 var fill_page bool
 
@@ -102,6 +106,9 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
+	fs.StringVar(&source_uri, "source-uri", "", "...")
+	fs.StringVar(&target_uri, "target-uri", "", "...")	
+	
 	// Deprecated flags
 
 	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
@@ -204,6 +211,19 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		}
 	}
 
+	source_bucket, err := blob.OpenBucket(ctx, source_uri)
+
+	if err != nil {
+		return err
+	}
+
+
+	target_bucket, err := blob.OpenBucket(ctx, target_uri)
+
+	if err != nil {
+		return err
+	}
+	
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
@@ -231,6 +251,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 				_, err := os.Stat(p)
 
+				// FIX ME...
+				
 				if os.IsNotExist(err) {
 					return
 				}
@@ -331,13 +353,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	sources := app.flagset.Args()
 
-	err = pb.AddPictures(ctx, sources)
+	err = pb.AddPictures(ctx, source_bucket, sources)
 
 	if err != nil {
 		return err
 	}
 
-	err = pb.Save(ctx, filename)
+	err = pb.Save(ctx, target_bucket, filename)
 
 	if err != nil {
 		return err

@@ -14,4 +14,5 @@ require (
 	github.com/sfomuseum/go-flags v0.4.1
 	github.com/sfomuseum/go-font-ocra v0.0.1
 	github.com/tidwall/gjson v1.6.1
+	gocloud.dev v0.20.0
 )
