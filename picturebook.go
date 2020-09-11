@@ -512,7 +512,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		}
 	}
 
-	// FIX - is there a Reader version of this?
+	// FIX - is there a Reader version of this? Maybe not necessary...
+	// https://github.com/jung-kurt/gofpdf/blob/master/fpdf.go#L3253
 	
 	info := pb.PDF.GetImageInfo(abs_path)
 
@@ -524,6 +525,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		}
 
 		// FIX - ...
+		// https://godoc.org/github.com/jung-kurt/gofpdf#Fpdf.RegisterImageReader
 		
 		info = pb.PDF.RegisterImageOptions(abs_path, opts)
 	}
