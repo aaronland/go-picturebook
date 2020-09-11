@@ -224,8 +224,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 
 	var list func(context.Context, *blob.Bucket, string) error
 
-	mu := new(sync.RWMutex)
-
 	file := func(ctx context.Context, b *blob.Bucket, path string) error {
 
 		select {
@@ -296,8 +294,8 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 			final_path = processed_path
 		}
 
-		mu.Lock()
-		defer mu.Unlock()
+		pb.Mutex.Lock()
+		defer pb.Mutex.Unlock()
 
 		pic := &picture.PictureBookPicture{
 			Source:  abs_path,
@@ -350,8 +348,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 
 		err := list(ctx, bucket, path)
 
-		// err := filepath.Walk(path, cb)
-
 		if err != nil {
 			return nil, err
 		}
@@ -365,7 +361,15 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
-	im, format, err := util.DecodeImage(abs_path)
+	im_r, err := bucket.NewReader(ctx, abs_path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	defer im_r.Close()
+	
+	im, format, err := util.DecodeImageFromReader(im_r)
 
 	if err != nil {
 		return err
@@ -397,6 +401,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 		if bpc > 8 {
 
+			// FIX...
+			
 			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
 
 			if err != nil {
@@ -478,6 +484,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			w = float64(dims.Max.X)
 			h = float64(dims.Max.Y)
 
+			// FIX...
 			// now save to disk...
 
 			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
@@ -505,6 +512,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		}
 	}
 
+	// FIX - is there a Reader version of this?
+	
 	info := pb.PDF.GetImageInfo(abs_path)
 
 	if info == nil {
@@ -514,6 +523,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			ImageType: format,
 		}
 
+		// FIX - ...
+		
 		info = pb.PDF.RegisterImageOptions(abs_path, opts)
 	}
 
