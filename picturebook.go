@@ -16,12 +16,12 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
+	"gocloud.dev/blob"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"sync"
-	"gocloud.dev/blob"
 )
 
 type PictureBookOptions struct {
@@ -222,7 +222,11 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 
 	pictures := make([]*picture.PictureBookPicture, 0)
 
-	cb := func(path string, info os.FileInfo, err error) error {
+	var list func(context.Context, *blob.Bucket, string) error
+
+	mu := new(sync.RWMutex)
+
+	file := func(ctx context.Context, b *blob.Bucket, path string) error {
 
 		select {
 		case <-ctx.Done():
@@ -231,20 +235,16 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 			// pass
 		}
 
-		if err != nil {
-			return err
-		}
+		abs_path := path
 
-		if info.IsDir() {
-			return nil
-		}
+		/*
+			abs_path, err := bucket.SignedURL(ctx, path, nil)
 
-		abs_path, err := filepath.Abs(path)
-
-		if err != nil {
-			// log.Println("PATH", abs_path, err)
-			return nil
-		}
+			if err != nil {
+				// log.Println("PATH", abs_path, err)
+				return nil
+			}
+		*/
 
 		if pb.Options.Filter != nil {
 
@@ -296,6 +296,9 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 			final_path = processed_path
 		}
 
+		mu.Lock()
+		defer mu.Unlock()
+
 		pic := &picture.PictureBookPicture{
 			Source:  abs_path,
 			Path:    final_path,
@@ -306,9 +309,48 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 		return nil
 	}
 
+	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
+
+		iter := bucket.List(&blob.ListOptions{
+			Delimiter: "/",
+			Prefix:    prefix,
+		})
+
+		for {
+			obj, err := iter.Next(ctx)
+
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				return err
+			}
+
+			path := obj.Key
+
+			if obj.IsDir {
+
+				err := list(ctx, bucket, path)
+
+				if err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			return file(ctx, bucket, path)
+		}
+
+		return nil
+	}
+
 	for _, path := range paths {
 
-		err := filepath.Walk(path, cb)
+		err := list(ctx, bucket, path)
+
+		// err := filepath.Walk(path, cb)
 
 		if err != nil {
 			return nil, err
@@ -629,7 +671,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path string) error {
 
 	// move this out of here...
-	
+
 	defer func() {
 
 		for _, path := range pb.tmpfiles {
@@ -639,7 +681,7 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 			}
 
 			// FIX ME - which bucket, though...
-			
+
 			os.Remove(path)
 		}
 	}()
@@ -667,6 +709,6 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 	}
 
 	return nil
-	
+
 	// return pb.PDF.OutputFileAndClose(path)
 }

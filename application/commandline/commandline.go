@@ -13,11 +13,11 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
+	"gocloud.dev/blob"
 	"log"
 	"os"
 	"regexp"
 	"strings"
-	"gocloud.dev/blob"
 )
 
 var uri_re *regexp.Regexp
@@ -107,8 +107,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&process_uris, "process", desc_processes)
 
 	fs.StringVar(&source_uri, "source-uri", "", "...")
-	fs.StringVar(&target_uri, "target-uri", "", "...")	
-	
+	fs.StringVar(&target_uri, "target-uri", "", "...")
+
 	// Deprecated flags
 
 	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
@@ -217,13 +217,12 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return err
 	}
 
-
 	target_bucket, err := blob.OpenBucket(ctx, target_uri)
 
 	if err != nil {
 		return err
 	}
-	
+
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
@@ -252,7 +251,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 				_, err := os.Stat(p)
 
 				// FIX ME...
-				
+
 				if os.IsNotExist(err) {
 					return
 				}
