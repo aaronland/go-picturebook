@@ -17,10 +17,11 @@ import (
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
+	"image"
 	"io"
-	"io/ioutil"
+	_ "io/ioutil"
 	"log"
-	"os"
+	_ "os"
 	"sync"
 )
 
@@ -368,7 +369,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 	}
 
 	defer im_r.Close()
-	
+
 	im, format, err := util.DecodeImageFromReader(im_r)
 
 	if err != nil {
@@ -402,29 +403,37 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		if bpc > 8 {
 
 			// FIX...
-			
-			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
+
+			tmpfile_path, err := pb.tempFileWithImage(ctx, bucket, im)
 
 			if err != nil {
 				return err
 			}
 
-			tmpfile_path := tmpfile.Name()
+			/*
+				tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
 
-			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+				if err != nil {
+					return err
+				}
 
-			err = util.EncodeImage(im, "jpeg", tmpfile)
-			defer tmpfile.Close()
+				tmpfile_path := tmpfile.Name()
 
-			if err != nil {
-				return err
-			}
+				pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
-			im, format, err = util.DecodeImage(tmpfile_path)
+				err = util.EncodeImage(im, "jpeg", tmpfile)
+				defer tmpfile.Close()
 
-			if err != nil {
-				return err
-			}
+				if err != nil {
+					return err
+				}
+
+				im, format, err = util.DecodeImage(tmpfile_path)
+
+				if err != nil {
+					return err
+				}
+			*/
 
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
@@ -484,25 +493,34 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			w = float64(dims.Max.X)
 			h = float64(dims.Max.Y)
 
-			// FIX...
 			// now save to disk...
 
-			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
+			tmpfile_path, err := pb.tempFileWithImage(ctx, bucket, im)
 
 			if err != nil {
 				return err
 			}
-
-			tmpfile_path := tmpfile.Name()
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
-			err = util.EncodeImage(im, "jpeg", tmpfile)
-			defer tmpfile.Close()
+			/*
+				tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
 
-			if err != nil {
-				return err
-			}
+				if err != nil {
+					return err
+				}
+
+				tmpfile_path := tmpfile.Name()
+
+				pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+
+				err = util.EncodeImage(im, "jpeg", tmpfile)
+				defer tmpfile.Close()
+
+				if err != nil {
+					return err
+				}
+			*/
 
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
@@ -514,7 +532,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 	// FIX - is there a Reader version of this? Maybe not necessary...
 	// https://github.com/jung-kurt/gofpdf/blob/master/fpdf.go#L3253
-	
+
 	info := pb.PDF.GetImageInfo(abs_path)
 
 	if info == nil {
@@ -526,7 +544,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 		// FIX - ...
 		// https://godoc.org/github.com/jung-kurt/gofpdf#Fpdf.RegisterImageReader
-		
+
 		info = pb.PDF.RegisterImageOptions(abs_path, opts)
 	}
 
@@ -695,7 +713,11 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 
 			// FIX ME - which bucket, though...
 
-			os.Remove(path)
+			err := bucket.Delete(ctx, path)
+
+			if err != nil {
+				log.Printf("Failed to delete %s, %v\n", path, err)
+			}
 		}
 	}()
 
@@ -724,4 +746,29 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 	return nil
 
 	// return pb.PDF.OutputFileAndClose(path)
+}
+
+func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, error) {
+
+	fname := "fixme"
+
+	wr, err := bucket.NewWriter(ctx, fname, nil)
+
+	if err != nil {
+		return "", nil
+	}
+
+	err = util.EncodeImage(im, "jpeg", wr)
+
+	if err != nil {
+		return "", err
+	}
+
+	err = wr.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	return fname, nil
 }
