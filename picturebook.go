@@ -13,6 +13,7 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
@@ -304,6 +305,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 			Caption: caption,
 		}
 
+		log.Println(pic)
 		pictures = append(pictures, pic)
 		return nil
 	}
@@ -339,6 +341,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 				continue
 			}
 
+			log.Println(path)			
 			return file(ctx, bucket, path)
 		}
 
@@ -402,44 +405,18 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 		if bpc > 8 {
 
-			// FIX...
-
-			tmpfile_path, err := pb.tempFileWithImage(ctx, bucket, im)
+			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, bucket, im)
 
 			if err != nil {
 				return err
 			}
-
-			/*
-				tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
-
-				if err != nil {
-					return err
-				}
-
-				tmpfile_path := tmpfile.Name()
-
-				pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
-
-				err = util.EncodeImage(im, "jpeg", tmpfile)
-				defer tmpfile.Close()
-
-				if err != nil {
-					return err
-				}
-
-				im, format, err = util.DecodeImage(tmpfile_path)
-
-				if err != nil {
-					return err
-				}
-			*/
 
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
 
 			abs_path = tmpfile_path
+			format = tmpfile_format
 		}
 	}
 
@@ -495,7 +472,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 			// now save to disk...
 
-			tmpfile_path, err := pb.tempFileWithImage(ctx, bucket, im)
+			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, bucket, im)
 
 			if err != nil {
 				return err
@@ -503,30 +480,12 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
-			/*
-				tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
-
-				if err != nil {
-					return err
-				}
-
-				tmpfile_path := tmpfile.Name()
-
-				pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
-
-				err = util.EncodeImage(im, "jpeg", tmpfile)
-				defer tmpfile.Close()
-
-				if err != nil {
-					return err
-				}
-			*/
-
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
 
 			abs_path = tmpfile_path
+			format = tmpfile_format
 		}
 	}
 
@@ -535,6 +494,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 	info := pb.PDF.GetImageInfo(abs_path)
 
+	log.Println("INFO", abs_path, info)
+	
 	if info == nil {
 
 		opts := gofpdf.ImageOptions{
@@ -542,10 +503,16 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			ImageType: format,
 		}
 
-		// FIX - ...
-		// https://godoc.org/github.com/jung-kurt/gofpdf#Fpdf.RegisterImageReader
+		r, err := bucket.NewReader(ctx, abs_path, nil)
 
-		info = pb.PDF.RegisterImageOptions(abs_path, opts)
+		if err != nil {
+			return err
+		}
+
+		defer r.Close()
+		
+		info = pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
+
 	}
 
 	if info == nil {
@@ -748,27 +715,33 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 	// return pb.PDF.OutputFileAndClose(path)
 }
 
-func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, error) {
+func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, string, error) {
 
-	fname := "fixme"
+	id, err := uuid.NewUUID()
+
+	if err != nil {
+		return "", "", err
+	}
+	
+	fname := fmt.Sprintf("%s.jpg", id.String())
 
 	wr, err := bucket.NewWriter(ctx, fname, nil)
 
 	if err != nil {
-		return "", nil
+		return "", "", nil
 	}
 
 	err = util.EncodeImage(im, "jpeg", wr)
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	err = wr.Close()
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fname, nil
+	return fname, "jpeg", nil
 }
