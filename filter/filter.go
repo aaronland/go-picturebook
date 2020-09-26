@@ -3,6 +3,7 @@ package filter
 import (
 	"context"
 	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"	
 	"net/url"
 	"regexp"
 )
@@ -19,7 +20,7 @@ type Filter interface {
 	Continue(context.Context, string) (bool, error)
 }
 
-type FilterInitializeFunc func(context.Context, string) (Filter, error)
+type FilterInitializeFunc func(context.Context, *blob.Bucket, string) (Filter, error)
 
 var filters roster.Roster
 

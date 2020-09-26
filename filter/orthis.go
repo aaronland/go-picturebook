@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"gocloud.dev/blob"		
 )
 
 func init() {
@@ -56,7 +57,7 @@ func NewOrThisFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *OrThisFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *OrThisFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	fname := filepath.Base(path)
 

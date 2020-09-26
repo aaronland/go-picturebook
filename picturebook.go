@@ -40,6 +40,8 @@ type PictureBookOptions struct {
 	FillPage    bool
 	Verbose     bool
 	OCRAFont    bool
+	Source      *blob.Bucket
+	Target      *blob.Bucket
 }
 
 type PictureBookBorder struct {
@@ -184,9 +186,9 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	return &pb, nil
 }
 
-func (pb *PictureBook) AddPictures(ctx context.Context, bucket *blob.Bucket, paths []string) error {
+func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
-	pictures, err := pb.GatherPictures(ctx, bucket, paths)
+	pictures, err := pb.GatherPictures(ctx, paths)
 
 	if err != nil {
 		return err
@@ -214,7 +216,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, bucket *blob.Bucket, pat
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		err = pb.AddPicture(ctx, pagenum, bucket, pic.Path, pic.Caption)
+		err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
 
 		if err != nil && pb.Options.Verbose {
 			log.Printf("Failed to add %s, %v", pic.Path, err)
@@ -224,7 +226,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, bucket *blob.Bucket, pat
 	return nil
 }
 
-func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, paths []string) ([]*picture.PictureBookPicture, error) {
+func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
 
 	pictures := make([]*picture.PictureBookPicture, 0)
 
@@ -243,7 +245,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 
 		if pb.Options.Filter != nil {
 
-			ok, err := pb.Options.Filter.Continue(ctx, abs_path)
+			ok, err := pb.Options.Filter.Continue(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to filter %s, %v\n", abs_path, err)
@@ -300,7 +302,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 			Caption: caption,
 		}
 
-		log.Println(pic)
 		pictures = append(pictures, pic)
 		return nil
 	}
@@ -348,7 +349,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 
 	for _, path := range paths {
 
-		err := list(ctx, bucket, path)
+		err := list(ctx, pb.Options.Source, path)
 
 		if err != nil {
 			return nil, err
@@ -358,12 +359,12 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 	return pictures, nil
 }
 
-func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob.Bucket, abs_path string, caption string) error {
+func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path string, caption string) error {
 
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
-	im_r, err := bucket.NewReader(ctx, abs_path, nil)
+	im_r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
 
 	if err != nil {
 		return err
@@ -403,7 +404,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 		if bpc > 8 {
 
-			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, bucket, im)
+			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
@@ -412,6 +413,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
+
+			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
 			abs_path = tmpfile_path
 			format = tmpfile_format
@@ -470,7 +473,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 
 			// now save to disk...
 
-			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, bucket, im)
+			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
@@ -496,7 +499,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 			ImageType: format,
 		}
 
-		r, err := bucket.NewReader(ctx, abs_path, nil)
+		r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
 
 		if err != nil {
 			return err
@@ -659,7 +662,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 	return nil
 }
 
-func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path string) error {
+func (pb *PictureBook) Save(ctx context.Context, path string) error {
+
+	if pb.Options.Target == nil {
+		return errors.New("Missing or invalid target bucket")
+	}
 
 	// move this out of here...
 
@@ -668,12 +675,10 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 		for _, path := range pb.tmpfiles {
 
 			if pb.Options.Verbose {
-				log.Println("REMOVE TMPFILE", path)
+				log.Printf("Remove tmp file '%s'\n", path)
 			}
 
-			// FIX ME - which bucket, though...
-
-			err := bucket.Delete(ctx, path)
+			err := pb.Options.Source.Delete(ctx, path)
 
 			if err != nil {
 				log.Printf("Failed to delete %s, %v\n", path, err)
@@ -682,10 +687,10 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 	}()
 
 	if pb.Options.Verbose {
-		log.Printf("save %s\n", path)
+		log.Printf("Save %s\n", path)
 	}
 
-	wr, err := bucket.NewWriter(ctx, path, nil)
+	wr, err := pb.Options.Target.NewWriter(ctx, path, nil)
 
 	if err != nil {
 		return err

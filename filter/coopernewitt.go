@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"gocloud.dev/blob"		
 )
 
 func init() {
@@ -39,7 +40,7 @@ func NewCooperHewittFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *CooperHewittFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *CooperHewittFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	if !strings.HasSuffix(path, "_b.jpg") {
 		return false, nil

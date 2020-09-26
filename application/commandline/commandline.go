@@ -343,6 +343,9 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.Sort = s
 	}
 
+	opts.Source = source_bucket
+	opts.Target = target_bucket
+
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 
 	if err != nil {
@@ -352,13 +355,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	sources := app.flagset.Args()
 
-	err = pb.AddPictures(ctx, source_bucket, sources)
+	err = pb.AddPictures(ctx, sources)
 
 	if err != nil {
 		return err
 	}
 
-	err = pb.Save(ctx, target_bucket, filename)
+	err = pb.Save(ctx, filename)
 
 	if err != nil {
 		return err

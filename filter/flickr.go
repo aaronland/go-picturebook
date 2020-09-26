@@ -3,6 +3,7 @@ package filter
 import (
 	"context"
 	"net/url"
+	"gocloud.dev/blob"		
 )
 
 func init() {
@@ -32,7 +33,7 @@ func NewFlickrFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *FlickrFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *FlickrFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	if !flickr_re.MatchString(path) {
 		return false, nil

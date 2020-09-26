@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/url"
 	"regexp"
+	"gocloud.dev/blob"		
 )
 
 func init() {
@@ -64,7 +65,7 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *RegexpFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *RegexpFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	match := f.re.MatchString(path)
 
