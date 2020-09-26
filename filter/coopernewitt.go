@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
-	"gocloud.dev/blob"		
 )
 
 func init() {

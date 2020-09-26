@@ -3,6 +3,7 @@ package filter
 import (
 	"context"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"gocloud.dev/blob"		
 )
 
 func init() {

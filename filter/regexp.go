@@ -3,9 +3,9 @@ package filter
 import (
 	"context"
 	"errors"
+	"gocloud.dev/blob"
 	"net/url"
 	"regexp"
-	"gocloud.dev/blob"		
 )
 
 func init() {

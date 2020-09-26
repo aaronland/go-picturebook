@@ -2,7 +2,7 @@ package filter
 
 import (
 	"context"
-	"gocloud.dev/blob"		
+	"gocloud.dev/blob"
 )
 
 type MultiFilter struct {
