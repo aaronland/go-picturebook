@@ -192,6 +192,10 @@ func (pb *PictureBook) AddPictures(ctx context.Context, bucket *blob.Bucket, pat
 		return err
 	}
 
+	if pb.Options.Verbose {
+		log.Printf("Count pictures gathered: %d\n", len(pictures))
+	}
+
 	if pb.Options.Sort != nil {
 
 		sorted, err := pb.Options.Sort.Sort(ctx, pictures)
@@ -236,15 +240,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 		}
 
 		abs_path := path
-
-		/*
-			abs_path, err := bucket.SignedURL(ctx, path, nil)
-
-			if err != nil {
-				// log.Println("PATH", abs_path, err)
-				return nil
-			}
-		*/
 
 		if pb.Options.Filter != nil {
 
@@ -341,8 +336,11 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, bucket *blob.Bucket, 
 				continue
 			}
 
-			log.Println(path)			
-			return file(ctx, bucket, path)
+			err = file(ctx, bucket, path)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -489,13 +487,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		}
 	}
 
-	// FIX - is there a Reader version of this? Maybe not necessary...
-	// https://github.com/jung-kurt/gofpdf/blob/master/fpdf.go#L3253
-
 	info := pb.PDF.GetImageInfo(abs_path)
 
-	log.Println("INFO", abs_path, info)
-	
 	if info == nil {
 
 		opts := gofpdf.ImageOptions{
@@ -510,7 +503,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, bucket *blob
 		}
 
 		defer r.Close()
-		
+
 		info = pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
 
 	}
@@ -711,8 +704,6 @@ func (pb *PictureBook) Save(ctx context.Context, bucket *blob.Bucket, path strin
 	}
 
 	return nil
-
-	// return pb.PDF.OutputFileAndClose(path)
 }
 
 func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, string, error) {
@@ -722,8 +713,8 @@ func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucke
 	if err != nil {
 		return "", "", err
 	}
-	
-	fname := fmt.Sprintf("%s.jpg", id.String())
+
+	fname := fmt.Sprintf("picturebook-%s.jpg", id.String())
 
 	wr, err := bucket.NewWriter(ctx, fname, nil)
 
