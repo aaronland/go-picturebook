@@ -9,7 +9,6 @@ import (
 	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -51,13 +50,17 @@ func (c *FlickrCaption) Text(ctx context.Context, bucket *blob.Bucket, path stri
 
 	info := strings.Replace(path, img_ext, info_ext, -1)
 
-	_, err := os.Stat(info)
+	exists, err := bucket.Exists(ctx, info)
 
 	if err != nil {
 		return "", err
 	}
 
-	fh, err := os.Open(info)
+	if !exists {
+		return "", errors.New("Missing _i.json file")
+	}
+
+	fh, err := bucket.NewReader(ctx, info, nil)
 
 	if err != nil {
 		return "", err

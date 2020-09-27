@@ -7,7 +7,6 @@ import (
 	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 )
 
@@ -51,7 +50,7 @@ func (c *OrThisCaption) Text(ctx context.Context, bucket *blob.Bucket, path stri
 
 	index := filepath.Join(root, "index.json")
 
-	fh, err := os.Open(index)
+	fh, err := bucket.NewReader(ctx, index, nil)
 
 	if err != nil {
 		return "", err

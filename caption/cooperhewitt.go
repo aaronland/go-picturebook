@@ -9,7 +9,6 @@ import (
 	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"time"
 )
@@ -46,13 +45,17 @@ func (c *CooperHewittCaption) Text(ctx context.Context, bucket *blob.Bucket, pat
 	root := filepath.Dir(path)
 	info := filepath.Join(root, "index.json")
 
-	_, err := os.Stat(info)
+	exists, err := bucket.Exists(ctx, info)
 
 	if err != nil {
 		return "", err
 	}
 
-	fh, err := os.Open(info)
+	if !exists {
+		return "", errors.New("Missing index.json")
+	}
+
+	fh, err := bucket.NewReader(ctx, info, nil)
 
 	if err != nil {
 		return "", err
