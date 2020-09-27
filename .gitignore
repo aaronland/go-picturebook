@@ -5,3 +5,4 @@ src
 bin
 *.pdf
 .DS_Store
+!example/picturebook-fill-page.pdf
