@@ -37,7 +37,15 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 
 func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
-	im, format, err := util.DecodeImage(path)
+	fh, err := bucket.NewReader(ctx, path, nil)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer fh.Close()
+	
+	im, format, err := util.DecodeImageFromReader(fh)
 
 	if err != nil {
 		return "", err

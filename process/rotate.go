@@ -3,13 +3,14 @@ package process
 // update to use go-image-rotate
 
 import (
+	"bytes"
 	"context"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
 	"gocloud.dev/blob"
+	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 )
 
@@ -48,7 +49,7 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 		return "", nil
 	}
 
-	fh, err := os.Open(path)
+	fh, err := bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", err
@@ -56,7 +57,15 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 
 	defer fh.Close()
 
-	x, err := exif.Decode(fh)
+	body, err := ioutil.ReadAll(fh)
+
+	if err != nil {
+		return "", err
+	}
+
+	br := bytes.NewReader(body)
+	
+	x, err := exif.Decode(br)
 
 	if err != nil {
 		return "", err
@@ -80,7 +89,9 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 		return "", nil
 	}
 
-	im, format, err := util.DecodeImage(path)
+	br.Seek(0,0)
+	
+	im, format, err := util.DecodeImageFromReader(br)
 
 	if err != nil {
 		return "", err
