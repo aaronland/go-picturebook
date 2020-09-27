@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"		
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -40,7 +41,7 @@ func NewCooperHewittCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *CooperHewittCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *CooperHewittCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	root := filepath.Dir(path)
 	info := filepath.Join(root, "index.json")

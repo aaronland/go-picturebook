@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"		
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -41,7 +42,7 @@ func NewFlickrCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *FlickrCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *FlickrCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 

@@ -3,6 +3,7 @@ package caption
 import (
 	"context"
 	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"	
 	"net/url"
 	"regexp"
 )
@@ -16,7 +17,7 @@ func init() {
 }
 
 type Caption interface {
-	Text(context.Context, string) (string, error)
+	Text(context.Context, *blob.Bucket, string) (string, error)
 }
 
 type CaptionInitializeFunc func(context.Context, string) (Caption, error)

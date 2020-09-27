@@ -265,7 +265,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 		if pb.Options.Caption != nil {
 
-			txt, err := pb.Options.Caption.Text(ctx, abs_path)
+			txt, err := pb.Options.Caption.Text(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)

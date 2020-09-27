@@ -3,6 +3,7 @@ package caption
 import (
 	"context"
 	"net/url"
+	"gocloud.dev/blob"		
 )
 
 func init() {
@@ -31,6 +32,6 @@ func NewNoneCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *NoneCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *NoneCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 	return "", nil
 }
