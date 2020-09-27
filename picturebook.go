@@ -283,7 +283,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				log.Printf("Processing %s\n", abs_path)
 			}
 
-			processed_path, err := pb.Options.PreProcess.Transform(ctx, abs_path)
+			processed_path, err := pb.Options.PreProcess.Transform(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to process %s, %v\n", abs_path, err)

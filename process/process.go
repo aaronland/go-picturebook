@@ -3,11 +3,12 @@ package process
 import (
 	"context"
 	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"
 	"net/url"
 )
 
 type Process interface {
-	Transform(context.Context, string) (string, error)
+	Transform(context.Context, *blob.Bucket, string) (string, error)
 }
 
 type ProcessInitializeFunc func(context.Context, string) (Process, error)

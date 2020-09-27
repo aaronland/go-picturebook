@@ -3,7 +3,7 @@ package caption
 import (
 	"context"
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 	"net/url"
 	"regexp"
 )

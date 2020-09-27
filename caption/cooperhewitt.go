@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
-	"gocloud.dev/blob"		
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
 	"os"

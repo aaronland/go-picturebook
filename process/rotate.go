@@ -7,6 +7,7 @@ import (
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
+	"gocloud.dev/blob"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -39,7 +40,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *RotateProcess) Transform(ctx context.Context, path string) (string, error) {
+func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 

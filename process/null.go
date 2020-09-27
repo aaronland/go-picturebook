@@ -2,6 +2,7 @@ package process
 
 import (
 	"context"
+	"gocloud.dev/blob"
 	"net/url"
 )
 
@@ -32,6 +33,6 @@ func NewNullProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *NullProcess) Transform(ctx context.Context, path string) (string, error) {
+func (f *NullProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 	return path, nil
 }

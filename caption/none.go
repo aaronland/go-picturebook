@@ -2,8 +2,8 @@ package caption
 
 import (
 	"context"
+	"gocloud.dev/blob"
 	"net/url"
-	"gocloud.dev/blob"		
 )
 
 func init() {

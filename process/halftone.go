@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aaronland/go-image-halftone"
 	"github.com/aaronland/go-image-tools/util"
+	"gocloud.dev/blob"
 	"net/url"
 )
 
@@ -34,7 +35,7 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *HalftoneProcess) Transform(ctx context.Context, path string) (string, error) {
+func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	im, format, err := util.DecodeImage(path)
 
