@@ -16,6 +16,7 @@ import (
 	"gocloud.dev/blob"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -343,6 +344,23 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.Sort = s
 	}
 
+	sources := app.flagset.Args()
+
+	if len(sources) == 0 {
+
+		base := filepath.Base(source_uri)
+		root := filepath.Dir(source_uri)
+
+		sb, err := blob.OpenBucket(ctx, root)
+
+		if err != nil {
+			return err
+		}
+
+		source_bucket = sb
+		sources = []string{base}
+	}
+
 	opts.Source = source_bucket
 	opts.Target = target_bucket
 
@@ -352,8 +370,6 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		msg := fmt.Sprintf("Failed to create new picturebook, %v", err)
 		return errors.New(msg)
 	}
-
-	sources := app.flagset.Args()
 
 	err = pb.AddPictures(ctx, sources)
 
