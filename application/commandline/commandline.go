@@ -107,8 +107,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
-	fs.StringVar(&source_uri, "source-uri", "", "...")
-	fs.StringVar(&target_uri, "target-uri", "", "...")
+	fs.StringVar(&source_uri, "source-uri", "", "A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.")
+	fs.StringVar(&target_uri, "target-uri", "", "A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.")
 
 	// Deprecated flags
 

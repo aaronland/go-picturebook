@@ -17,13 +17,12 @@ Create a PDF file (a "picturebook") from a folder (containing images).
 
 ```
 $> ./bin/picturebook -h
-Usage of ./bin/picturebook:
   -border float
     	The size of the border around images. (default 0.01)
   -caption string
     	A valid caption.Caption URI. Valid schemes are: cooperhewitt, filename, flickr, none, orthis
   -debug
-    	DEPRECATED: Please use the -verbose flag instead.
+    	DEPRECATED: Please use the -verbose fs.instead.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -exclude value
@@ -35,7 +34,7 @@ Usage of ./bin/picturebook:
   -filter value
     	A valid filter.Filter URI. Valid schemes are: any, cooperhewitt, flickr, orthis, regexp
   -height float
-    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 11)
+    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 11)
   -include value
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.
   -ocra-font
@@ -46,17 +45,69 @@ Usage of ./bin/picturebook:
     	DEPRECATED: Please use -process {PROCESS_NAME}:// instead.
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
+  -size string
+    	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -sort string
     	A valid sort.Sorter URI. Valid schemes are: orthis
-   -size string
-    	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
+  -source-uri string
+    	A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.
   -target string
     	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
+  -target-uri string
+    	A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.
   -verbose
     	Display verbose output as the picturebook is created.
   -width float
-    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag. (default 8.5)
+    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 8.5)
 ```
+
+For example:
+
+```
+$> ./bin/picturebook \
+	-source-uri file:///PATH/TO/go-picturebook/example \
+	-target-uri file:///PATH/TO/go-picturebook/example \
+	images
+```
+
+As a convenience if no paths (to folders containing images) are passed to the `picturebook` tool it will be assumed that images are found in the folder defined by the `-source-uri` flag. For example this command is functionally equivalent to the command above:
+
+```
+$> ./bin/picturebook \
+	-source-uri file:///PATH/TO/go-picturebook/example/images \
+	-target-uri file:///PATH/TO/go-picturebook/example \
+```
+
+For a complete example, including a PDF file produced by the `picturebook` tool, have a look in the [example](example) folder.
+
+### Source and target URIs
+
+Under the hood `picturebook` is using the [Go Cloud `blob` abstraction layer](https://gocloud.dev/howto/blob/) for files and file storage. By default only [local files](https://gocloud.dev/howto/blob/#local) (or `file://` URIs) are supported. If you need to support other sources or targets you will need to create your own custom `picturebook` tool.
+
+In order to facilitate this all of the logic of the `picturebook` tool has been moved in to the [go-picturebook/application/commandline](application/commandline) package. For example here is how you would write your own custom tool with support for reading and writing files to an S3 bucket as well as the local filesystem.
+
+```
+package main
+
+import (
+	"context"
+	"github.com/aaronland/go-picturebook/application/commandline"
+	_ "gocloud.dev/blob/fileblob"
+	_ "gocloud.dev/blob/s3blob"	
+)
+
+func main() {
+
+	ctx := context.Background()
+
+	fs, _ := commandline.DefaultFlagSet(ctx)
+	app, _ := commandline.NewApplication(ctx, fs)
+
+	app.Run(ctx)
+}
+```
+
+_Error handling has been omitted for the sake of brevity._
 
 ## Handlers
 
