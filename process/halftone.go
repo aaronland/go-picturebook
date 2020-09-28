@@ -44,7 +44,7 @@ func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, pa
 	}
 
 	defer fh.Close()
-	
+
 	im, format, err := util.DecodeImageFromReader(fh)
 
 	if err != nil {

@@ -64,7 +64,7 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 	}
 
 	br := bytes.NewReader(body)
-	
+
 	x, err := exif.Decode(br)
 
 	if err != nil {
@@ -89,8 +89,8 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 		return "", nil
 	}
 
-	br.Seek(0,0)
-	
+	br.Seek(0, 0)
+
 	im, format, err := util.DecodeImageFromReader(br)
 
 	if err != nil {

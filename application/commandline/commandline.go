@@ -97,7 +97,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&filename, "filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
-	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose fs.instead.")
+	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
 	fs.StringVar(&caption_uri, "caption", "", desc_captions)
 	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
@@ -112,9 +112,9 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	// Deprecated flags
 
-	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
-	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.")
-	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.")
+	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.")
+	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.")
+	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.")
 
 	fs.StringVar(&target, "target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
 

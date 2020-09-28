@@ -22,11 +22,11 @@ $> ./bin/picturebook -h
   -caption string
     	A valid caption.Caption URI. Valid schemes are: cooperhewitt, filename, flickr, none, orthis
   -debug
-    	DEPRECATED: Please use the -verbose fs.instead.
+    	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -exclude value
-    	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.
+    	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.
   -filename string
     	The filename (path) for your picturebook. (default "picturebook.pdf")
   -fill-page
@@ -36,13 +36,13 @@ $> ./bin/picturebook -h
   -height float
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 11)
   -include value
-    	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.
+    	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
   -ocra-font
     	Use an OCR-compatible font for captions.
   -orientation string
     	The orientation of your picturebook. Valid orientations are: [please write me] (default "P")
   -pre-process value
-    	DEPRECATED: Please use -process {PROCESS_NAME}:// instead.
+    	DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
   -size string
