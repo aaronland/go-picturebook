@@ -16,11 +16,11 @@ go build -mod vendor -o bin/picturebook cmd/picturebook/main.go
 Create a PDF file (a "picturebook") from a folder (containing images).
 
 ```
-$> ./bin/picturebook -h
+> ./bin/picturebook -h
   -border float
     	The size of the border around images. (default 0.01)
   -caption string
-    	A valid caption.Caption URI. Valid schemes are: cooperhewitt, filename, flickr, none, orthis
+    	A valid caption.Caption URI. Valid schemes are: filename, none
   -debug
     	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
@@ -32,7 +32,7 @@ $> ./bin/picturebook -h
   -fill-page
     	If necessary rotate image 90 degrees to use the most available page space.
   -filter value
-    	A valid filter.Filter URI. Valid schemes are: any, cooperhewitt, flickr, orthis, regexp
+    	A valid filter.Filter URI. Valid schemes are: any, regexp
   -height float
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 11)
   -include value
@@ -48,7 +48,7 @@ $> ./bin/picturebook -h
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
   -sort string
-    	A valid sort.Sorter URI. Valid schemes are: modtime, orthis	
+    	A valid sort.Sorter URI. Valid schemes are: modtime
   -source-uri string
     	A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.
   -target string
@@ -125,31 +125,13 @@ For an example of how to create and register a custom `Caption` handler take a l
 
 The following schemes for caption handlers are supported by default:
 
-#### cooperhewitt://
-
-This handler will derive the title for a Cooper Hewitt collection object using data stored in a `index.json` file, alongside an image. The data in the file is expected to be the out of a call to the [cooperhewitt.shoebox.items.getInfo](https://collection.cooperhewitt.org/api/methods/cooperhewitt.shoebox.items.getInfo) API method.
-
-_This handler will eventually be moved in to a separate `go-picturebook-cooperhewitt` package._
-
 #### filename://
 
 This handler will return the filename for a given path of an image.
 
-#### flickr://
-
-This handler will derive the title for a Flickr photo using data stored in a `{PHOTO_ID}_{SECRET}_i.json` file, alongside an image. The data in the file is expected to be the out of a call to the [flickr.photos.getInfo](https://www.flickr.com/services/api/flickr.photos.getInfo.html) API method.
-
-_This handler will eventually be moved in to a separate `go-picturebook-flickr` package._
-
 #### none://
 
 The handler will return an empty string for all images.
-
-#### orthis://
-
-This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
-
-_This handler will eventually be moved in to a separate `go-picturebook-orthis` package._
 
 ### Filters
 
@@ -166,30 +148,6 @@ The following schemes for filter handlers are supported by default:
 #### any://
 
 Allow all images to be included.
-
-#### cooperhewitt://
-
-This handler will ensure that only images whose filename matches `_b.jpg$` and that have a sibling `index.json` file are included.
-
-_This handler will eventually be moved in to a separate `go-picturebook-cooperhewitt` package._
-
-#### flickr://
-
-This handler will ensure that only images whose filename matches `o_\.\.*$` are included.
-
-_This handler will eventually be moved in to a separate `go-picturebook-flickr` package._
-
-#### orthis://
-
-This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
-
-Parameters
-
-| Name | Value | Required |
-| --- | --- | --- |
-| year | A valid year | no |
-
-_This handler will eventually be moved in to a separate `go-picturebook-orthis` package._
 
 #### regexp://exclude
 
@@ -250,12 +208,6 @@ The following schemes for sorter handlers are supported by default:
 #### modtime://
 
 Sort images, in ascending order, by their modification times. If two or more images have the same modification they will sorted again by their file size.
-
-#### orthis://
-
-This is really specific to [me and only me](https://aaronland.info/orthis) so you can ignore this for the time being.
-
-_This handler will eventually be moved in to a separate `go-picturebook-orthis` package._
 
 ## See also
 
