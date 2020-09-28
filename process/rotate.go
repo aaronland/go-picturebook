@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
 	"gocloud.dev/blob"
@@ -91,7 +92,7 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 
 	br.Seek(0, 0)
 
-	im, format, err := util.DecodeImageFromReader(br)
+	im, _, err := util.DecodeImageFromReader(br)
 
 	if err != nil {
 		return "", err
@@ -100,5 +101,6 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 	angle, _, _ := exifutil.ProcessOrientation(orientation)
 	rotated := exifutil.Rotate(im, angle)
 
-	return util.EncodeTempImage(rotated, format)
+	tmpfile, _, err := tempfile.TempFileWithImage(ctx, bucket, rotated)
+	return tmpfile, err
 }

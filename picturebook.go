@@ -13,16 +13,13 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
-	"github.com/google/uuid"
+	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
-	"image"
 	"io"
-	_ "io/ioutil"
 	"log"
-	_ "os"
 	"sync"
 )
 
@@ -290,6 +287,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				return nil
 			}
 
+			pb.tmpfiles = append(pb.tmpfiles, processed_path)
 			final_path = processed_path
 		}
 
@@ -404,7 +402,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 		if bpc > 8 {
 
-			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, pb.Options.Source, im)
+			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
@@ -473,7 +471,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 			// now save to disk...
 
-			tmpfile_path, tmpfile_format, err := pb.tempFileWithImage(ctx, pb.Options.Source, im)
+			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
@@ -709,35 +707,4 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 	}
 
 	return nil
-}
-
-func (pb *PictureBook) tempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, string, error) {
-
-	id, err := uuid.NewUUID()
-
-	if err != nil {
-		return "", "", err
-	}
-
-	fname := fmt.Sprintf("picturebook-%s.jpg", id.String())
-
-	wr, err := bucket.NewWriter(ctx, fname, nil)
-
-	if err != nil {
-		return "", "", nil
-	}
-
-	err = util.EncodeImage(im, "jpeg", wr)
-
-	if err != nil {
-		return "", "", err
-	}
-
-	err = wr.Close()
-
-	if err != nil {
-		return "", "", err
-	}
-
-	return fname, "jpeg", nil
 }
