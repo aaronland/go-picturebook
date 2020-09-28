@@ -40,7 +40,7 @@ $> ./bin/picturebook -h
   -ocra-font
     	Use an OCR-compatible font for captions.
   -orientation string
-    	The orientation of your picturebook. Valid orientations are: [please write me] (default "P")
+    	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
   -pre-process value
     	DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.
   -process value
