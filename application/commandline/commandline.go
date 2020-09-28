@@ -13,8 +13,10 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
+	"gocloud.dev/blob"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -27,6 +29,9 @@ var width float64
 var height float64
 var dpi float64
 var border float64
+
+var source_uri string
+var target_uri string
 
 var fill_page bool
 
@@ -80,7 +85,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
 
-	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: [please write me]")
+	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
 	fs.StringVar(&size, "size", "letter", "A common paper size to use for the size of your picturebook. Valid sizes are: [please write me]")
 	fs.Float64Var(&width, "width", 8.5, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
 	fs.Float64Var(&height, "height", 11, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs.")
@@ -92,7 +97,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&filename, "filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
-	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose fs.instead.")
+	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
 	fs.StringVar(&caption_uri, "caption", "", desc_captions)
 	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
@@ -102,11 +107,14 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
+	fs.StringVar(&source_uri, "source-uri", "", "A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.")
+	fs.StringVar(&target_uri, "target-uri", "", "A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.")
+
 	// Deprecated flags
 
-	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// instead.")
-	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} instead.")
-	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} instead.")
+	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.")
+	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.")
+	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.")
 
 	fs.StringVar(&target, "target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
 
@@ -204,6 +212,18 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		}
 	}
 
+	source_bucket, err := blob.OpenBucket(ctx, source_uri)
+
+	if err != nil {
+		return err
+	}
+
+	target_bucket, err := blob.OpenBucket(ctx, target_uri)
+
+	if err != nil {
+		return err
+	}
+
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
@@ -230,6 +250,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			go func(p string) {
 
 				_, err := os.Stat(p)
+
+				// FIX ME...
 
 				if os.IsNotExist(err) {
 					return
@@ -322,14 +344,32 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.Sort = s
 	}
 
+	sources := app.flagset.Args()
+
+	if len(sources) == 0 {
+
+		base := filepath.Base(source_uri)
+		root := filepath.Dir(source_uri)
+
+		sb, err := blob.OpenBucket(ctx, root)
+
+		if err != nil {
+			return err
+		}
+
+		source_bucket = sb
+		sources = []string{base}
+	}
+
+	opts.Source = source_bucket
+	opts.Target = target_bucket
+
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create new picturebook, %v", err)
 		return errors.New(msg)
 	}
-
-	sources := app.flagset.Args()
 
 	err = pb.AddPictures(ctx, sources)
 

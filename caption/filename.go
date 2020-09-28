@@ -2,6 +2,7 @@ package caption
 
 import (
 	"context"
+	"gocloud.dev/blob"
 	"net/url"
 	"path/filepath"
 )
@@ -36,7 +37,7 @@ func NewFilenameCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *FilenameCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *FilenameCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	if c.parent {
 

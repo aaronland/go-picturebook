@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 )
 
@@ -37,7 +37,7 @@ func NewOrThisCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *OrThisCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *OrThisCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	fname := filepath.Base(path)
 
@@ -50,7 +50,7 @@ func (c *OrThisCaption) Text(ctx context.Context, path string) (string, error) {
 
 	index := filepath.Join(root, "index.json")
 
-	fh, err := os.Open(index)
+	fh, err := bucket.NewReader(ctx, index, nil)
 
 	if err != nil {
 		return "", err

@@ -3,13 +3,15 @@ package process
 // update to use go-image-rotate
 
 import (
+	"bytes"
 	"context"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
-	_ "log"
+	"gocloud.dev/blob"
+	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 )
 
@@ -40,7 +42,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *RotateProcess) Transform(ctx context.Context, path string) (string, error) {
+func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 
@@ -48,7 +50,7 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 		return "", nil
 	}
 
-	fh, err := os.Open(path)
+	fh, err := bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", err
@@ -56,18 +58,26 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 
 	defer fh.Close()
 
-	x, err := exif.Decode(fh)
-	
+	body, err := ioutil.ReadAll(fh)
+
+	if err != nil {
+		return "", err
+	}
+
+	br := bytes.NewReader(body)
+
+	x, err := exif.Decode(br)
+
 	if err != nil {
 
-		if exif.IsExifError(err){
+		if exif.IsExifError(err) {
 			return "", nil
 		}
 
 		if exif.IsCriticalError(err) {
 			return "", nil
 		}
-		
+
 		return "", err
 	}
 
@@ -89,7 +99,9 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 		return "", nil
 	}
 
-	im, format, err := util.DecodeImage(path)
+	br.Seek(0, 0)
+
+	im, _, err := util.DecodeImageFromReader(br)
 
 	if err != nil {
 		return "", err
@@ -98,6 +110,6 @@ func (f *RotateProcess) Transform(ctx context.Context, path string) (string, err
 	angle, _, _ := exifutil.ProcessOrientation(orientation)
 	rotated := exifutil.Rotate(im, angle)
 
-	
-	return util.EncodeTempImage(rotated, format)
+	tmpfile, _, err := tempfile.TempFileWithImage(ctx, bucket, rotated)
+	return tmpfile, err
 }

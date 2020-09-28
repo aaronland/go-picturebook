@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"gocloud.dev/blob"
 	"net/url"
 )
 
@@ -32,6 +33,6 @@ func NewAnyFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *AnyFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *AnyFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 	return true, nil
 }

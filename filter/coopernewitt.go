@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -39,7 +39,7 @@ func NewCooperHewittFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *CooperHewittFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *CooperHewittFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	if !strings.HasSuffix(path, "_b.jpg") {
 		return false, nil
@@ -48,17 +48,17 @@ func (f *CooperHewittFilter) Continue(ctx context.Context, path string) (bool, e
 	root := filepath.Dir(path)
 	info := filepath.Join(root, "index.json")
 
-	_, err := os.Stat(info)
-
-	if os.IsNotExist(err) {
-		return true, nil
-	}
+	exists, err := bucket.Exists(ctx, info)
 
 	if err != nil {
 		return true, err
 	}
 
-	info_fh, err := os.Open(info)
+	if !exists {
+		return true, nil
+	}
+
+	info_fh, err := bucket.NewReader(ctx, info, nil)
 
 	if err != nil {
 		return true, err
@@ -85,17 +85,17 @@ func (f *CooperHewittFilter) Continue(ctx context.Context, path string) (bool, e
 	object_fname := fmt.Sprintf("%d.json", uid)
 	object_info := filepath.Join(root, object_fname)
 
-	_, err = os.Stat(object_info)
-
-	if os.IsNotExist(err) {
-		return true, nil
-	}
+	exists, err = bucket.Exists(ctx, object_info)
 
 	if err != nil {
 		return true, err
 	}
 
-	object_fh, err := os.Open(object_info)
+	if !exists {
+		return true, nil
+	}
+
+	object_fh, err := bucket.NewReader(ctx, object_info, nil)
 
 	if err != nil {
 		return true, err

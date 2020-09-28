@@ -3,9 +3,9 @@ package filter
 import (
 	"context"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -56,7 +56,7 @@ func NewOrThisFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
-func (f *OrThisFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *OrThisFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	fname := filepath.Base(path)
 
@@ -77,7 +77,7 @@ func (f *OrThisFilter) Continue(ctx context.Context, path string) (bool, error) 
 
 		index := filepath.Join(root, "index.json")
 
-		fh, err := os.Open(index)
+		fh, err := bucket.NewReader(ctx, index, nil)
 
 		if err != nil {
 			return false, err

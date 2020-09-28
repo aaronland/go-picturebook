@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"gocloud.dev/blob"
 )
 
 type MultiFilter struct {
@@ -18,11 +19,11 @@ func NewMultiFilter(ctx context.Context, filters ...Filter) (Filter, error) {
 	return f, nil
 }
 
-func (f *MultiFilter) Continue(ctx context.Context, path string) (bool, error) {
+func (f *MultiFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	for _, current_f := range f.filters {
 
-		ok, err := current_f.Continue(ctx, path)
+		ok, err := current_f.Continue(ctx, bucket, path)
 
 		if err != nil {
 			return false, err

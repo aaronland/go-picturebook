@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/aaronland/go-image-halftone"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-picturebook/tempfile"
+	"gocloud.dev/blob"
 	"net/url"
 )
 
@@ -34,9 +36,17 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *HalftoneProcess) Transform(ctx context.Context, path string) (string, error) {
+func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
-	im, format, err := util.DecodeImage(path)
+	fh, err := bucket.NewReader(ctx, path, nil)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer fh.Close()
+
+	im, _, err := util.DecodeImageFromReader(fh)
 
 	if err != nil {
 		return "", err
@@ -49,5 +59,6 @@ func (f *HalftoneProcess) Transform(ctx context.Context, path string) (string, e
 		return "", err
 	}
 
-	return util.EncodeTempImage(dithered, format)
+	tmpfile, _, err := tempfile.TempFileWithImage(ctx, bucket, dithered)
+	return tmpfile, err
 }

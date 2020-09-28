@@ -13,13 +13,13 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
-	"io/ioutil"
+	"gocloud.dev/blob"
+	"io"
 	"log"
-	"os"
-	"path/filepath"
 	"sync"
 )
 
@@ -37,6 +37,8 @@ type PictureBookOptions struct {
 	FillPage    bool
 	Verbose     bool
 	OCRAFont    bool
+	Source      *blob.Bucket
+	Target      *blob.Bucket
 }
 
 type PictureBookBorder struct {
@@ -189,6 +191,10 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		return err
 	}
 
+	if pb.Options.Verbose {
+		log.Printf("Count pictures gathered: %d\n", len(pictures))
+	}
+
 	if pb.Options.Sort != nil {
 
 		sorted, err := pb.Options.Sort.Sort(ctx, pictures)
@@ -221,7 +227,9 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	pictures := make([]*picture.PictureBookPicture, 0)
 
-	cb := func(path string, info os.FileInfo, err error) error {
+	var list func(context.Context, *blob.Bucket, string) error
+
+	file := func(ctx context.Context, b *blob.Bucket, path string) error {
 
 		select {
 		case <-ctx.Done():
@@ -230,24 +238,11 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			// pass
 		}
 
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		abs_path, err := filepath.Abs(path)
-
-		if err != nil {
-			// log.Println("PATH", abs_path, err)
-			return nil
-		}
+		abs_path := path
 
 		if pb.Options.Filter != nil {
 
-			ok, err := pb.Options.Filter.Continue(ctx, abs_path)
+			ok, err := pb.Options.Filter.Continue(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to filter %s, %v\n", abs_path, err)
@@ -267,7 +262,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 		if pb.Options.Caption != nil {
 
-			txt, err := pb.Options.Caption.Text(ctx, abs_path)
+			txt, err := pb.Options.Caption.Text(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)
@@ -285,17 +280,19 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				log.Printf("Processing %s\n", abs_path)
 			}
 
-			processed_path, err := pb.Options.PreProcess.Transform(ctx, abs_path)
+			processed_path, err := pb.Options.PreProcess.Transform(ctx, pb.Options.Source, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to process %s, %v\n", abs_path, err)
 				return nil
 			}
 
-			if processed_path != "" {
-				final_path = processed_path
-			}
+			pb.tmpfiles = append(pb.tmpfiles, processed_path)
+			final_path = processed_path
 		}
+
+		pb.Mutex.Lock()
+		defer pb.Mutex.Unlock()
 
 		pic := &picture.PictureBookPicture{
 			Source:  abs_path,
@@ -307,9 +304,50 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		return nil
 	}
 
+	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
+
+		iter := bucket.List(&blob.ListOptions{
+			Delimiter: "/",
+			Prefix:    prefix,
+		})
+
+		for {
+			obj, err := iter.Next(ctx)
+
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				return err
+			}
+
+			path := obj.Key
+
+			if obj.IsDir {
+
+				err := list(ctx, bucket, path)
+
+				if err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			err = file(ctx, bucket, path)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
 	for _, path := range paths {
 
-		err := filepath.Walk(path, cb)
+		err := list(ctx, pb.Options.Source, path)
 
 		if err != nil {
 			return nil, err
@@ -324,7 +362,15 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
-	im, format, err := util.DecodeImage(abs_path)
+	im_r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	defer im_r.Close()
+
+	im, format, err := util.DecodeImageFromReader(im_r)
 
 	if err != nil {
 		return err
@@ -356,24 +402,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 		if bpc > 8 {
 
-			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
-
-			if err != nil {
-				return err
-			}
-
-			tmpfile_path := tmpfile.Name()
-
-			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
-
-			err = util.EncodeImage(im, "jpeg", tmpfile)
-			defer tmpfile.Close()
-
-			if err != nil {
-				return err
-			}
-
-			im, format, err = util.DecodeImage(tmpfile_path)
+			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
@@ -383,7 +412,10 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
 
+			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+
 			abs_path = tmpfile_path
+			format = tmpfile_format
 		}
 	}
 
@@ -439,28 +471,20 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 			// now save to disk...
 
-			tmpfile, err := ioutil.TempFile("", "picturebook.*.jpg")
+			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Source, im)
 
 			if err != nil {
 				return err
 			}
-
-			tmpfile_path := tmpfile.Name()
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
-
-			err = util.EncodeImage(im, "jpeg", tmpfile)
-			defer tmpfile.Close()
-
-			if err != nil {
-				return err
-			}
 
 			if pb.Options.Verbose {
 				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
 			}
 
 			abs_path = tmpfile_path
+			format = tmpfile_format
 		}
 	}
 
@@ -473,7 +497,16 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 			ImageType: format,
 		}
 
-		info = pb.PDF.RegisterImageOptions(abs_path, opts)
+		r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
+
+		if err != nil {
+			return err
+		}
+
+		defer r.Close()
+
+		info = pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
+
 	}
 
 	if info == nil {
@@ -629,21 +662,49 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
+	if pb.Options.Target == nil {
+		return errors.New("Missing or invalid target bucket")
+	}
+
+	// move this out of here...
+
 	defer func() {
 
 		for _, path := range pb.tmpfiles {
 
 			if pb.Options.Verbose {
-				log.Println("REMOVE TMPFILE", path)
+				log.Printf("Remove tmp file '%s'\n", path)
 			}
 
-			os.Remove(path)
+			err := pb.Options.Source.Delete(ctx, path)
+
+			if err != nil {
+				log.Printf("Failed to delete %s, %v\n", path, err)
+			}
 		}
 	}()
 
 	if pb.Options.Verbose {
-		log.Printf("save %s\n", path)
+		log.Printf("Save %s\n", path)
 	}
 
-	return pb.PDF.OutputFileAndClose(path)
+	wr, err := pb.Options.Target.NewWriter(ctx, path, nil)
+
+	if err != nil {
+		return err
+	}
+
+	err = pb.PDF.Output(wr)
+
+	if err != nil {
+		return err
+	}
+
+	err = wr.Close()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

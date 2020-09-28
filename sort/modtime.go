@@ -55,8 +55,8 @@ func (f *ModTimeSorter) Sort(ctx context.Context, pictures []*picture.PictureBoo
 		mtime := info.ModTime()
 		ts := mtime.Unix()
 		sz := info.Size()
-		
-		key := fmt.Sprintf("%d-%d", ts,sz)
+
+		key := fmt.Sprintf("%d-%d", ts, sz)
 		lookup[key] = pic
 	}
 

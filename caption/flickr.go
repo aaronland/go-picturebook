@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"gocloud.dev/blob"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -41,7 +41,7 @@ func NewFlickrCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-func (c *FlickrCaption) Text(ctx context.Context, path string) (string, error) {
+func (c *FlickrCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 
@@ -50,13 +50,17 @@ func (c *FlickrCaption) Text(ctx context.Context, path string) (string, error) {
 
 	info := strings.Replace(path, img_ext, info_ext, -1)
 
-	_, err := os.Stat(info)
+	exists, err := bucket.Exists(ctx, info)
 
 	if err != nil {
 		return "", err
 	}
 
-	fh, err := os.Open(info)
+	if !exists {
+		return "", errors.New("Missing _i.json file")
+	}
+
+	fh, err := bucket.NewReader(ctx, info, nil)
 
 	if err != nil {
 		return "", err
