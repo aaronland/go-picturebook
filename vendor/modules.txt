@@ -20,7 +20,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/uuid v1.1.1
+# github.com/google/uuid v1.1.2
 github.com/google/uuid
 # github.com/googleapis/gax-go v2.0.2+incompatible
 github.com/googleapis/gax-go
@@ -36,18 +36,12 @@ github.com/rainycape/unidecode
 github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/mknote
 github.com/rwcarlsen/goexif/tiff
-# github.com/sfomuseum/go-flags v0.4.1
+# github.com/sfomuseum/go-flags v0.4.2
 github.com/sfomuseum/go-flags/flagset
 github.com/sfomuseum/go-flags/multi
 # github.com/sfomuseum/go-font-ocra v0.0.1
 github.com/sfomuseum/go-font-ocra
 github.com/sfomuseum/go-font-ocra/fonts
-# github.com/tidwall/gjson v1.6.1
-github.com/tidwall/gjson
-# github.com/tidwall/match v1.0.1
-github.com/tidwall/match
-# github.com/tidwall/pretty v1.0.2
-github.com/tidwall/pretty
 # github.com/whosonfirst/go-bindata-assetfs v1.0.1
 github.com/whosonfirst/go-bindata-assetfs
 # go.opencensus.io v0.22.3
