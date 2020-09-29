@@ -197,7 +197,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 	if pb.Options.Sort != nil {
 
-		sorted, err := pb.Options.Sort.Sort(ctx, pictures)
+		sorted, err := pb.Options.Sort.Sort(ctx, pb.Options.Source, pictures)
 
 		if err != nil {
 			return err

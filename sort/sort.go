@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"
 	"net/url"
 	"regexp"
 )
@@ -15,7 +16,7 @@ func init() {
 }
 
 type Sorter interface {
-	Sort(context.Context, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
+	Sort(context.Context, *blob.Bucket, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
 }
 
 type SorterInitializeFunc func(context.Context, string) (Sorter, error)

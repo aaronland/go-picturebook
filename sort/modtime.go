@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/aaronland/go-picturebook/picture"
+	"gocloud.dev/blob"
 	"log"
 	"net/url"
-	"os"
 	"sort"
 )
 
@@ -36,7 +36,7 @@ func NewModTimeSorter(ctx context.Context, uri string) (Sorter, error) {
 	return s, nil
 }
 
-func (f *ModTimeSorter) Sort(ctx context.Context, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
+func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
 	candidates := make([]string, 0)
@@ -45,16 +45,19 @@ func (f *ModTimeSorter) Sort(ctx context.Context, pictures []*picture.PictureBoo
 
 		path := pic.Source
 
-		info, err := os.Stat(path)
+		r, err := bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
 			log.Println(path, err)
 			continue
 		}
 
-		mtime := info.ModTime()
+		defer r.Close()
+
+		mtime := r.ModTime()
+		sz := r.Size()
+
 		ts := mtime.Unix()
-		sz := info.Size()
 
 		key := fmt.Sprintf("%d-%d", ts, sz)
 		lookup[key] = pic
