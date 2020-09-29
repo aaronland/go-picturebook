@@ -117,7 +117,7 @@ The `picturebook` application supports a number of "handlers" for customizing wh
 
 ```
 type Caption interface {
-	Text(context.Context, string) (string, error)
+	Text(context.Context, *blob.Bucket, string) (string, error)
 }
 ```
 
@@ -137,7 +137,7 @@ The handler will return an empty string for all images.
 
 ```
 type Filter interface {
-	Continue(context.Context, string) (bool, error)
+	Continue(context.Context, *blob.Bucket, string) (bool, error)
 }
 ```
 
@@ -173,7 +173,7 @@ Parameters
 
 ```
 type Process interface {
-	Transform(context.Context, string) (string, error)
+	Transform(context.Context, *blob.Bucket, string) (string, error)
 }
 ```
 
@@ -197,7 +197,7 @@ This handler will attempt to auto-rotate an image, based on any available EXIF `
 
 ```
 type Sorter interface {
-	Sort(context.Context, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
+	Sort(context.Context, *blob.Bucket, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
 }
 ```
 
