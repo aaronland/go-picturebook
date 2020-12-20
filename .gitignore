@@ -7,3 +7,4 @@ bin
 .DS_Store
 !example/picturebook-fill-page.pdf
 !example/picturebook-halftone.pdf
+*.attrs
