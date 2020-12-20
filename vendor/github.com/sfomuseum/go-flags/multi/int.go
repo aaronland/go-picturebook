@@ -30,6 +30,10 @@ func (m *MultiInt64) Set(str_value string) error {
 	return nil
 }
 
+func (m *MultiInt64) Get() interface{} {
+	return *m
+}
+
 func (m *MultiInt64) Contains(value int64) bool {
 
 	for _, test := range *m {

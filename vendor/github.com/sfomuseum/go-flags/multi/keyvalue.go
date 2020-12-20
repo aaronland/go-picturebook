@@ -35,6 +35,10 @@ func (e *KeyValue) Set(value string) error {
 	return nil
 }
 
+func (e *KeyValue) Get() interface{} {
+	return *e
+}
+
 func (e *KeyValue) ToMap() map[string]string {
 
 	m := make(map[string]string)

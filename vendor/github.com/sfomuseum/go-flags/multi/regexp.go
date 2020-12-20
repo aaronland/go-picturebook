@@ -30,3 +30,7 @@ func (i *MultiRegexp) Set(value string) error {
 	*i = append(*i, re)
 	return nil
 }
+
+func (i *MultiRegexp) Get() interface{} {
+	return *i
+}

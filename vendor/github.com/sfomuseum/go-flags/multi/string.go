@@ -15,6 +15,10 @@ func (m *MultiString) Set(value string) error {
 	return nil
 }
 
+func (m *MultiString) Get() interface{} {
+	return *m
+}
+
 func (m *MultiString) Contains(value string) bool {
 
 	for _, test := range *m {
