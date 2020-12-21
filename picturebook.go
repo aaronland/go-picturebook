@@ -91,8 +91,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	var pdf *gofpdf.Fpdf
 
-	if opts.Size == "custom" {
-
+	if opts.Width != 0.0 && opts.Height != 0.0 {
 		sz := gofpdf.SizeType{
 			Wd: opts.Width,
 			Ht: opts.Height,

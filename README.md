@@ -34,7 +34,7 @@ Create a PDF file (a "picturebook") from a folder (containing images).
   -filter value
     	A valid filter.Filter URI. Valid schemes are: any, regexp
   -height float
-    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 11)
+    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.
   -include value
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
   -ocra-font
@@ -46,7 +46,7 @@ Create a PDF file (a "picturebook") from a folder (containing images).
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
   -size string
-    	A common paper size to use for the size of your picturebook. Valid sizes are: [please write me] (default "letter")
+    	A common paper size to use for the size of your picturebook. Valid sizes are: "A3", "A4", "A5", "Letter", "Legal", or "Tabloid". (default "letter")
   -sort string
     	A valid sort.Sorter URI. Valid schemes are: modtime
   -source-uri string
@@ -58,7 +58,7 @@ Create a PDF file (a "picturebook") from a folder (containing images).
   -verbose
     	Display verbose output as the picturebook is created.
   -width float
-    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This fs.overrides the -size fs. (default 8.5)
+    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.
 ```
 
 For example:
