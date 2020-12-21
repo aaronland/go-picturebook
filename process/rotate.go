@@ -11,8 +11,10 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 	"gocloud.dev/blob"
 	"io/ioutil"
+	_ "log"
 	"net/url"
 	"path/filepath"
+	"strings"
 )
 
 func init() {
@@ -45,6 +47,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
+	ext = strings.ToLower(ext)
 
 	if ext != ".jpg" && ext != ".jpeg" {
 		return "", nil
@@ -92,7 +95,7 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 	orientation, err := tag.Int64(0)
 
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	if orientation == 1 {

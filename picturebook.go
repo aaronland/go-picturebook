@@ -287,8 +287,10 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				return nil
 			}
 
-			pb.tmpfiles = append(pb.tmpfiles, processed_path)
-			final_path = processed_path
+			if processed_path != "" {
+				pb.tmpfiles = append(pb.tmpfiles, processed_path)
+				final_path = processed_path
+			}
 		}
 
 		pb.Mutex.Lock()
