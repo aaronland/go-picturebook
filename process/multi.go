@@ -31,7 +31,9 @@ func (p *MultiProcess) Transform(ctx context.Context, bucket *blob.Bucket, path 
 			return "", err
 		}
 
-		final_path = new_path
+		if new_path != "" {
+			final_path = new_path
+		}
 	}
 
 	return final_path, nil
