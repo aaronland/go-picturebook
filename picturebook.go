@@ -20,6 +20,8 @@ import (
 	"gocloud.dev/blob"
 	"io"
 	"log"
+	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -673,11 +675,19 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
 		for _, path := range pb.tmpfiles {
 
+			fname := filepath.Base(path)
+
+			// This shouldn't be necessary and points to a larger problem
+			// but this bandaid-fix will have to do for now...
+			// (20210103/straup)
+
+			if !strings.HasPrefix(fname, "picturebook-") {
+				continue
+			}
+
 			if pb.Options.Verbose {
 				log.Printf("Remove tmp file '%s'\n", path)
 			}
-
-			continue
 
 			err := pb.Options.Source.Delete(ctx, path)
 

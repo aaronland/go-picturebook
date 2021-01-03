@@ -127,7 +127,9 @@ The following schemes for caption handlers are supported by default:
 
 #### exif://?property={PROPERTY}
 
-_To be written_
+The handler will eventually return the value of a given EXIF property. As of this writing it will only return the value of the EXIF `DateTime` property.
+
+If EXIF data is not present or can be loaded the handler will return an empty string.
 
 Parameters
 
@@ -217,7 +219,7 @@ The following schemes for sorter handlers are supported by default:
 
 #### exif://
 
-_To be written_
+Sort images, in ascending order, by their EXIF `DateTime` property. If EXIF data is not present or can not be loaded the image's modification time will be used. If two or more images have the same modification they will sorted again by their file size.
 
 #### modtime://
 
