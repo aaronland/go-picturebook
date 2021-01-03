@@ -37,6 +37,9 @@ var fill_page bool
 
 var filename string
 
+var even_only bool
+var odd_only bool
+
 var verbose bool
 var debug bool
 
@@ -98,6 +101,9 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
 	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
+
+	fs.BoolVar(&even_only, "even-only", false, "Only include images on even-numbered pages.")
+	fs.BoolVar(&odd_only, "odd-only", false, "Only include images on odd-numbered pages.")
 
 	fs.StringVar(&caption_uri, "caption", "", desc_captions)
 	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
@@ -240,6 +246,8 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts.FillPage = fill_page
 	opts.Verbose = verbose
 	opts.OCRAFont = ocra_font
+	opts.EvenOnly = even_only
+	opts.OddOnly = odd_only
 
 	processed := make([]string, 0)
 

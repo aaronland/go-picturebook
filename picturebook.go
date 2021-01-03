@@ -41,6 +41,8 @@ type PictureBookOptions struct {
 	OCRAFont    bool
 	Source      *blob.Bucket
 	Target      *blob.Bucket
+	EvenOnly    bool
+	OddOnly     bool
 }
 
 type PictureBookBorder struct {
@@ -214,7 +216,38 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+		var err error
+
+		if pb.Options.EvenOnly {
+
+			if pagenum%2 == 0 {
+				err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+			} else {
+				err = pb.AddBlankPage(ctx, pagenum)
+			}
+
+		} else if pb.Options.OddOnly {
+
+			if pagenum%2 == 0 {
+				err = pb.AddBlankPage(ctx, pagenum)
+			} else {
+
+				if pagenum == 1 {
+
+					pb.AddBlankPage(ctx, pagenum)
+					pagenum += 1
+
+					pb.AddBlankPage(ctx, pagenum)
+					pagenum += 1
+				}
+
+				err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+
+			}
+
+		} else {
+			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+		}
 
 		if err != nil && pb.Options.Verbose {
 			log.Printf("Failed to add %s, %v", pic.Path, err)
@@ -358,6 +391,11 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	}
 
 	return pictures, nil
+}
+
+func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
+	pb.PDF.AddPage()
+	return nil
 }
 
 func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path string, caption string) error {

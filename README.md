@@ -25,6 +25,8 @@ Create a PDF file (a "picturebook") from a folder (containing images).
     	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
+  -even-only
+    	Only include images on even-numbered pages.	
   -exclude value
     	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.
   -filename string
@@ -39,6 +41,8 @@ Create a PDF file (a "picturebook") from a folder (containing images).
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
   -ocra-font
     	Use an OCR-compatible font for captions.
+  -odd-only
+    	Only include images on odd-numbered pages.	
   -orientation string
     	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
   -pre-process value
