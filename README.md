@@ -125,6 +125,16 @@ For an example of how to create and register a custom `Caption` handler take a l
 
 The following schemes for caption handlers are supported by default:
 
+#### exif://?property={PROPERTY}
+
+_To be written_
+
+Parameters
+
+| Name | Value | Required |
+| --- | --- | --- |
+| property | "datetime" | yes |
+
 #### filename://
 
 This handler will return the filename for a given path of an image.
@@ -204,6 +214,10 @@ type Sorter interface {
 For an example of how to create and register a custom `Sorter` handler take a look at the code in [sort/orthis.go](sort/orthis.go).
 
 The following schemes for sorter handlers are supported by default:
+
+#### exif://
+
+_To be written_
 
 #### modtime://
 
