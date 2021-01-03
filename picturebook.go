@@ -678,7 +678,7 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 			}
 
 			continue
-			
+
 			err := pb.Options.Source.Delete(ctx, path)
 
 			if err != nil {

@@ -3,10 +3,10 @@ package caption
 import (
 	"context"
 	"errors"
-	"gocloud.dev/blob"
-	"net/url"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
+	"gocloud.dev/blob"
+	"net/url"
 )
 
 func init() {
@@ -41,7 +41,7 @@ func NewExifCaption(ctx context.Context, uri string) (Caption, error) {
 	if property != "datetime" {
 		return nil, errors.New("Unsupported EXIF field")
 	}
-	
+
 	c := &ExifCaption{
 		property: property,
 	}
@@ -60,7 +60,7 @@ func (c *ExifCaption) Text(ctx context.Context, bucket *blob.Bucket, path string
 	defer fh.Close()
 
 	x, err := exif.Decode(fh)
-	
+
 	if err != nil {
 		return "", nil
 	}
