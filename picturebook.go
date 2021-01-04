@@ -230,8 +230,6 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		} else if pb.Options.OddOnly {
 
-			log.Println("OMG", "ADD", pagenum)
-
 			if pagenum == 1 {
 				pb.AddBlankPage(ctx, pagenum)
 				pb.pages += 1
