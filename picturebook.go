@@ -220,30 +220,31 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		if pb.Options.EvenOnly {
 
-			if pagenum%2 == 0 {
-				err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
-			} else {
-				err = pb.AddBlankPage(ctx, pagenum)
+			if pagenum%2 != 0 {
+				pb.AddBlankPage(ctx, pagenum)
+				pb.pages += 1
+				pagenum = pb.pages
 			}
+
+			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
 
 		} else if pb.Options.OddOnly {
 
+			log.Println("OMG", "ADD", pagenum)
+
+			if pagenum == 1 {
+				pb.AddBlankPage(ctx, pagenum)
+				pb.pages += 1
+				pagenum = pb.pages
+			}
+
 			if pagenum%2 == 0 {
 				err = pb.AddBlankPage(ctx, pagenum)
-			} else {
-
-				if pagenum == 1 {
-
-					pb.AddBlankPage(ctx, pagenum)
-					pagenum += 1
-
-					pb.AddBlankPage(ctx, pagenum)
-					pagenum += 1
-				}
-
-				err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
-
+				pb.pages += 1
+				pagenum = pb.pages
 			}
+
+			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
 
 		} else {
 			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
