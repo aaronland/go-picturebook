@@ -147,11 +147,21 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	page_w := w * opts.DPI
 	page_h := h * opts.DPI
 
+	/*
 	border_top := 1.0 * opts.DPI
 	border_bottom := border_top * 1.5
 	border_left := border_top * 1.0
 	border_right := border_top * 1.0
+	*/
 
+	// https://github.com/aaronland/go-picturebook/issues/22
+	
+	border_top := 1.25 * opts.DPI
+	border_bottom := border_top * 1.25
+	border_left := border_top * 1.0
+	border_right := border_top * 1.0
+
+	
 	canvas_w := page_w - (border_left + border_right)
 	canvas_h := page_h - (border_top + border_bottom)
 
@@ -619,7 +629,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	}
 
 	if pb.Options.Verbose {
-		log.Printf("[%d] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
+		log.Printf("[%d] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w , h, x, y)
 	}
 
 	pb.PDF.AddPage()
@@ -636,6 +646,10 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	w = w / pb.Options.DPI
 	h = h / pb.Options.DPI
 
+	if pb.Options.Verbose {
+		log.Printf("[%d] DPI %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w , h, x, y)
+	}
+	
 	r_border := pb.Options.Border
 
 	if r_border > 0.0 {
