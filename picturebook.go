@@ -156,10 +156,16 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// https://github.com/aaronland/go-picturebook/issues/22
 
-	border_top := 1.25 * opts.DPI
-	border_bottom := border_top * 1.25
-	border_left := border_top * 1.0
-	border_right := border_top * 1.0
+	// FIX ME	
+	margin_top := 1.25
+	margin_bottom := margin_top
+	margin_left := margin_top
+	margin_right := margin_top
+	
+	border_top := margin_top * opts.DPI
+	border_bottom := margin_bottom * 1.25
+	border_left := margin_left * 1.0
+	border_right := margin_right * 1.0
 
 	canvas_w := page_w - (border_left + border_right)
 	canvas_h := page_h - (border_top + border_bottom)
@@ -573,16 +579,29 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		return errors.New(msg)
 	}
 
-	x := pb.Border.Left
-	y := pb.Border.Top
+	// FIX ME
+	margin_top := 1.25
+	margin_bottom := margin_top
+	margin_left := margin_top
+	margin_right := margin_top
+	
+	// x := pb.Border.Left
+	// y := pb.Border.Top
 
+	x := margin_left * pb.Options.DPI
+	y := margin_top * pb.Options.DPI
+	
 	_, line_h := pb.PDF.GetFontSize()
 
-	max_w := pb.Canvas.Width
-	max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
+	// max_w := pb.Canvas.Width
+	// max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
 
+	max_w := pb.Canvas.Width - ((margin_left + margin_right) * pb.Options.DPI)
+	max_h := pb.Canvas.Height - (((margin_top + margin_bottom) * pb.Options.DPI) + (pb.Text.Margin + line_h))
+
+	
 	if pb.Options.Verbose {
-		log.Printf("[%d] canvas: %0.2f (%0.2f) x %0.2f (%0.2f) image: %0.2f x %0.2f\n", pagenum, max_w, pb.Canvas.Width, max_h, pb.Canvas.Height, w, h)
+		log.Printf("[%d] CANVAS: %0.2f (%0.2f) x %0.2f (%0.2f) image: %0.2f x %0.2f\n", pagenum, max_w, pb.Canvas.Width, max_h, pb.Canvas.Height, w, h)
 	}
 
 	for {
@@ -648,7 +667,17 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	if pb.Options.Verbose {
 		log.Printf("[%d] DPI %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
 	}
+	
+	mx := margin_left
+	my := margin_top
+	mw := pb.Options.Width - (margin_left + margin_right)
+	mh := pb.Options.Height - (margin_top + margin_bottom)
 
+	log.Printf("MARGIN X: %0.2f Y: %0.2f (W: %0.2f H: %0.2f)\n", mx, my , mw, mh)
+	
+	pb.PDF.SetFillColor(0, 0, 0)
+	pb.PDF.Rect(mx, my, mw, mh, "FD")
+	
 	r_border := pb.Options.Border
 
 	if r_border > 0.0 {
