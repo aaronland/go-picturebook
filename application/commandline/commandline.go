@@ -240,13 +240,6 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return err
 	}
 
-	margins := &picturebook.PictureBookMargins{
-		Top:    margin_top,
-		Bottom: margin_bottom,
-		Left:   margin_left,
-		Right:  margin_right,
-	}
-
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
@@ -260,12 +253,15 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts.Height = height
 	opts.DPI = dpi
 	opts.Border = border
+	opts.MarginTop = margin_top
+	opts.MarginBottom = margin_bottom
+	opts.MarginLeft = margin_left
+	opts.MarginRight = margin_right
 	opts.FillPage = fill_page
 	opts.Verbose = verbose
 	opts.OCRAFont = ocra_font
 	opts.EvenOnly = even_only
 	opts.OddOnly = odd_only
-	opts.Margins = margins
 
 	processed := make([]string, 0)
 

@@ -26,24 +26,27 @@ import (
 )
 
 type PictureBookOptions struct {
-	Orientation string
-	Size        string
-	Width       float64
-	Height      float64
-	DPI         float64
-	Border      float64 // maybe *PictureBookBorders in the future
-	Margins     *PictureBookMargins
-	Filter      filter.Filter
-	PreProcess  process.Process
-	Caption     caption.Caption
-	Sort        sort.Sorter
-	FillPage    bool
-	Verbose     bool
-	OCRAFont    bool
-	Source      *blob.Bucket
-	Target      *blob.Bucket
-	EvenOnly    bool
-	OddOnly     bool
+	Orientation  string
+	Size         string
+	Width        float64
+	Height       float64
+	DPI          float64
+	Border       float64
+	MarginTop    float64
+	MarginBottom float64
+	MarginLeft   float64
+	MarginRight  float64
+	Filter       filter.Filter
+	PreProcess   process.Process
+	Caption      caption.Caption
+	Sort         sort.Sorter
+	FillPage     bool
+	Verbose      bool
+	OCRAFont     bool
+	Source       *blob.Bucket
+	Target       *blob.Bucket
+	EvenOnly     bool
+	OddOnly      bool
 }
 
 type PictureBookMargins struct {
@@ -87,22 +90,18 @@ type PictureBook struct {
 
 func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
 
-	margins := &PictureBookMargins{
-		Top:    1.0,
-		Bottom: 1.0,
-		Left:   1.0,
-		Right:  1.0,
-	}
-
 	opts := &PictureBookOptions{
-		Orientation: "P",
-		Size:        "letter",
-		Width:       0.0,
-		Height:      0.0,
-		DPI:         150.0,
-		Border:      0.01,
-		Verbose:     false,
-		Margins:     margins,
+		Orientation:  "P",
+		Size:         "letter",
+		Width:        0.0,
+		Height:       0.0,
+		DPI:          150.0,
+		Border:       0.01,
+		MarginTop:    1.0,
+		MarginBottom: 1.0,
+		MarginLeft:   1.0,
+		MarginRight:  1.0,
+		Verbose:      false,
 	}
 
 	return opts, nil
@@ -166,10 +165,10 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// https://github.com/aaronland/go-picturebook/issues/22
 
-	margin_top := opts.Margins.Top * opts.DPI
-	margin_bottom := opts.Margins.Bottom * opts.DPI
-	margin_left := opts.Margins.Left * opts.DPI
-	margin_right := opts.Margins.Right * opts.DPI
+	margin_top := opts.MarginTop * opts.DPI
+	margin_bottom := opts.MarginBottom * opts.DPI
+	margin_left := opts.MarginLeft * opts.DPI
+	margin_right := opts.MarginRight * opts.DPI
 
 	margins := &PictureBookMargins{
 		Top:    margin_top,
@@ -178,10 +177,10 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		Right:  margin_right,
 	}
 
-	border_top := margin_top * opts.DPI
-	border_bottom := margin_bottom * 1.25
-	border_left := margin_left * 1.0
-	border_right := margin_right * 1.0
+	border_top := opts.Border * opts.DPI
+	border_bottom := opts.Border * opts.DPI
+	border_left := opts.Border * opts.DPI
+	border_right := opts.Border * opts.DPI
 
 	borders := &PictureBookBorders{
 		Top:    border_top,
@@ -600,7 +599,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		return errors.New(msg)
 	}
 
-	margins := pb.Options.Margins
+	margins := pb.Margins
 
 	x := margins.Left
 	y := margins.Top
