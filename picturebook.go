@@ -31,7 +31,7 @@ type PictureBookOptions struct {
 	Width       float64
 	Height      float64
 	DPI         float64
-	Border      float64
+	Border      float64 // maybe *PictureBookBorders in the future
 	Margins     *PictureBookMargins
 	Filter      filter.Filter
 	PreProcess  process.Process
@@ -53,7 +53,7 @@ type PictureBookMargins struct {
 	Right  float64
 }
 
-type PictureBookBorder struct {
+type PictureBookBorders struct {
 	Top    float64
 	Bottom float64
 	Left   float64
@@ -76,7 +76,8 @@ type PictureBookText struct {
 type PictureBook struct {
 	PDF      *gofpdf.Fpdf
 	Mutex    *sync.Mutex
-	Border   PictureBookBorder
+	Borders  *PictureBookBorders
+	Margins  *PictureBookMargins
 	Canvas   PictureBookCanvas
 	Text     PictureBookText
 	Options  *PictureBookOptions
@@ -163,39 +164,38 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	page_w := w * opts.DPI
 	page_h := h * opts.DPI
 
-	/*
-		border_top := 1.0 * opts.DPI
-		border_bottom := border_top * 1.5
-		border_left := border_top * 1.0
-		border_right := border_top * 1.0
-	*/
-
 	// https://github.com/aaronland/go-picturebook/issues/22
 
-	// FIX ME
-	margin_top := 1.25
-	margin_bottom := margin_top
-	margin_left := margin_top
-	margin_right := margin_top
+	margin_top := opts.Margins.Top * opts.DPI
+	margin_bottom := opts.Margins.Bottom * opts.DPI
+	margin_left := opts.Margins.Left * opts.DPI
+	margin_right := opts.Margins.Right * opts.DPI
+
+	margins := &PictureBookMargins{
+		Top:    margin_top,
+		Bottom: margin_bottom,
+		Left:   margin_left,
+		Right:  margin_right,
+	}
 
 	border_top := margin_top * opts.DPI
 	border_bottom := margin_bottom * 1.25
 	border_left := margin_left * 1.0
 	border_right := margin_right * 1.0
 
-	canvas_w := page_w - (border_left + border_right)
-	canvas_h := page_h - (border_top + border_bottom)
-
-	pdf.SetAutoPageBreak(false, border_bottom)
-
-	b := PictureBookBorder{
+	borders := &PictureBookBorders{
 		Top:    border_top,
 		Bottom: border_bottom,
 		Left:   border_left,
 		Right:  border_right,
 	}
 
-	c := PictureBookCanvas{
+	canvas_w := page_w - (border_left + border_right)
+	canvas_h := page_h - (border_top + border_bottom)
+
+	pdf.SetAutoPageBreak(false, border_bottom)
+
+	canvas := PictureBookCanvas{
 		Width:  canvas_w,
 		Height: canvas_h,
 	}
@@ -206,8 +206,9 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	pb := PictureBook{
 		PDF:      pdf,
 		Mutex:    mu,
-		Border:   b,
-		Canvas:   c,
+		Borders:  borders,
+		Margins:  margins,
+		Canvas:   canvas,
 		Text:     t,
 		Options:  opts,
 		pages:    0,
@@ -599,25 +600,15 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		return errors.New(msg)
 	}
 
-	// FIX ME
-	margin_top := 1.25
-	margin_bottom := margin_top
-	margin_left := margin_top
-	margin_right := margin_top
+	margins := pb.Options.Margins
 
-	// x := pb.Border.Left
-	// y := pb.Border.Top
-
-	x := margin_left * pb.Options.DPI
-	y := margin_top * pb.Options.DPI
+	x := margins.Left
+	y := margins.Top
 
 	_, line_h := pb.PDF.GetFontSize()
 
-	// max_w := pb.Canvas.Width
-	// max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
-
-	max_w := pb.Canvas.Width - ((margin_left + margin_right) * pb.Options.DPI)
-	max_h := pb.Canvas.Height - (((margin_top + margin_bottom) * pb.Options.DPI) + (pb.Text.Margin + line_h))
+	max_w := pb.Canvas.Width - (margins.Left + margins.Right)
+	max_h := pb.Canvas.Height - ((margins.Top + margins.Bottom) + (pb.Text.Margin + line_h))
 
 	log.Printf("[%d] W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
 
@@ -699,17 +690,18 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		log.Printf("[%d] DPI %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
 	}
 
-	mx := margin_left
-	my := margin_top
-	mw := pb.Options.Width - (margin_left + margin_right)
-	mh := pb.Options.Height - (margin_top + margin_bottom)
+	mx := margins.Left
+	my := margins.Top
+	mw := pb.Options.Width - (margins.Left + margins.Right)
+	mh := pb.Options.Height - (margins.Top + margins.Bottom)
 
 	log.Printf("MARGIN X: %0.2f Y: %0.2f (W: %0.2f H: %0.2f)\n", mx, my, mw, mh)
 
 	pb.PDF.SetFillColor(0, 0, 0)
 	pb.PDF.Rect(mx, my, mw, mh, "FD")
 
-	r_border := pb.Options.Border
+	borders := pb.Borders
+	r_border := borders.Right
 
 	if r_border > 0.0 {
 		pb.PDF.SetFillColor(0, 0, 0)
@@ -757,7 +749,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		// pb.PDF.Cell(txt_w, txt_h, txt)
 
 		pb.PDF.SetLeftMargin(x)
-		pb.PDF.SetRightMargin(pb.Border.Right / pb.Options.DPI)
+		pb.PDF.SetRightMargin(borders.Right / pb.Options.DPI)
 
 		// please account for lack of utf-8 support (20171128/thisisaaronland)
 		// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
