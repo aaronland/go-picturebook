@@ -30,6 +30,11 @@ var height float64
 var dpi float64
 var border float64
 
+var margin_top float64
+var margin_bottom float64
+var margin_left float64
+var margin_right float64
+
 var source_uri string
 var target_uri string
 
@@ -94,6 +99,11 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Float64Var(&height, "height", 0.0, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.")
 	fs.Float64Var(&dpi, "dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	fs.Float64Var(&border, "border", 0.01, "The size of the border around images.")
+
+	fs.Float64Var(&margin_top, "margin-top", 1.0, "The margin around the top of each page.")
+	fs.Float64Var(&margin_bottom, "margin-bottom", 1.0, "The margin around the bottom of each page.")
+	fs.Float64Var(&margin_left, "margin-left", 1.0, "The margin around the left-hand side of each page.")
+	fs.Float64Var(&margin_right, "margin-right", 1.0, "The margin around the right-hand side of each page.")
 
 	fs.BoolVar(&fill_page, "fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
 
@@ -230,6 +240,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return err
 	}
 
+	margins := &picturebook.PictureBookMargins{
+		Top:    margin_top,
+		Bottom: margin_bottom,
+		Left:   margin_left,
+		Right:  margin_right,
+	}
+
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
@@ -248,6 +265,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts.OCRAFont = ocra_font
 	opts.EvenOnly = even_only
 	opts.OddOnly = odd_only
+	opts.Margins = margins
 
 	processed := make([]string, 0)
 

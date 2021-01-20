@@ -32,6 +32,7 @@ type PictureBookOptions struct {
 	Height      float64
 	DPI         float64
 	Border      float64
+	Margins     *PictureBookMargins
 	Filter      filter.Filter
 	PreProcess  process.Process
 	Caption     caption.Caption
@@ -43,6 +44,13 @@ type PictureBookOptions struct {
 	Target      *blob.Bucket
 	EvenOnly    bool
 	OddOnly     bool
+}
+
+type PictureBookMargins struct {
+	Top    float64
+	Bottom float64
+	Left   float64
+	Right  float64
 }
 
 type PictureBookBorder struct {
@@ -78,6 +86,13 @@ type PictureBook struct {
 
 func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
 
+	margins := &PictureBookMargins{
+		Top:    1.0,
+		Bottom: 1.0,
+		Left:   1.0,
+		Right:  1.0,
+	}
+
 	opts := &PictureBookOptions{
 		Orientation: "P",
 		Size:        "letter",
@@ -86,6 +101,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		DPI:         150.0,
 		Border:      0.01,
 		Verbose:     false,
+		Margins:     margins,
 	}
 
 	return opts, nil
@@ -156,12 +172,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// https://github.com/aaronland/go-picturebook/issues/22
 
-	// FIX ME	
+	// FIX ME
 	margin_top := 1.25
 	margin_bottom := margin_top
 	margin_left := margin_top
 	margin_right := margin_top
-	
+
 	border_top := margin_top * opts.DPI
 	border_bottom := margin_bottom * 1.25
 	border_left := margin_left * 1.0
@@ -224,7 +240,11 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pictures = sorted
 	}
 
-	for _, pic := range pictures {
+	for i, pic := range pictures {
+
+		if i == 20 {
+			break
+		}
 
 		pb.Mutex.Lock()
 		pb.pages += 1
@@ -584,13 +604,13 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	margin_bottom := margin_top
 	margin_left := margin_top
 	margin_right := margin_top
-	
+
 	// x := pb.Border.Left
 	// y := pb.Border.Top
 
 	x := margin_left * pb.Options.DPI
 	y := margin_top * pb.Options.DPI
-	
+
 	_, line_h := pb.PDF.GetFontSize()
 
 	// max_w := pb.Canvas.Width
@@ -599,16 +619,17 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	max_w := pb.Canvas.Width - ((margin_left + margin_right) * pb.Options.DPI)
 	max_h := pb.Canvas.Height - (((margin_top + margin_bottom) * pb.Options.DPI) + (pb.Text.Margin + line_h))
 
-	
+	log.Printf("[%d] W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
+
 	if pb.Options.Verbose {
 		log.Printf("[%d] CANVAS: %0.2f (%0.2f) x %0.2f (%0.2f) image: %0.2f x %0.2f\n", pagenum, max_w, pb.Canvas.Width, max_h, pb.Canvas.Height, w, h)
 	}
 
 	for {
 
-		if w > max_w || h > max_h {
+		if w >= max_w || h >= max_h {
 
-			// log.Printf("[%d] WTF 1 %0.2f x %0.2f (%0.2f x %0.2f) \n", pagenum, w, h, max_w, max_h)
+			log.Printf("[%d] WTF 1 %0.2f x %0.2f (%0.2f x %0.2f) \n", pagenum, w, h, max_w, max_h)
 
 			if w > max_w {
 
@@ -628,23 +649,33 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 		}
 
+		// TO DO: ENSURE ! h < max_h && ! w < max_w
+
 		if w <= max_w && h <= max_h {
 			break
+
+			if h < max_h {
+				h = max_h
+			}
+
 		}
 	}
+
+	log.Printf("[%d] OMG W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
 
 	if w < max_w {
 		padding := max_w - w
 		x = x + (padding / 2.0)
 	}
 
-	if h < (max_h - pb.Border.Top) {
-
-		// what's going on here? like what exactly do I think this is accomplishing
-		// or more importantly why?
-
-		y = y + (pb.Border.Top / 2.0)
+	if h < max_h {
+		padding := max_h - h
+		log.Printf("[%d] BBQ P: %0.2f\n", pagenum, padding)
+		y = y + (padding / 2.0)
+		log.Printf("[%d] COW y = y + (padding / 2.0) == %0.2f\n", pagenum, y)
 	}
+
+	log.Printf("[%d] WTF W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
 
 	if pb.Options.Verbose {
 		log.Printf("[%d] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
@@ -667,17 +698,17 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	if pb.Options.Verbose {
 		log.Printf("[%d] DPI %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
 	}
-	
+
 	mx := margin_left
 	my := margin_top
 	mw := pb.Options.Width - (margin_left + margin_right)
 	mh := pb.Options.Height - (margin_top + margin_bottom)
 
-	log.Printf("MARGIN X: %0.2f Y: %0.2f (W: %0.2f H: %0.2f)\n", mx, my , mw, mh)
-	
+	log.Printf("MARGIN X: %0.2f Y: %0.2f (W: %0.2f H: %0.2f)\n", mx, my, mw, mh)
+
 	pb.PDF.SetFillColor(0, 0, 0)
 	pb.PDF.Rect(mx, my, mw, mh, "FD")
-	
+
 	r_border := pb.Options.Border
 
 	if r_border > 0.0 {
