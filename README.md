@@ -39,6 +39,8 @@ $> ./bin/picturebook -h
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.
   -include value
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
+  -margin float
+    	The margin around all sides of a page. If non-zero this value will be used to populate all the other -margin-(N) flags.
   -margin-bottom float
     	The margin around the bottom of each page. (default 1)
   -margin-left float

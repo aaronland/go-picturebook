@@ -30,6 +30,7 @@ var height float64
 var dpi float64
 var border float64
 
+var margin float64
 var margin_top float64
 var margin_bottom float64
 var margin_left float64
@@ -104,6 +105,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Float64Var(&margin_bottom, "margin-bottom", 1.0, "The margin around the bottom of each page.")
 	fs.Float64Var(&margin_left, "margin-left", 1.0, "The margin around the left-hand side of each page.")
 	fs.Float64Var(&margin_right, "margin-right", 1.0, "The margin around the right-hand side of each page.")
+	fs.Float64Var(&margin, "margin", 0.0, "The margin around all sides of a page. If non-zero this value will be used to populate all the other -margin-(N) flags.")	
 
 	fs.BoolVar(&fill_page, "fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
 
@@ -228,6 +230,13 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		}
 	}
 
+	if margin != 0.0 {
+		margin_top = margin
+		margin_bottom = margin
+		margin_left = margin
+		margin_right = margin				
+	}
+	
 	source_bucket, err := blob.OpenBucket(ctx, source_uri)
 
 	if err != nil {
