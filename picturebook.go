@@ -165,6 +165,8 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// https://github.com/aaronland/go-picturebook/issues/22
 
+	// margin around each page
+
 	margin_top := opts.MarginTop * opts.DPI
 	margin_bottom := opts.MarginBottom * opts.DPI
 	margin_left := opts.MarginLeft * opts.DPI
@@ -176,6 +178,10 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		Left:   margin_left,
 		Right:  margin_right,
 	}
+
+	// border around each image
+
+	log.Println("WTF", opts.Border, opts.DPI)
 
 	border_top := opts.Border * opts.DPI
 	border_bottom := opts.Border * opts.DPI
@@ -189,8 +195,14 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		Right:  border_right,
 	}
 
-	canvas_w := page_w - (border_left + border_right)
-	canvas_h := page_h - (border_top + border_bottom)
+	log.Println("BORDER", borders)
+
+	log.Printf("PAGE %0.2f x %0.2f\n", page_w, page_h)
+
+	canvas_w := page_w - (margin_left + margin_right + border_left + border_right)
+	canvas_h := page_h - (margin_top + margin_bottom + border_top + border_bottom)
+
+	log.Printf("CANVAS %0.2f x %0.2f\n", canvas_w, canvas_h)
 
 	pdf.SetAutoPageBreak(false, border_bottom)
 
@@ -223,6 +235,10 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 	if err != nil {
 		return err
+	}
+
+	for i, p := range pictures {
+		log.Println(i, p.Source)
 	}
 
 	if pb.Options.Verbose {
@@ -499,6 +515,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	w := float64(dims.Max.X)
 	h := float64(dims.Max.Y)
 
+	log.Printf("[%d][%s] dimensions %0.2f x %0.2f\n", pagenum, abs_path, w, h)
+
 	if pb.Options.FillPage {
 
 		image_orientation := "U" // unknown
@@ -591,7 +609,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 	info.SetDpi(pb.Options.DPI)
 
 	if pb.Options.Verbose {
-		log.Printf("[%d] %s %02.f x %02.f\n", pagenum, abs_path, w, h)
+		log.Printf("[%d][%s] dimensions %02.f x %02.f\n", pagenum, abs_path, w, h)
 	}
 
 	if w == 0.0 || h == 0.0 {
@@ -606,10 +624,14 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 	_, line_h := pb.PDF.GetFontSize()
 
-	max_w := pb.Canvas.Width - (margins.Left + margins.Right)
-	max_h := pb.Canvas.Height - ((margins.Top + margins.Bottom) + (pb.Text.Margin + line_h))
+	log.Printf("[%d][%s] margins, left and right %0.2f\n", pagenum, abs_path, (margins.Left + margins.Right))
+	log.Printf("[%d][%s] margins, top and bottom %0.2f\n", pagenum, abs_path, (margins.Top + margins.Bottom))
+	log.Printf("[%d][%s] margins, caption %0.2f\n", pagenum, abs_path, (pb.Text.Margin + line_h))
 
-	log.Printf("[%d] W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
+	max_w := pb.Canvas.Width  // - (margins.Left + margins.Right)
+	max_h := pb.Canvas.Height // - ((margins.Top + margins.Bottom) + (pb.Text.Margin + line_h))
+
+	log.Printf("[%d][%s] max dimensions %0.2f (%0.2f) x %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
 
 	if pb.Options.Verbose {
 		log.Printf("[%d] CANVAS: %0.2f (%0.2f) x %0.2f (%0.2f) image: %0.2f x %0.2f\n", pagenum, max_w, pb.Canvas.Width, max_h, pb.Canvas.Height, w, h)
@@ -619,7 +641,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 		if w >= max_w || h >= max_h {
 
-			log.Printf("[%d] WTF 1 %0.2f x %0.2f (%0.2f x %0.2f) \n", pagenum, w, h, max_w, max_h)
+			// log.Printf("[%d] WTF 1 %0.2f x %0.2f (%0.2f x %0.2f) \n", pagenum, w, h, max_w, max_h)
 
 			if w > max_w {
 
@@ -651,7 +673,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		}
 	}
 
-	log.Printf("[%d] OMG W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
+	log.Printf("[%d][%s] max dimensions (1) %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
 
 	if w < max_w {
 		padding := max_w - w
@@ -660,54 +682,71 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 
 	if h < max_h {
 		padding := max_h - h
-		log.Printf("[%d] BBQ P: %0.2f\n", pagenum, padding)
+		// log.Printf("[%d] BBQ P: %0.2f\n", pagenum, padding)
 		y = y + (padding / 2.0)
-		log.Printf("[%d] COW y = y + (padding / 2.0) == %0.2f\n", pagenum, y)
+		// log.Printf("[%d] COW y = y + (padding / 2.0) == %0.2f\n", pagenum, y)
 	}
 
-	log.Printf("[%d] WTF W  %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, w, max_w, h, max_h)
+	log.Printf("[%d][%s] max dimensions (2) %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
 
-	if pb.Options.Verbose {
-		log.Printf("[%d] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
-	}
+	// if pb.Options.Verbose {
+	log.Printf("[%d][%s] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
+	// }
 
 	pb.PDF.AddPage()
 
-	// https://godoc.org/github.com/jung-kurt/gofpdf#ImageOptions
+	// if pb.Options.Verbose {
+	log.Printf("[%d][%s] dpi %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
+	// }
 
-	opts := gofpdf.ImageOptions{
-		ReadDpi:   false,
-		ImageType: format,
-	}
+	// draw margins
 
-	x = x / pb.Options.DPI
-	y = y / pb.Options.DPI
-	w = w / pb.Options.DPI
-	h = h / pb.Options.DPI
+	mx := x / pb.Options.DPI
+	my := y / pb.Options.DPI
+	mw := w / pb.Options.DPI
+	mh := h / pb.Options.DPI
 
-	if pb.Options.Verbose {
-		log.Printf("[%d] DPI %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, w, h, x, y)
-	}
-
-	mx := margins.Left
-	my := margins.Top
-	mw := pb.Options.Width - (margins.Left + margins.Right)
-	mh := pb.Options.Height - (margins.Top + margins.Bottom)
-
-	log.Printf("MARGIN X: %0.2f Y: %0.2f (W: %0.2f H: %0.2f)\n", mx, my, mw, mh)
+	log.Printf("[%d][%s] margin  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, mx, my, mw, mh)
 
 	pb.PDF.SetFillColor(0, 0, 0)
 	pb.PDF.Rect(mx, my, mw, mh, "FD")
+
+	// draw borders
 
 	borders := pb.Borders
 	r_border := borders.Right
 
 	if r_border > 0.0 {
+
+		bx := (x - borders.Left) / pb.Options.DPI
+		by := (y - borders.Top) / pb.Options.DPI
+		bw := (w + borders.Left + borders.Right) / pb.Options.DPI
+		bh := (h + borders.Top + borders.Bottom) / pb.Options.DPI
+
+		log.Printf("[%d][%s] border  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, bx, by, bw, bh)
+
 		pb.PDF.SetFillColor(0, 0, 0)
-		pb.PDF.Rect((x - r_border), (y - r_border), (w + (r_border * 2)), (h + (r_border * 2)), "FD")
+		pb.PDF.Rect(bx, by, bw, bh, "FD")
 	}
 
-	pb.PDF.ImageOptions(abs_path, x, y, w, h, false, opts, 0, "")
+	// draw the image
+
+	log.Printf("[%d][%s] image  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, x, y, w, h)
+	log.Printf("[%d][%s] image  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, x*pb.Options.DPI, y*pb.Options.DPI, w*pb.Options.DPI, h*pb.Options.DPI)
+
+	// https://godoc.org/github.com/jung-kurt/gofpdf#ImageOptions
+
+	image_opts := gofpdf.ImageOptions{
+		ReadDpi:   false,
+		ImageType: format,
+	}
+
+	image_x := x / pb.Options.DPI
+	image_y := y / pb.Options.DPI
+	image_w := w / pb.Options.DPI
+	image_h := h / pb.Options.DPI
+
+	pb.PDF.ImageOptions(abs_path, image_x, image_y, image_w, image_h, false, image_opts, 0, "")
 
 	if caption != "" {
 

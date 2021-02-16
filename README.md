@@ -16,17 +16,17 @@ go build -mod vendor -o bin/picturebook cmd/picturebook/main.go
 Create a PDF file (a "picturebook") from a folder (containing images).
 
 ```
-> ./bin/picturebook -h
+$> ./bin/picturebook -h
   -border float
     	The size of the border around images. (default 0.01)
   -caption string
-    	A valid caption.Caption URI. Valid schemes are: filename, none
+    	A valid caption.Caption URI. Valid schemes are: exif, filename, none
   -debug
     	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -even-only
-    	Only include images on even-numbered pages.	
+    	Only include images on even-numbered pages.
   -exclude value
     	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.
   -filename string
@@ -39,10 +39,18 @@ Create a PDF file (a "picturebook") from a folder (containing images).
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.
   -include value
     	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
+  -margin-bottom float
+    	The margin around the bottom of each page. (default 1)
+  -margin-left float
+    	The margin around the left-hand side of each page. (default 1)
+  -margin-right float
+    	The margin around the right-hand side of each page. (default 1)
+  -margin-top float
+    	The margin around the top of each page. (default 1)
   -ocra-font
     	Use an OCR-compatible font for captions.
   -odd-only
-    	Only include images on odd-numbered pages.	
+    	Only include images on odd-numbered pages.
   -orientation string
     	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
   -pre-process value
@@ -52,7 +60,7 @@ Create a PDF file (a "picturebook") from a folder (containing images).
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: "A3", "A4", "A5", "Letter", "Legal", or "Tabloid". (default "letter")
   -sort string
-    	A valid sort.Sorter URI. Valid schemes are: modtime
+    	A valid sort.Sorter URI. Valid schemes are: exif, modtime
   -source-uri string
     	A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.
   -target string
