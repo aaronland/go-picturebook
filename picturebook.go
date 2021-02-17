@@ -32,6 +32,7 @@ type PictureBookOptions struct {
 	Height       float64
 	DPI          float64
 	Border       float64
+	Bleed        float64
 	MarginTop    float64
 	MarginBottom float64
 	MarginLeft   float64
@@ -97,6 +98,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Height:       0.0,
 		DPI:          150.0,
 		Border:       0.01,
+		Bleed:        0.0,
 		MarginTop:    1.0,
 		MarginBottom: 1.0,
 		MarginLeft:   1.0,
@@ -110,6 +112,8 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook, error) {
 
 	var pdf *gofpdf.Fpdf
+
+	// FIGURE OUT BLEED HERE...
 
 	if opts.Width != 0.0 && opts.Height != 0.0 {
 		sz := gofpdf.SizeType{
