@@ -25,6 +25,8 @@ import (
 	"sync"
 )
 
+const MM2INCH float64 = 25.4
+
 type PictureBookOptions struct {
 	Orientation  string
 	Size         string
@@ -113,31 +115,73 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	var pdf *gofpdf.Fpdf
 
-	// FIGURE OUT BLEED HERE...
+	// Start by convert everything to inches - not because it's better but
+	// just because it's expedient right now (20210218/straup)
 
-	if opts.Width != 0.0 && opts.Height != 0.0 {
+	if opts.Width == 0.0 && opts.Height == 0.0 {
 
-		sz := gofpdf.SizeType{
-			Wd: opts.Width + (opts.Bleed * 2.0),
-			Ht: opts.Height + (opts.Bleed * 2.0),
+		switch strings.ToLower(opts.Size) {
+		case "a1":
+			opts.Width = 584.0 / MM2INCH
+			opts.Height = 841.0 / MM2INCH
+		case "a2":
+			opts.Width = 420 / MM2INCH
+			opts.Height = 594 / MM2INCH
+		case "a3":
+			opts.Width = 297 / MM2INCH
+			opts.Height = 420 / MM2INCH
+		case "a4":
+			opts.Width = 210.0 / MM2INCH
+			opts.Height = 297.0 / MM2INCH
+		case "a5":
+			opts.Width = 148 / MM2INCH
+			opts.Height = 210 / MM2INCH
+		case "a6":
+			opts.Width = 105 / MM2INCH
+			opts.Height = 148 / MM2INCH
+		case "a7":
+			opts.Width = 74 / MM2INCH
+			opts.Height = 105 / MM2INCH
+		case "letter":
+			opts.Width = 8.5
+			opts.Height = 11.0
+		case "legal":
+			opts.Width = 11.0
+			opts.Height = 17.0
+		case "tabloid":
+			opts.Width = 11.0
+			opts.Height = 17.0
+		default:
+			return nil, fmt.Errorf("Unrecognized page size '%s'", opts.Size)
 		}
-
-		init := gofpdf.InitType{
-			OrientationStr: opts.Orientation,
-			UnitStr:        "in",
-			SizeStr:        "",
-			Size:           sz,
-			FontDirStr:     "",
-		}
-
-		pdf = gofpdf.NewCustom(&init)
-
-	} else {
-
-		// TO DO: ACCOUNT FOR BLEED
-
-		pdf = gofpdf.New(opts.Orientation, "in", opts.Size, "")
 	}
+
+	// log.Printf("%0.2f x %0.2f (%s)\n", opts.Width, opts.Height, opts.Size)
+
+	sz := gofpdf.SizeType{
+		Wd: opts.Width + (opts.Bleed * 2.0),
+		Ht: opts.Height + (opts.Bleed * 2.0),
+	}
+
+	init := gofpdf.InitType{
+		OrientationStr: opts.Orientation,
+		UnitStr:        "in",
+		SizeStr:        "",
+		Size:           sz,
+		FontDirStr:     "",
+	}
+
+	pdf = gofpdf.NewCustom(&init)
+
+	/*
+		} else {
+
+			// TO DO: ACCOUNT FOR BLEED
+			// func (f *Fpdf) GetPageSizeStr(sizeStr string) (size SizeType) {
+
+			pdf = gofpdf.New(opts.Orientation, "in", opts.Size, "")
+		}
+	*/
 
 	t := PictureBookText{
 		Font:   "Helvetica",
