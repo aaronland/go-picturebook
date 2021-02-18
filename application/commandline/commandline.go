@@ -97,7 +97,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
 
 	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
-	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "A3", "A4", "A5", "Letter", "Legal", or "Tabloid".`)
+	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".`)
 	fs.Float64Var(&width, "width", 0.0, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.")
 	fs.Float64Var(&height, "height", 0.0, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.")
 	fs.Float64Var(&dpi, "dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
@@ -116,7 +116,6 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&filename, "filename", "picturebook.pdf", "The filename (path) for your picturebook.")
 
 	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
-	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
 	fs.BoolVar(&even_only, "even-only", false, "Only include images on even-numbered pages.")
 	fs.BoolVar(&odd_only, "odd-only", false, "Only include images on odd-numbered pages.")
@@ -132,15 +131,24 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&source_uri, "source-uri", "", "A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.")
 	fs.StringVar(&target_uri, "target-uri", "", "A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.")
 
-	// Deprecated flags
+	// Deprecated flags have been moved in to the AppendDeprecatedFlags() method
+
+	return fs, nil
+}
+
+func AppendDeprecatedFlags(ctx context.Context, fs *flag.FlagSet) error {
+
+	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
 
 	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.")
+
 	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.")
+
 	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.")
 
 	fs.StringVar(&target, "target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
 
-	return fs, nil
+	return nil
 }
 
 func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Application, error) {
