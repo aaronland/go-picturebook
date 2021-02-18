@@ -253,11 +253,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pictures = sorted
 	}
 
-	for i, pic := range pictures {
-
-		if i == 20 {
-			break
-		}
+	for _, pic := range pictures {
 
 		pb.Mutex.Lock()
 		pb.pages += 1
