@@ -17,6 +17,8 @@ Create a PDF file (a "picturebook") from a folder (containing images).
 
 ```
 $> ./bin/picturebook -h
+  -bleed float
+    	An additional bleed area to add (on all four sides) to the size of your picturebook.
   -border float
     	The size of the border around images. (default 0.01)
   -caption string

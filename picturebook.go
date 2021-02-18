@@ -116,9 +116,10 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	// FIGURE OUT BLEED HERE...
 
 	if opts.Width != 0.0 && opts.Height != 0.0 {
+
 		sz := gofpdf.SizeType{
-			Wd: opts.Width,
-			Ht: opts.Height,
+			Wd: opts.Width + (opts.Bleed * 2.0),
+			Ht: opts.Height + (opts.Bleed * 2.0),
 		}
 
 		init := gofpdf.InitType{
@@ -132,6 +133,8 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		pdf = gofpdf.NewCustom(&init)
 
 	} else {
+
+		// TO DO: ACCOUNT FOR BLEED
 
 		pdf = gofpdf.New(opts.Orientation, "in", opts.Size, "")
 	}
@@ -169,12 +172,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// https://github.com/aaronland/go-picturebook/issues/22
 
-	// margin around each page
+	// margin around each page (inclusive of page bleed)
 
-	margin_top := opts.MarginTop * opts.DPI
-	margin_bottom := opts.MarginBottom * opts.DPI
-	margin_left := opts.MarginLeft * opts.DPI
-	margin_right := opts.MarginRight * opts.DPI
+	margin_top := (opts.MarginTop + (opts.Bleed * 2.0)) * opts.DPI
+	margin_bottom := (opts.MarginBottom + (opts.Bleed * 2.0)) * opts.DPI
+	margin_left := (opts.MarginLeft + (opts.Bleed * 2.0)) * opts.DPI
+	margin_right := (opts.MarginRight + (opts.Bleed * 2.0)) * opts.DPI
 
 	margins := &PictureBookMargins{
 		Top:    margin_top,
@@ -196,6 +199,8 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		Left:   border_left,
 		Right:  border_right,
 	}
+
+	// Remember: margins have been calculated inclusive of page bleeds
 
 	canvas_w := page_w - (margin_left + margin_right + border_left + border_right)
 	canvas_h := page_h - (margin_top + margin_bottom + border_top + border_bottom)
@@ -611,6 +616,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		return errors.New(msg)
 	}
 
+	// Remember: margins have been calculated inclusive of page bleeds
+
 	margins := pb.Margins
 
 	x := margins.Left
@@ -624,8 +631,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 		log.Printf("[%d][%s] margins, caption %0.2f\n", pagenum, abs_path, (pb.Text.Margin + line_h))
 	}
 
-	max_w := pb.Canvas.Width  // - (margins.Left + margins.Right)
-	max_h := pb.Canvas.Height // - ((margins.Top + margins.Bottom) + (pb.Text.Margin + line_h))
+	max_w := pb.Canvas.Width
+	max_h := pb.Canvas.Height
 
 	if pb.Options.Verbose {
 		log.Printf("[%d][%s] max dimensions %0.2f (%0.2f) x %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
