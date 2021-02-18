@@ -40,6 +40,7 @@ var bleed float64
 
 var source_uri string
 var target_uri string
+var tmpfile_uri string
 
 var fill_page bool
 
@@ -130,6 +131,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs.StringVar(&source_uri, "source-uri", "", "A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.")
 	fs.StringVar(&target_uri, "target-uri", "", "A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.")
+	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", "A valid GoCloud blob URI to specify where temporary files should be written to. If empty the value of the -source-uri flag will be used. By default file:// URIs are supported.")
 
 	// Deprecated flags have been moved in to the AppendDeprecatedFlags() method
 
@@ -242,6 +244,10 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		}
 	}
 
+	if tmpfile_uri == "" {
+		tmpfile_uri = source_uri
+	}
+
 	if margin != 0.0 {
 		margin_top = margin
 		margin_bottom = margin
@@ -256,6 +262,12 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	}
 
 	target_bucket, err := blob.OpenBucket(ctx, target_uri)
+
+	if err != nil {
+		return err
+	}
+
+	tmpfile_bucket, err := blob.OpenBucket(ctx, tmpfile_uri)
 
 	if err != nil {
 		return err
@@ -407,6 +419,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	opts.Source = source_bucket
 	opts.Target = target_bucket
+	opts.Temporary = tmpfile_bucket
 
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 

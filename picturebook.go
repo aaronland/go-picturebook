@@ -48,6 +48,7 @@ type PictureBookOptions struct {
 	OCRAFont     bool
 	Source       *blob.Bucket
 	Target       *blob.Bucket
+	Temporary    *blob.Bucket
 	EvenOnly     bool
 	OddOnly      bool
 }
