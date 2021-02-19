@@ -62,15 +62,17 @@ $> ./bin/picturebook -h
   -process value
     	A valid process.Process URI. Valid schemes are: halftone, null, rotate
   -size string
-    	A common paper size to use for the size of your picturebook. Valid sizes are: "A3", "A4", "A5", "Letter", "Legal", or "Tabloid". (default "letter")
+    	A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid". (default "letter")
   -sort string
     	A valid sort.Sorter URI. Valid schemes are: exif, modtime
   -source-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://.
   -target string
     	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
   -target-uri string
-    	A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://.
+  -tmpfile-uri string
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If empty the value of the -source-uri flag will be used.
   -verbose
     	Display verbose output as the picturebook is created.
   -width float

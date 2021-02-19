@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	gosort "sort"
 	"strings"
 )
 
@@ -80,6 +81,16 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("picturebook")
 
+	available_buckets := make([]string, 0)
+
+	for _, scheme := range blob.DefaultURLMux().BucketSchemes() {
+		available_buckets = append(available_buckets, fmt.Sprintf("%s://", scheme))
+	}
+
+	gosort.Strings(available_buckets)
+
+	available_buckets_str := strings.Join(available_buckets, ", ")
+
 	available_filters := strings.Join(filter.AvailableFilters(), ", ")
 	available_filters = strings.ToLower(available_filters)
 
@@ -96,6 +107,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
+
+	desc_buckets := fmt.Sprintf("A valid GoCloud blob URI to specify where files should be read from. Available schemes are: %s.", available_buckets_str)
 
 	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
 	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".`)
@@ -129,9 +142,11 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
-	fs.StringVar(&source_uri, "source-uri", "", "A valid GoCloud blob URI to specify where files should be read from. By default file:// URIs are supported.")
-	fs.StringVar(&target_uri, "target-uri", "", "A valid GoCloud blob URI to specify where your final picturebook PDF file should be written to. By default file:// URIs are supported.")
-	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", "A valid GoCloud blob URI to specify where temporary files should be written to. If empty the value of the -source-uri flag will be used. By default file:// URIs are supported.")
+	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
+	fs.StringVar(&target_uri, "target-uri", "", desc_buckets)
+
+	desc_buckets_tmp := fmt.Sprintf("%s If empty the value of the -source-uri flag will be used.", desc_buckets)
+	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
 
 	// Deprecated flags have been moved in to the AppendDeprecatedFlags() method
 
