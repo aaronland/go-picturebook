@@ -22,7 +22,7 @@ $> ./bin/picturebook -h
   -border float
     	The size of the border around images. (default 0.01)
   -caption string
-    	A valid caption.Caption URI. Valid schemes are: exif, filename, none
+    	A valid caption.Caption URI. Valid schemes are: exif://, filename://, none://.
   -debug
     	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
@@ -36,7 +36,7 @@ $> ./bin/picturebook -h
   -fill-page
     	If necessary rotate image 90 degrees to use the most available page space.
   -filter value
-    	A valid filter.Filter URI. Valid schemes are: any, regexp
+    	A valid filter.Filter URI. Valid schemes are: any://, regexp://.
   -height float
     	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.
   -include value
@@ -60,11 +60,11 @@ $> ./bin/picturebook -h
   -pre-process value
     	DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.
   -process value
-    	A valid process.Process URI. Valid schemes are: halftone, null, rotate
+    	A valid process.Process URI. Valid schemes are: halftone://, null://, rotate://.
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid". (default "letter")
   -sort string
-    	A valid sort.Sorter URI. Valid schemes are: exif, modtime
+    	A valid sort.Sorter URI. Valid schemes are: exif://, modtime://.
   -source-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://.
   -target string

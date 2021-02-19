@@ -77,37 +77,47 @@ type CommandLineApplication struct {
 	flagset *flag.FlagSet
 }
 
+func formatSchemes(schemes []string) []string {
+
+	for idx, scheme := range schemes {
+		scheme = strings.ToLower(scheme)
+		scheme = fmt.Sprintf("%s://", scheme)
+		schemes[idx] = scheme
+	}
+
+	gosort.Strings(schemes)
+
+	return schemes
+}
+
+func formatSchemesAsString(schemes []string) string {
+	schemes = formatSchemes(schemes)
+	return strings.Join(schemes, ", ")
+}
+
 func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("picturebook")
 
-	available_buckets := make([]string, 0)
+	available_buckets := blob.DefaultURLMux().BucketSchemes()
+	available_buckets_str := formatSchemesAsString(available_buckets)
 
-	for _, scheme := range blob.DefaultURLMux().BucketSchemes() {
-		available_buckets = append(available_buckets, fmt.Sprintf("%s://", scheme))
-	}
+	available_filters := filter.AvailableFilters()
+	available_filters_str := formatSchemesAsString(available_filters)
 
-	gosort.Strings(available_buckets)
+	available_captions := caption.AvailableCaptions()
+	available_captions_str := formatSchemesAsString(available_captions)
 
-	available_buckets_str := strings.Join(available_buckets, ", ")
+	available_processes := process.AvailableProcesses()
+	available_processes_str := formatSchemesAsString(available_processes)
 
-	available_filters := strings.Join(filter.AvailableFilters(), ", ")
-	available_filters = strings.ToLower(available_filters)
+	available_sorters := sort.AvailableSorters()
+	available_sorters_str := formatSchemesAsString(available_sorters)
 
-	available_captions := strings.Join(caption.AvailableCaptions(), ", ")
-	available_captions = strings.ToLower(available_captions)
-
-	available_processes := strings.Join(process.AvailableProcesses(), ", ")
-	available_processes = strings.ToLower(available_processes)
-
-	available_sorters := strings.Join(sort.AvailableSorters(), ", ")
-	available_sorters = strings.ToLower(available_sorters)
-
-	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s", available_filters)
-	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s", available_captions)
-	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s", available_processes)
-	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s", available_sorters)
-
+	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s.", available_filters_str)
+	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s.", available_captions_str)
+	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s.", available_processes_str)
+	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s.", available_sorters_str)
 	desc_buckets := fmt.Sprintf("A valid GoCloud blob URI to specify where files should be read from. Available schemes are: %s.", available_buckets_str)
 
 	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
