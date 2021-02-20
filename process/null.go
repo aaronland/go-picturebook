@@ -33,6 +33,6 @@ func NewNullProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *NullProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
-	return path, nil
+func (f *NullProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+	return "", nil
 }

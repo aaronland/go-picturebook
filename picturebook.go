@@ -402,7 +402,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				log.Printf("Processing %s\n", abs_path)
 			}
 
-			processed_path, err := pb.Options.PreProcess.Transform(ctx, pb.Options.Source, abs_path)
+			processed_path, err := pb.Options.PreProcess.Transform(ctx, pb.Options.Source, pb.Options.Temporary, abs_path)
 
 			if err != nil {
 				log.Printf("Failed to process %s, %v\n", abs_path, err)
@@ -874,7 +874,7 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 				log.Printf("Remove tmp file '%s'\n", path)
 			}
 
-			err := pb.Options.Source.Delete(ctx, path)
+			err := pb.Options.Temporary.Delete(ctx, path)
 
 			if err != nil {
 				log.Printf("Failed to delete %s, %v\n", path, err)

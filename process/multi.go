@@ -19,13 +19,13 @@ func NewMultiProcess(ctx context.Context, processes ...Process) (Process, error)
 	return p, nil
 }
 
-func (p *MultiProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
 	final_path := path
 
 	for _, current_p := range p.processes {
 
-		new_path, err := current_p.Transform(ctx, bucket, final_path)
+		new_path, err := current_p.Transform(ctx, source_bucket, target_bucket, final_path)
 
 		if err != nil {
 			return "", err

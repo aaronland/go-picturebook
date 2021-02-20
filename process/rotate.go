@@ -44,7 +44,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 	ext = strings.ToLower(ext)
@@ -53,7 +53,7 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 		return "", nil
 	}
 
-	fh, err := bucket.NewReader(ctx, path, nil)
+	fh, err := source_bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", err
@@ -113,6 +113,6 @@ func (f *RotateProcess) Transform(ctx context.Context, bucket *blob.Bucket, path
 	angle, _, _ := exifutil.ProcessOrientation(orientation)
 	rotated := exifutil.Rotate(im, angle)
 
-	tmpfile, _, err := tempfile.TempFileWithImage(ctx, bucket, rotated)
+	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, rotated)
 	return tmpfile, err
 }

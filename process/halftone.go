@@ -36,9 +36,9 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (f *HalftoneProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
-	fh, err := bucket.NewReader(ctx, path, nil)
+	fh, err := source_bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", err
@@ -59,6 +59,6 @@ func (f *HalftoneProcess) Transform(ctx context.Context, bucket *blob.Bucket, pa
 		return "", err
 	}
 
-	tmpfile, _, err := tempfile.TempFileWithImage(ctx, bucket, dithered)
+	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, dithered)
 	return tmpfile, err
 }

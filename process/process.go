@@ -8,7 +8,7 @@ import (
 )
 
 type Process interface {
-	Transform(context.Context, *blob.Bucket, string) (string, error)
+	Transform(context.Context, *blob.Bucket, *blob.Bucket, string) (string, error)
 }
 
 type ProcessInitializeFunc func(context.Context, string) (Process, error)
