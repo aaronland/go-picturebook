@@ -66,18 +66,17 @@ $> ./bin/picturebook -h
   -sort string
     	A valid sort.Sorter URI. Valid schemes are: exif://, modtime://.
   -source-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
   -target string
     	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
   -target-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
   -tmpfile-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If empty the value of the -source-uri flag will be used.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty the operating system's temporary directory will be used.
   -verbose
     	Display verbose output as the picturebook is created.
   -width float
-    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.
-```
+    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.```
 
 For example:
 

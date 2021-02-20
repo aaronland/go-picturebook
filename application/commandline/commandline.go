@@ -15,6 +15,7 @@ import (
 	"github.com/sfomuseum/go-flags/multi"
 	"gocloud.dev/blob"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -118,7 +119,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s.", available_captions_str)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s.", available_processes_str)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s.", available_sorters_str)
-	desc_buckets := fmt.Sprintf("A valid GoCloud blob URI to specify where files should be read from. Available schemes are: %s.", available_buckets_str)
+
+	desc_buckets := fmt.Sprintf("A valid GoCloud blob URI to specify where files should be read from. Available schemes are: %s. If no URI scheme is included then the file:// scheme is assumed.", available_buckets_str)
 
 	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
 	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".`)
@@ -155,7 +157,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
 	fs.StringVar(&target_uri, "target-uri", "", desc_buckets)
 
-	desc_buckets_tmp := fmt.Sprintf("%s If empty the value of the -source-uri flag will be used.", desc_buckets)
+	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
 	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
 
 	// Deprecated flags have been moved in to the AppendDeprecatedFlags() method
@@ -270,7 +272,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	}
 
 	if tmpfile_uri == "" {
-		tmpfile_uri = source_uri
+		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
 	}
 
 	if margin != 0.0 {
@@ -278,6 +280,24 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		margin_bottom = margin
 		margin_left = margin
 		margin_right = margin
+	}
+
+	source_uri, err := ensureScheme(source_uri)
+
+	if err != nil {
+		return err
+	}
+
+	target_uri, err := ensureScheme(target_uri)
+
+	if err != nil {
+		return err
+	}
+
+	tmpfile_uri, err := ensureScheme(tmpfile_uri)
+
+	if err != nil {
+		return err
 	}
 
 	source_bucket, err := blob.OpenBucket(ctx, source_uri)
@@ -466,4 +486,19 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func ensureScheme(uri string) (string, error) {
+
+	u, err := url.Parse(uri)
+
+	if err != nil {
+		return "", err
+	}
+
+	if u.Scheme == "" {
+		u.Scheme = "file"
+	}
+
+	return u.String(), nil
 }
