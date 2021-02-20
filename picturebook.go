@@ -315,7 +315,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pagenum = pb.pages
 			}
 
-			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else if pb.Options.OddOnly {
 
@@ -331,10 +331,10 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pagenum = pb.pages
 			}
 
-			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else {
-			err = pb.AddPicture(ctx, pagenum, pic.Path, pic.Caption)
+			err = pb.AddPicture(ctx, pagenum, pic)
 		}
 
 		if err != nil && pb.Options.Verbose {
@@ -486,12 +486,24 @@ func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 	return nil
 }
 
-func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path string, caption string) error {
+func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
 
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
-	im_r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
+	abs_path := pic.Path
+	caption := pic.Caption
+	
+	picture_bucket := pb.Options.Source
+
+	if pic.Bucket != nil {
+		picture_bucket = pic.Bucket
+	}
+	
+	// TBD - what if this is a processed file that has been stored in pb.Options.Temporary?
+	// (20210220/straup)
+
+	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
 	if err != nil {
 		return err
@@ -630,6 +642,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, abs_path str
 			ImageType: format,
 		}
 
+		// WHICH BUCKET
+		
 		r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
 
 		if err != nil {
