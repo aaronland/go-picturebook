@@ -916,8 +916,6 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 				log.Printf("Remove tmp file '%s'\n", path)
 			}
 
-			continue
-
 			err := pb.Options.Temporary.Delete(ctx, path)
 
 			if err != nil {

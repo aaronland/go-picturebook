@@ -272,7 +272,12 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	}
 
 	if tmpfile_uri == "" {
+
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
+
+		if verbose {
+			log.Printf("Using operating system temporary directory for processing files (%s)\n", tmpfile_uri)
+		}
 	}
 
 	if margin != 0.0 {
