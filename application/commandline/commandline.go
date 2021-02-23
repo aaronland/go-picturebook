@@ -62,13 +62,6 @@ var process_uris multi.MultiString
 
 var ocra_font bool
 
-// Deprecated flags
-
-var target string
-var preprocess_uris multi.MultiString
-var include multi.MultiRegexp
-var exclude multi.MultiRegexp
-
 func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
@@ -160,24 +153,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
 	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
 
-	// Deprecated flags have been moved in to the AppendDeprecatedFlags() method
-
 	return fs, nil
-}
-
-func AppendDeprecatedFlags(ctx context.Context, fs *flag.FlagSet) error {
-
-	fs.BoolVar(&debug, "debug", false, "DEPRECATED: Please use the -verbose flag instead.")
-
-	fs.Var(&preprocess_uris, "pre-process", "DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.")
-
-	fs.Var(&include, "include", "A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.")
-
-	fs.Var(&exclude, "exclude", "A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.")
-
-	fs.StringVar(&target, "target", "", "Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.")
-
-	return nil
 }
 
 func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Application, error) {
@@ -192,84 +168,6 @@ func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Applicat
 func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	flagset.Parse(app.flagset)
-
-	// get flags here...
-
-	if debug {
-
-		log.Println("WARNING The -debug flag is deprecated. Please use the -verbose flag instead.")
-		verbose = debug
-	}
-
-	if target != "" {
-
-		log.Println("WARNING The -target flag is deprecated. Please use specific -filter and -caption flags as needed.")
-
-		str_filter := fmt.Sprintf("%s://", target)
-		str_caption := fmt.Sprintf("%s://", target)
-
-		err := filter_uris.Set(str_filter)
-
-		if err != nil {
-			msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
-			return errors.New(msg)
-		}
-
-		if caption_uri != "" {
-			msg := fmt.Sprintf("Can not assign -caption using -target since -caption is already defined.")
-			return errors.New(msg)
-		}
-
-		caption_uri = str_caption
-	}
-
-	if len(preprocess_uris) > 0 {
-
-		log.Println("WARNING The -pre-process flag is deprecated. Please use -process process://{PROCESS_NAME} flags instead.")
-
-		for _, pr := range preprocess_uris {
-
-			str_process := fmt.Sprintf("%s://", pr)
-			err := process_uris.Set(str_process)
-
-			if err != nil {
-				msg := fmt.Sprintf("Failed to assign process '%s', %v", str_process, err)
-				return errors.New(msg)
-			}
-		}
-	}
-
-	if len(include) > 0 {
-
-		log.Println("WARNING The -include flag is deprecated. Please use -filter regexp://include?pattern=... flags instead.")
-
-		for _, re := range include {
-
-			str_filter := fmt.Sprintf("regexp://include?pattern=%s", re.String())
-			err := filter_uris.Set(str_filter)
-
-			if err != nil {
-				msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
-				return errors.New(msg)
-			}
-		}
-	}
-
-	if len(exclude) > 0 {
-
-		log.Println("WARNING The -exclude flag is deprecated. Please use -filter regexp://exclude?pattern=... flags instead.")
-
-		for _, re := range exclude {
-
-			str_filter := fmt.Sprintf("regexp://exclude?pattern=%s", re.String())
-			err := filter_uris.Set(str_filter)
-
-			if err != nil {
-				msg := fmt.Sprintf("Failed to assign filter '%s', %v", str_filter, err)
-				return errors.New(msg)
-			}
-		}
-	}
 
 	if tmpfile_uri == "" {
 
