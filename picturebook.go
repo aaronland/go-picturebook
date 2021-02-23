@@ -432,7 +432,11 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				return nil
 			}
 
-			if processed_path != "" {
+			if pb.Options.Verbose {
+				log.Printf("After processing %s becomes %s\n", abs_path, processed_path)
+			}
+
+			if processed_path != "" && processed_path != abs_path {
 				pb.tmpfiles = append(pb.tmpfiles, processed_path)
 				final_path = processed_path
 				final_bucket = pb.Options.Temporary
@@ -443,7 +447,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		defer pb.Mutex.Unlock()
 
 		if pb.Options.Verbose {
-			log.Printf("Append %s to list for processing\n", final_path)
+			log.Printf("Append %s (%s) to list for processing\n", final_path, abs_path)
 		}
 
 		pic := &picture.PictureBookPicture{
