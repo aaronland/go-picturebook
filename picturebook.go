@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/aaronland/go-image-rotate"
 	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-mimetypes"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/picture"
@@ -351,7 +352,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	var list func(context.Context, *blob.Bucket, string) error
 
-	file := func(ctx context.Context, b *blob.Bucket, path string) error {
+	process_file := func(ctx context.Context, b *blob.Bucket, path string) error {
 
 		select {
 		case <-ctx.Done():
@@ -361,6 +362,27 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		}
 
 		abs_path := path
+
+		is_image := false
+
+		ext := filepath.Ext(abs_path)
+		ext = strings.ToLower(ext)
+
+		for _, t := range mimetypes.TypesByExtension(ext) {
+			if strings.HasPrefix(t, "image/") {
+				is_image = true
+				break
+			}
+		}
+
+		if !is_image {
+
+			if pb.Options.Verbose {
+				log.Printf("%s (%s) does not appear to be an image, skipping\n", abs_path, ext)
+			}
+
+			return nil
+		}
 
 		if pb.Options.Filter != nil {
 
@@ -394,6 +416,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			caption = txt
 		}
 
+		var final_bucket *blob.Bucket
 		final_path := abs_path
 
 		if pb.Options.PreProcess != nil {
@@ -412,14 +435,20 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			if processed_path != "" {
 				pb.tmpfiles = append(pb.tmpfiles, processed_path)
 				final_path = processed_path
+				final_bucket = pb.Options.Temporary
 			}
 		}
 
 		pb.Mutex.Lock()
 		defer pb.Mutex.Unlock()
 
+		if pb.Options.Verbose {
+			log.Printf("Append %s to list for processing\n", final_path)
+		}
+
 		pic := &picture.PictureBookPicture{
 			Source:  abs_path,
+			Bucket:  final_bucket,
 			Path:    final_path,
 			Caption: caption,
 		}
@@ -459,7 +488,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				continue
 			}
 
-			err = file(ctx, bucket, path)
+			err = process_file(ctx, bucket, path)
 
 			if err != nil {
 				return err
@@ -493,15 +522,12 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	abs_path := pic.Path
 	caption := pic.Caption
-	
+
 	picture_bucket := pb.Options.Source
 
 	if pic.Bucket != nil {
 		picture_bucket = pic.Bucket
 	}
-	
-	// TBD - what if this is a processed file that has been stored in pb.Options.Temporary?
-	// (20210220/straup)
 
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
@@ -642,9 +668,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			ImageType: format,
 		}
 
-		// WHICH BUCKET
-		
-		r, err := pb.Options.Source.NewReader(ctx, abs_path, nil)
+		r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
 		if err != nil {
 			return err

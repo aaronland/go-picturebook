@@ -10,6 +10,9 @@ github.com/aaronland/go-image-tools/imaging
 github.com/aaronland/go-image-tools/util
 # github.com/aaronland/go-image-transform v0.0.0-20201125043008-ea524ffbd26f
 github.com/aaronland/go-image-transform
+# github.com/aaronland/go-mimetypes v0.0.1
+github.com/aaronland/go-mimetypes
+github.com/aaronland/go-mimetypes/lookup
 # github.com/aaronland/go-roster v0.0.2
 github.com/aaronland/go-roster
 # github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e

@@ -8,5 +8,5 @@ type PictureBookPicture struct {
 	Source  string
 	Path    string
 	Caption string
-	Bucket *blob.Bucket
+	Bucket  *blob.Bucket
 }

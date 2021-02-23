@@ -133,6 +133,8 @@ github.com/aaronland/go-image-transform v0.0.0-20200216021135-f5c5cf8fc134 h1:Bh
 github.com/aaronland/go-image-transform v0.0.0-20200216021135-f5c5cf8fc134/go.mod h1:VVvOHA0CFnb4+eTXTA4D5XEd36tFWUUR10ArmtpoYkM=
 github.com/aaronland/go-image-transform v0.0.0-20201125043008-ea524ffbd26f h1:EOrRhy8FVOfaG4L4TX+YFWFkonNGxAXvkY6nZb5ok7I=
 github.com/aaronland/go-image-transform v0.0.0-20201125043008-ea524ffbd26f/go.mod h1:FvLYXM1IRbDWlyt6zfuBgbheb113ZIzog3vVcYjIK10=
+github.com/aaronland/go-mimetypes v0.0.1 h1:O5rZ58U5d8n5SCHw12FdYNYCk1Ay4nz9Nx4P9SS/i2U=
+github.com/aaronland/go-mimetypes v0.0.1/go.mod h1:bFXDLXp+3bRrzRhoD7RY2vSKTcsVjgdSckHxbuIdTLA=
 github.com/aaronland/go-roster v0.0.1/go.mod h1:AcovpxlG1XxJxX2Fjqlm63fEIBhCjEIBV4lP87FZDmI=
 github.com/aaronland/go-roster v0.0.2 h1:2Fu7v4VQLRLRL/Zgr6R9S5JxsW75Ab/K88QtMVX532s=
 github.com/aaronland/go-roster v0.0.2/go.mod h1:AcovpxlG1XxJxX2Fjqlm63fEIBhCjEIBV4lP87FZDmI=
