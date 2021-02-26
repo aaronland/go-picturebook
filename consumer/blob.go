@@ -66,6 +66,9 @@ func (c *BlobConsumer) GatherPictures(ctx context.Context, pb_opts *picturebook.
 			// pass
 		}
 
+		// START OF sudo put me in a generic method that works with an io.ReadSeeker (the image)
+		// and a path...
+		
 		abs_path := path
 
 		is_image := false
@@ -151,6 +154,8 @@ func (c *BlobConsumer) GatherPictures(ctx context.Context, pb_opts *picturebook.
 			}
 		}
 
+		// END OF sudo put me in a generic method that works with an io.ReadSeeker (the image)
+		
 		c.mu.Lock()
 		defer c.mu.Unlock()
 

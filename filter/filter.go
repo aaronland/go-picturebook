@@ -18,6 +18,7 @@ func init() {
 
 type Filter interface {
 	Continue(context.Context, *blob.Bucket, string) (bool, error)
+	// Continue(context.Context, io.ReadSeeker, string) (bool, error)	
 }
 
 type FilterInitializeFunc func(context.Context, string) (Filter, error)
