@@ -2,13 +2,14 @@ package consumer
 
 import (
 	"context"
+	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-roster"
 	"net/url"
 )
 
 type Consumer interface {
-	GatherPictures(context.Context, ...string) ([]*picture.PictureBookPicture, error)
+	GatherPictures(context.Context, *picturebook.PictureBookOptions, ...string) ([]*picture.PictureBookPicture, error)
 }
 
 type ConsumerInitializeFunc func(context.Context, string) (Consumer, error)
