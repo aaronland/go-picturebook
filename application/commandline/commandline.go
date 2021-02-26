@@ -155,7 +155,10 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&process_uris, "process", desc_processes)
 
 	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
-	fs.StringVar(&target_uri, "target-uri", "", desc_buckets)
+
+	desc_buckets_target := fmt.Sprintf("%s If empty then the code will try to use the operating system's 'current working directory' where applicable.", desc_buckets)
+
+	fs.StringVar(&target_uri, "target-uri", "", desc_buckets_target)
 
 	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
 	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
@@ -291,6 +294,17 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	if err != nil {
 		return err
+	}
+
+	if target_uri == "" {
+
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			return err
+		}
+
+		target_uri = cwd
 	}
 
 	target_uri, err := ensureScheme(target_uri)

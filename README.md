@@ -70,7 +70,7 @@ $> ./bin/picturebook -h
   -target string
     	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
   -target-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' if applicable.
   -tmpfile-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty the operating system's temporary directory will be used.
   -verbose
