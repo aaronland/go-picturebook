@@ -149,8 +149,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
 
-	desc_buckets_target := fmt.Sprintf("%s If empty then the code will try to use the operating system's 'current working directory' if applicable.", desc_buckets)
-
+	desc_buckets_target := fmt.Sprintf("%s If empty then the code will try to use the operating system's 'current working directory' where applicable.", desc_buckets)
 	fs.StringVar(&target_uri, "target-uri", "", desc_buckets_target)
 
 	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
