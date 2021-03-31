@@ -18,7 +18,7 @@ func init() {
 
 type Caption interface {
 	Text(context.Context, *blob.Bucket, string) (string, error)
-	// Text(context.Context, io.ReadSeeker, string) (string, error)	
+	// Text(context.Context, io.ReadSeeker, string) (string, error)
 }
 
 type CaptionInitializeFunc func(context.Context, string) (Caption, error)

@@ -82,15 +82,132 @@ type PictureBookText struct {
 }
 
 type PictureBook struct {
-	PDF      *gofpdf.Fpdf
-	Mutex    *sync.Mutex
-	Borders  *PictureBookBorders
-	Margins  *PictureBookMargins
-	Canvas   PictureBookCanvas
-	Text     PictureBookText
-	Options  *PictureBookOptions
-	pages    int
-	tmpfiles []string
+	PDF         *gofpdf.Fpdf
+	Mutex       *sync.Mutex
+	Borders     *PictureBookBorders
+	Margins     *PictureBookMargins
+	Canvas      PictureBookCanvas
+	Text        PictureBookText
+	Options     *PictureBookOptions
+	ProcessFunc GatherPicturesProcessFunc
+	pages       int
+	tmpfiles    []string
+}
+
+type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
+
+func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
+
+	fn := func(ctx context.Context, path string) (*picture.PictureBookPicture, error) {
+
+		select {
+		case <-ctx.Done():
+			return nil, nil
+		default:
+			// pass
+		}
+
+		abs_path := path
+		is_image := false
+
+		ext := filepath.Ext(abs_path)
+		ext = strings.ToLower(ext)
+
+		for _, t := range mimetypes.TypesByExtension(ext) {
+			if strings.HasPrefix(t, "image/") {
+				is_image = true
+				break
+			}
+		}
+
+		if !is_image {
+
+			if pb_opts.Verbose {
+				log.Printf("%s (%s) does not appear to be an image, skipping\n", abs_path, ext)
+			}
+
+			return nil, nil
+		}
+
+		if pb_opts.Filter != nil {
+
+			ok, err := pb_opts.Filter.Continue(ctx, pb_opts.Source, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to filter %s, %v\n", abs_path, err)
+				return nil, nil
+			}
+
+			if !ok {
+				return nil, nil
+			}
+
+			if pb_opts.Verbose {
+				log.Printf("Include %s\n", abs_path)
+			}
+		}
+
+		caption := ""
+
+		if pb_opts.Caption != nil {
+
+			txt, err := pb_opts.Caption.Text(ctx, pb_opts.Source, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)
+				return nil, nil
+			}
+
+			caption = txt
+		}
+
+		var final_bucket *blob.Bucket
+		final_path := abs_path
+
+		var tmpfile_path string
+
+		if pb_opts.PreProcess != nil {
+
+			if pb_opts.Verbose {
+				log.Printf("Processing %s\n", abs_path)
+			}
+
+			processed_path, err := pb_opts.PreProcess.Transform(ctx, pb_opts.Source, pb_opts.Temporary, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to process %s, %v\n", abs_path, err)
+				return nil, nil
+			}
+
+			if pb_opts.Verbose {
+				log.Printf("After processing %s becomes %s\n", abs_path, processed_path)
+			}
+
+			if processed_path != "" && processed_path != abs_path {
+				// pb.tmpfiles = append(pb.tmpfiles, processed_path)
+				final_path = processed_path
+				final_bucket = pb_opts.Temporary
+
+				tmpfile_path = processed_path
+			}
+		}
+
+		if pb_opts.Verbose {
+			log.Printf("Append %s (%s) to list for processing\n", final_path, abs_path)
+		}
+
+		pic := &picture.PictureBookPicture{
+			Source:   abs_path,
+			Bucket:   final_bucket,
+			Path:     final_path,
+			Caption:  caption,
+			TempFile: tmpfile_path,
+		}
+
+		return pic, nil
+	}
+
+	return fn, nil
 }
 
 func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
@@ -261,16 +378,23 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	tmpfiles := make([]string, 0)
 	mu := new(sync.Mutex)
 
+	process_func, err := DefaultGatherPicturesProcessFunc(opts)
+
+	if err != nil {
+		return nil, err
+	}
+
 	pb := PictureBook{
-		PDF:      pdf,
-		Mutex:    mu,
-		Borders:  borders,
-		Margins:  margins,
-		Canvas:   canvas,
-		Text:     t,
-		Options:  opts,
-		pages:    0,
-		tmpfiles: tmpfiles,
+		PDF:         pdf,
+		Mutex:       mu,
+		Borders:     borders,
+		Margins:     margins,
+		Canvas:      canvas,
+		Text:        t,
+		Options:     opts,
+		ProcessFunc: process_func,
+		pages:       0,
+		tmpfiles:    tmpfiles,
 	}
 
 	return &pb, nil
@@ -352,115 +476,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	var list func(context.Context, *blob.Bucket, string) error
 
-	process_file := func(ctx context.Context, b *blob.Bucket, path string) error {
-
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			// pass
-		}
-
-		abs_path := path
-
-		is_image := false
-
-		ext := filepath.Ext(abs_path)
-		ext = strings.ToLower(ext)
-
-		for _, t := range mimetypes.TypesByExtension(ext) {
-			if strings.HasPrefix(t, "image/") {
-				is_image = true
-				break
-			}
-		}
-
-		if !is_image {
-
-			if pb.Options.Verbose {
-				log.Printf("%s (%s) does not appear to be an image, skipping\n", abs_path, ext)
-			}
-
-			return nil
-		}
-
-		if pb.Options.Filter != nil {
-
-			ok, err := pb.Options.Filter.Continue(ctx, pb.Options.Source, abs_path)
-
-			if err != nil {
-				log.Printf("Failed to filter %s, %v\n", abs_path, err)
-				return nil
-			}
-
-			if !ok {
-				return nil
-			}
-
-			if pb.Options.Verbose {
-				log.Printf("Include %s\n", abs_path)
-			}
-		}
-
-		caption := ""
-
-		if pb.Options.Caption != nil {
-
-			txt, err := pb.Options.Caption.Text(ctx, pb.Options.Source, abs_path)
-
-			if err != nil {
-				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)
-				return nil
-			}
-
-			caption = txt
-		}
-
-		var final_bucket *blob.Bucket
-		final_path := abs_path
-
-		if pb.Options.PreProcess != nil {
-
-			if pb.Options.Verbose {
-				log.Printf("Processing %s\n", abs_path)
-			}
-
-			processed_path, err := pb.Options.PreProcess.Transform(ctx, pb.Options.Source, pb.Options.Temporary, abs_path)
-
-			if err != nil {
-				log.Printf("Failed to process %s, %v\n", abs_path, err)
-				return nil
-			}
-
-			if pb.Options.Verbose {
-				log.Printf("After processing %s becomes %s\n", abs_path, processed_path)
-			}
-
-			if processed_path != "" && processed_path != abs_path {
-				pb.tmpfiles = append(pb.tmpfiles, processed_path)
-				final_path = processed_path
-				final_bucket = pb.Options.Temporary
-			}
-		}
-
-		pb.Mutex.Lock()
-		defer pb.Mutex.Unlock()
-
-		if pb.Options.Verbose {
-			log.Printf("Append %s (%s) to list for processing\n", final_path, abs_path)
-		}
-
-		pic := &picture.PictureBookPicture{
-			Source:  abs_path,
-			Bucket:  final_bucket,
-			Path:    final_path,
-			Caption: caption,
-		}
-
-		pictures = append(pictures, pic)
-		return nil
-	}
-
 	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
 
 		iter := bucket.List(&blob.ListOptions{
@@ -492,11 +507,23 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				continue
 			}
 
-			err = process_file(ctx, bucket, path)
+			pic, err := pb.ProcessFunc(ctx, path)
 
 			if err != nil {
 				return err
 			}
+
+			if pic == nil {
+				continue
+			}
+
+			if pic.TempFile != "" {
+				pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
+			}
+
+			pb.Mutex.Lock()
+			pictures = append(pictures, pic)
+			pb.Mutex.Unlock()
 		}
 
 		return nil

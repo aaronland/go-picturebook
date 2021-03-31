@@ -9,7 +9,7 @@ import (
 
 type Process interface {
 	Transform(context.Context, *blob.Bucket, *blob.Bucket, string) (string, error)
-	// Transform(context.Context, io.ReadSeeker, string) (io.Reader, error)	
+	// Transform(context.Context, io.ReadSeeker, string) (io.Reader, error)
 }
 
 type ProcessInitializeFunc func(context.Context, string) (Process, error)
