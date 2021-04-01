@@ -23,14 +23,28 @@ import (
 	"strings"
 )
 
+// Regular expression for validating filter and caption URIs.
 var uri_re *regexp.Regexp
 
+// String label defining the orientation of picturebook PDF files. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.
 var orientation string
+
+// A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".
 var size string
+
+// A width height to use as the size for a picturebook PDF file.
 var width float64
+
+// A custom height to use as the size for a picturebook PDF file.
 var height float64
+
+// The "dots per inch" (DPI) resolution for a picturebook PDF file.
 var dpi float64
+
+// The size of the border to apply to each image in a picturebook PDF file.
 var border float64
+
+// DOCS: I AM HERE
 
 var margin float64
 var margin_top float64

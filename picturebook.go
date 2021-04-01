@@ -33,6 +33,7 @@ type PictureBookOptions struct {
 	Size         string
 	Width        float64
 	Height       float64
+	Units		string
 	DPI          float64
 	Border       float64
 	Bleed        float64
@@ -217,6 +218,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Size:         "letter",
 		Width:        0.0,
 		Height:       0.0,
+		Units:	"inches",
 		DPI:          150.0,
 		Border:       0.01,
 		Bleed:        0.0,
@@ -234,6 +236,10 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	var pdf *gofpdf.Fpdf
 
+	// opts_w := opts.Width
+	// opts_h := opts.Height
+	// opts_b := opts.Bleed
+	
 	// Start by convert everything to inches - not because it's better but
 	// just because it's expedient right now (20210218/straup)
 
@@ -273,8 +279,16 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		default:
 			return nil, fmt.Errorf("Unrecognized page size '%s'", opts.Size)
 		}
-	}
+	} else {
 
+		switch opts.Units {
+		case "inches":
+			// pass
+		default:
+			return nil, fmt.Errorf("Invalid or unsupported unit '%s'", opts.Units)
+		}
+	}
+	
 	// log.Printf("%0.2f x %0.2f (%s)\n", opts.Width, opts.Height, opts.Size)
 
 	sz := gofpdf.SizeType{
