@@ -44,32 +44,59 @@ var dpi float64
 // The size of the border to apply to each image in a picturebook PDF file.
 var border float64
 
-// DOCS: I AM HERE
-
+// The size of the margin to be applied to all sides of a picturebook.
 var margin float64
+
+// The size of the top margin for a picturebook.
 var margin_top float64
+
+// The size of the bottom margin for a picturebook.
 var margin_bottom float64
+
+// The size of the left margin for a picturebook.
 var margin_left float64
+
+// The size of the right margin for a picturebook.
 var margin_right float64
 
+// The size of an exterior "bleed" margin for a picturebook.
 var bleed float64
 
+// A valid gocloud.dev/blob URI for where source input images are read from.
 var source_uri string
+
+// A valid gocloud.dev/blob URI for where the final picturebook file will be written to.
 var target_uri string
+
+// A valid gocloud.dev/blob URI for where temporary picturebook-related images will be written to and read from.
 var tmpfile_uri string
+
+// FIX ME : WHAT IS THIS AGAIN?
 
 var fill_page bool
 
+// The base filename of the finished picturebook document.
 var filename string
 
+// Boolean flag to indicate that images should only be included on even-numbered pages.
 var even_only bool
+
+// Boolean flag to indicate that images should only be included on odd-numbered pages.
 var odd_only bool
 
+// Boolean flag to signal verbose logging during the creation of a picturebook.
 var verbose bool
+
+// Boolean flag to signal that all the steps to create a picturebook should be taken but without creating a final picturebook document.
 var debug bool
 
+// A valid aaronland/go-picturebook caption URI.
 var caption_uri string
+
+// A valid aaronland/go-picturebook sort URI.
 var sort_uri string
+
+// DOCS: I AM HERE
 
 var filter_uris multi.MultiString
 var process_uris multi.MultiString
