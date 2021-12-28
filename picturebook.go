@@ -592,8 +592,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		return err
 	}
 
-	log.Println("DECODED", pic.Path)
-
 	// trap gofpdf "16-bit depth not supported in PNG file" errors
 
 	if format == "png" {
@@ -720,21 +718,12 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		}
 	}
 
-	// I AM HERE... how to get info from tempfile above? or more specifically how
-	// to get info from a relative path
-	log.Println("INFO", abs_path)
-
-	// info := pb.PDF.GetImageInfo(abs_path)
-
-	// if info == nil {
-
 	opts := gofpdf.ImageOptions{
 		ReadDpi:   false,
 		ImageType: format,
 	}
 
 	var r io.ReadCloser
-	// var err error
 
 	if is_tempfile {
 		r, err = pb.Options.Temporary.NewReader(ctx, abs_path, nil)
@@ -750,10 +739,9 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	defer r.Close()
 
 	info := pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
-	// }
 
 	if info == nil {
-		return errors.New("unable to determine info")
+		return fmt.Errorf("unable to determine info for %s", abs_path)
 	}
 
 	info.SetDpi(pb.Options.DPI)

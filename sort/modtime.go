@@ -48,15 +48,14 @@ func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures 
 		r, err := bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
-			log.Println(path, err)
+			log.Printf("Failed to open %s for modtime sorting, %v\n", path, err)
 			continue
 		}
 
-		defer r.Close()
-
 		mtime := r.ModTime()
 		sz := r.Size()
-
+		r.Close()
+		
 		ts := mtime.Unix()
 
 		key := fmt.Sprintf("%d-%d", ts, sz)
