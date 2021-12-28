@@ -33,7 +33,7 @@ type PictureBookOptions struct {
 	Size         string
 	Width        float64
 	Height       float64
-	Units		string
+	Units        string
 	DPI          float64
 	Border       float64
 	Bleed        float64
@@ -218,7 +218,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		Size:         "letter",
 		Width:        0.0,
 		Height:       0.0,
-		Units:	"inches",
+		Units:        "inches",
 		DPI:          150.0,
 		Border:       0.01,
 		Bleed:        0.0,
@@ -239,7 +239,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	// opts_w := opts.Width
 	// opts_h := opts.Height
 	// opts_b := opts.Bleed
-	
+
 	// Start by convert everything to inches - not because it's better but
 	// just because it's expedient right now (20210218/straup)
 
@@ -288,7 +288,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 			return nil, fmt.Errorf("Invalid or unsupported unit '%s'", opts.Units)
 		}
 	}
-	
+
 	// log.Printf("%0.2f x %0.2f (%s)\n", opts.Width, opts.Height, opts.Size)
 
 	sz := gofpdf.SizeType{
@@ -562,11 +562,15 @@ func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 
 func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
 
+	log.Println("ADD", pic.Path)
+
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
 	abs_path := pic.Path
 	caption := pic.Caption
+
+	is_tempfile := false
 
 	picture_bucket := pb.Options.Source
 
@@ -587,6 +591,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	if err != nil {
 		return err
 	}
+
+	log.Println("DECODED", pic.Path)
 
 	// trap gofpdf "16-bit depth not supported in PNG file" errors
 
@@ -628,6 +634,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			abs_path = tmpfile_path
 			format = tmpfile_format
+
+			is_tempfile = true
 		}
 	}
 
@@ -669,6 +677,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 		if rotate_to_fill {
 
+			log.Println("FILL", pic.Path)
+
 			if pb.Options.Verbose {
 				log.Printf("Rotate %s\b", abs_path)
 			}
@@ -687,12 +697,16 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			// now save to disk...
 
+			log.Println("SAVE TEMP", pic.Path)
+
 			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
 
 			if err != nil {
+				log.Println("SAD")
 				return err
 			}
 
+			log.Println("OKAY TEMP", tmpfile_path)
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
 			if pb.Options.Verbose {
@@ -701,29 +715,42 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			abs_path = tmpfile_path
 			format = tmpfile_format
+
+			is_tempfile = true
 		}
 	}
 
-	info := pb.PDF.GetImageInfo(abs_path)
+	// I AM HERE... how to get info from tempfile above? or more specifically how
+	// to get info from a relative path
+	log.Println("INFO", abs_path)
 
-	if info == nil {
+	// info := pb.PDF.GetImageInfo(abs_path)
 
-		opts := gofpdf.ImageOptions{
-			ReadDpi:   false,
-			ImageType: format,
-		}
+	// if info == nil {
 
-		r, err := picture_bucket.NewReader(ctx, abs_path, nil)
-
-		if err != nil {
-			return err
-		}
-
-		defer r.Close()
-
-		info = pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
-
+	opts := gofpdf.ImageOptions{
+		ReadDpi:   false,
+		ImageType: format,
 	}
+
+	var r io.ReadCloser
+	// var err error
+
+	if is_tempfile {
+		r, err = pb.Options.Temporary.NewReader(ctx, abs_path, nil)
+	} else {
+		r, err = picture_bucket.NewReader(ctx, abs_path, nil)
+	}
+
+	if err != nil {
+		log.Println("SAD READER", pic.Path, abs_path)
+		return err
+	}
+
+	defer r.Close()
+
+	info := pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
+	// }
 
 	if info == nil {
 		return errors.New("unable to determine info")
@@ -815,6 +842,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	if pb.Options.Verbose {
 		log.Printf("[%d][%s] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
 	}
+
+	log.Println("ADD PAGE", pic.Path)
 
 	pb.PDF.AddPage()
 
@@ -928,6 +957,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		html.Write(line_h, txt)
 	}
 
+	log.Println("OKAY", pic.Path)
 	return nil
 }
 
