@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"github.com/aaronland/go-image-rotate"
 	"github.com/aaronland/go-image-tools/util"
@@ -692,7 +691,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
 
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to create temporary file (rotate to fill) for %s, %w", abs_path, err)
 			}
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
@@ -722,7 +721,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create new reader (info) for %s, %v", abs_path, err)
 	}
 
 	defer r.Close()
@@ -740,8 +739,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	if w == 0.0 || h == 0.0 {
-		msg := fmt.Sprintf("[%d] %s has zero-sized dimension", pagenum, abs_path)
-		return errors.New(msg)
+		return fmt.Errorf("[%d] %s has zero-sized dimension", pagenum, abs_path)
 	}
 
 	// Remember: margins have been calculated inclusive of page bleeds
@@ -932,14 +930,13 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		html.Write(line_h, txt)
 	}
 
-	log.Println("OKAY", pic.Path)
 	return nil
 }
 
 func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
 	if pb.Options.Target == nil {
-		return errors.New("Missing or invalid target bucket")
+		return fmt.Errorf("Missing or invalid target bucket")
 	}
 
 	// move this out of here...
@@ -977,19 +974,19 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 	wr, err := pb.Options.Target.NewWriter(ctx, path, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create a new writer for %s, %w", path, err)
 	}
 
 	err = pb.PDF.Output(wr)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to output PDF file for %s, %w", path, err)
 	}
 
 	err = wr.Close()
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to close writer for %s, %w", path, err)
 	}
 
 	return nil
