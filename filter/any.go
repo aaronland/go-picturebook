@@ -2,6 +2,7 @@ package filter
 
 import (
 	"context"
+	"fmt"
 	"gocloud.dev/blob"
 	"net/url"
 )
@@ -16,6 +17,7 @@ func init() {
 	}
 }
 
+// type AnyFilter implements the `Filter` interface and allows any image to be processed
 type AnyFilter struct {
 	Filter
 }
@@ -25,7 +27,7 @@ func NewAnyFilter(ctx context.Context, uri string) (Filter, error) {
 	_, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URL, %w", err)
 	}
 
 	f := &AnyFilter{}

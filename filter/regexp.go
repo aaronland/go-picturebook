@@ -2,7 +2,7 @@ package filter
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"gocloud.dev/blob"
 	"net/url"
 	"regexp"
@@ -29,7 +29,7 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URL, %w", err)
 	}
 
 	var mode string
@@ -40,7 +40,7 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 	case "exclude":
 		mode = "exclude"
 	default:
-		return nil, errors.New("Invalid mode")
+		return nil, fmt.Errorf("Invalid mode '%s'", u.Host)
 	}
 
 	q := u.Query()
@@ -48,13 +48,13 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 	pat := q.Get("pattern")
 
 	if pat == "" {
-		return nil, errors.New("Missing pattern")
+		return nil, fmt.Errorf("Missing ?pattern= parameter")
 	}
 
 	re, err := regexp.Compile(pat)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to compile pattern, %w", err)
 	}
 
 	f := &RegexpFilter{

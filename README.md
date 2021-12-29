@@ -2,6 +2,10 @@
 
 Create a PDF file (a "picturebook") from a folder (containing images).
 
+## Documentation
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/aaronland/go-picturebook.svg)](https://pkg.go.dev/github.com/aaronland/go-picturebook)
+
 ## Tools
 
 To build binary versions of these tools run the `cli` Makefile target. For example:
