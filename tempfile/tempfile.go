@@ -14,7 +14,7 @@ func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image)
 	id, err := uuid.NewUUID()
 
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("Failed to generate new UUID, %w", err)
 	}
 
 	fname := fmt.Sprintf("picturebook-%s.jpg", id.String())
@@ -22,19 +22,19 @@ func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image)
 	wr, err := bucket.NewWriter(ctx, fname, nil)
 
 	if err != nil {
-		return "", "", nil
+		return "", "", fmt.Errorf("Failed to create new writer for temp file, %w", err)
 	}
 
 	err = util.EncodeImage(im, "jpeg", wr)
 
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("Failed to encode temp file as JPEG, %w", err)
 	}
 
 	err = wr.Close()
 
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("Failed to close writer for temp file, %w", err)
 	}
 
 	return fname, "jpeg", nil

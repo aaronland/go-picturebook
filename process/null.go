@@ -2,6 +2,7 @@ package process
 
 import (
 	"context"
+	"fmt"
 	"gocloud.dev/blob"
 	"net/url"
 )
@@ -25,7 +26,7 @@ func NewNullProcess(ctx context.Context, uri string) (Process, error) {
 	_, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URI for NewNullProcess, %w", err)
 	}
 
 	f := &NullProcess{}

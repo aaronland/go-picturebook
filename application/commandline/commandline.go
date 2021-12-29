@@ -2,7 +2,6 @@ package commandline
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/aaronland/go-picturebook"
@@ -231,7 +230,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	source_uri, err := ensureScheme(source_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to ensure scheme for source URI %s, %w", source_uri, err)
 	}
 
 	if target_uri == "" {
@@ -239,7 +238,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		cwd, err := os.Getwd()
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to determine current working directory, %w", err)
 		}
 
 		target_uri = cwd
@@ -248,38 +247,37 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	target_uri, err := ensureScheme(target_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to ensure scheme for target URI %s, %w", target_uri, err)
 	}
 
 	tmpfile_uri, err := ensureScheme(tmpfile_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to ensure scheme for tmpfile URI %s, %w", tmpfile_uri, err)
 	}
 
 	source_bucket, err := blob.OpenBucket(ctx, source_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to open source bucket, %w", err)
 	}
 
 	target_bucket, err := blob.OpenBucket(ctx, target_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to open target bucket, %w", err)
 	}
 
 	tmpfile_bucket, err := blob.OpenBucket(ctx, tmpfile_uri)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)
 	}
 
 	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
-		msg := fmt.Sprintf("Failed to create default picturebook options, %v", err)
-		return errors.New(msg)
+		return fmt.Errorf("Failed to create default picturebook options, %w", err)
 	}
 
 	opts.Orientation = orientation
@@ -334,8 +332,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			f, err := filter.NewFilter(ctx, filter_uri)
 
 			if err != nil {
-				msg := fmt.Sprintf("Failed to create filter '%s', %v", filter_uri, err)
-				return errors.New(msg)
+				return fmt.Errorf("Failed to create filter '%s', %w", filter_uri, err)
 			}
 
 			filters[idx] = f
@@ -344,8 +341,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		multi, err := filter.NewMultiFilter(ctx, filters...)
 
 		if err != nil {
-			msg := fmt.Sprintf("Failed to create multi filter, %v", err)
-			return errors.New(msg)
+			return fmt.Errorf("Failed to create multi filter, %w", err)
 		}
 
 		opts.Filter = multi
@@ -360,8 +356,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 			f, err := process.NewProcess(ctx, process_uri)
 
 			if err != nil {
-				msg := fmt.Sprintf("Failed to create process '%s', %v", process_uri, err)
-				return errors.New(msg)
+				return fmt.Errorf("Failed to create process '%s', %w", process_uri, err)
 			}
 
 			processes[idx] = f
@@ -370,7 +365,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		multi, err := process.NewMultiProcess(ctx, processes...)
 
 		if err != nil {
-			log.Fatalf("Failed to create multi process, %v", err)
+			return fmt.Errorf("Failed to create multi process, %w", err)
 		}
 
 		opts.PreProcess = multi
@@ -385,7 +380,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		c, err := caption.NewCaption(ctx, caption_uri)
 
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Failed to create new caption, %w", err)
 		}
 
 		opts.Caption = c
@@ -396,7 +391,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		s, err := sort.NewSorter(ctx, sort_uri)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to create new sorter, %w", err)
 		}
 
 		opts.Sort = s
@@ -412,7 +407,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		sb, err := blob.OpenBucket(ctx, root)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to open bucket for %s, %w", root, err)
 		}
 
 		source_bucket = sb
@@ -426,20 +421,19 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	pb, err := picturebook.NewPictureBook(ctx, opts)
 
 	if err != nil {
-		msg := fmt.Sprintf("Failed to create new picturebook, %v", err)
-		return errors.New(msg)
+		return fmt.Errorf("Failed to create new picturebook, %v", err)
 	}
 
 	err = pb.AddPictures(ctx, sources)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to add pictures to picturebook, %w", err)
 	}
 
 	err = pb.Save(ctx, filename)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to save picturebook, %w", err)
 	}
 
 	return nil
@@ -450,7 +444,7 @@ func ensureScheme(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
 	}
 
 	if u.Scheme == "" {

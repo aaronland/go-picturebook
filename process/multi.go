@@ -2,6 +2,7 @@ package process
 
 import (
 	"context"
+	"fmt"
 	"gocloud.dev/blob"
 )
 
@@ -28,7 +29,7 @@ func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket
 		new_path, err := current_p.Transform(ctx, source_bucket, target_bucket, final_path)
 
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("Failed to execute transformation for %s with %v, %w", path, p, err)
 		}
 
 		if new_path != "" && new_path != path {

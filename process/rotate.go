@@ -5,6 +5,7 @@ package process
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/microcosm-cc/exifutil"
@@ -36,7 +37,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	_, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URI for NewRotateProcess, %w", err)
 	}
 
 	f := &RotateProcess{}
@@ -56,7 +57,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	fh, err := source_bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to create new reader for %s, %w", path, err)
 	}
 
 	defer fh.Close()
@@ -64,7 +65,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	body, err := io.ReadAll(fh)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to read %s, %w", path, err)
 	}
 
 	br := bytes.NewReader(body)
@@ -93,7 +94,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	orientation, err := tag.Int64(0)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to derive orientation from tag for %s, %w", path, err)
 	}
 
 	if orientation == 1 {
@@ -105,12 +106,17 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	im, _, err := util.DecodeImageFromReader(br)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)
 	}
 
 	angle, _, _ := exifutil.ProcessOrientation(orientation)
 	rotated := exifutil.Rotate(im, angle)
 
 	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, rotated)
-	return tmpfile, err
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to write temp file (rotate) for %s, %w", path, err)
+	}
+
+	return tmpfile, nil
 }

@@ -33,7 +33,7 @@ func NewExifSorter(ctx context.Context, uri string) (Sorter, error) {
 	_, err := url.Parse(uri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URI for NewExifSorter, %w", err)
 	}
 
 	s := &ExifSorter{}
