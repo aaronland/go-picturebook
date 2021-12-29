@@ -185,10 +185,8 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			}
 
 			if processed_path != "" && processed_path != abs_path {
-				// pb.tmpfiles = append(pb.tmpfiles, processed_path)
 				final_path = processed_path
 				final_bucket = pb_opts.Temporary
-
 				tmpfile_path = processed_path
 			}
 		}
@@ -329,7 +327,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		font, err := ocra.LoadFPDFFont()
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load OCRA font, %w", err)
 		}
 
 		pdf.AddFontFromBytes(font.Family, font.Style, font.JSON, font.Z)
@@ -395,7 +393,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	process_func, err := DefaultGatherPicturesProcessFunc(opts)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to return DefaultGatherPicturesProcessFunc, %w", err)
 	}
 
 	pb := PictureBook{
@@ -419,7 +417,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 	pictures, err := pb.GatherPictures(ctx, paths)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to gather pictures, %w", err)
 	}
 
 	if pb.Options.Verbose {
@@ -431,7 +429,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		sorted, err := pb.Options.Sort.Sort(ctx, pb.Options.Source, pictures)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to sort pictures, %w", err)
 		}
 
 		pictures = sorted
@@ -505,7 +503,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			}
 
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
 			}
 
 			path := obj.Key
@@ -515,7 +513,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 				err := list(ctx, bucket, path)
 
 				if err != nil {
-					return err
+					return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
 				}
 
 				continue
@@ -524,7 +522,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			pic, err := pb.ProcessFunc(ctx, path)
 
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
 			}
 
 			if pic == nil {
@@ -548,7 +546,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		err := list(ctx, pb.Options.Source, path)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
 		}
 	}
 
@@ -561,8 +559,6 @@ func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 }
 
 func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
-
-	log.Println("ADD", pic.Path)
 
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
@@ -581,7 +577,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create new bucket for %s, %w", abs_path, err)
 	}
 
 	defer im_r.Close()
@@ -589,7 +585,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	im, format, err := util.DecodeImageFromReader(im_r)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
 	}
 
 	// trap gofpdf "16-bit depth not supported in PNG file" errors
@@ -601,7 +597,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		err = util.EncodeImage(im, format, buf)
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to encode PNG image for %s, %w", abs_path, err)
 		}
 
 		// this bit is cribbed from https://github.com/jung-kurt/gofpdf/blob/7d57599b9d9c5fb48ea733596cbb812d7f84a8d6/png.go
@@ -621,7 +617,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
 
 			if err != nil {
-				return err
+				return fmt.Errorf("Failed to generate tempfile for %s, %w", abs_path, err)
 			}
 
 			if pb.Options.Verbose {
