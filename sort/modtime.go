@@ -55,7 +55,7 @@ func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures 
 		mtime := r.ModTime()
 		sz := r.Size()
 		r.Close()
-		
+
 		ts := mtime.Unix()
 
 		key := fmt.Sprintf("%d-%d", ts, sz)

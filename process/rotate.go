@@ -10,7 +10,7 @@ import (
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
 	"gocloud.dev/blob"
-	"io/ioutil"
+	"io"
 	_ "log"
 	"net/url"
 	"path/filepath"
@@ -61,7 +61,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 
 	defer fh.Close()
 
-	body, err := ioutil.ReadAll(fh)
+	body, err := io.ReadAll(fh)
 
 	if err != nil {
 		return "", err
@@ -89,8 +89,6 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	if err != nil {
 		return "", nil
 	}
-
-	// log.Println(path, tag)
 
 	orientation, err := tag.Int64(0)
 

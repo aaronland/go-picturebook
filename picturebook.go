@@ -675,8 +675,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 		if rotate_to_fill {
 
-			log.Println("FILL", pic.Path)
-
 			if pb.Options.Verbose {
 				log.Printf("Rotate %s\b", abs_path)
 			}
@@ -695,16 +693,12 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			// now save to disk...
 
-			log.Println("SAVE TEMP", pic.Path)
-
 			tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
 
 			if err != nil {
-				log.Println("SAD")
 				return err
 			}
 
-			log.Println("OKAY TEMP", tmpfile_path)
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
 			if pb.Options.Verbose {
@@ -732,7 +726,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	if err != nil {
-		log.Println("SAD READER", pic.Path, abs_path)
 		return err
 	}
 
@@ -830,8 +823,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	if pb.Options.Verbose {
 		log.Printf("[%d][%s] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
 	}
-
-	log.Println("ADD PAGE", pic.Path)
 
 	pb.PDF.AddPage()
 

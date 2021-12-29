@@ -52,14 +52,14 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 		fh, err := bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
-			log.Printf("Failed to open %s for exif sorting, %v\n", path, err)			
+			log.Printf("Failed to open %s for exif sorting, %v\n", path, err)
 			continue
 		}
 
 		mtime := fh.ModTime()
 		sz := fh.Size()
 		fh.Close()
-		
+
 		ts := mtime.Unix()
 
 		x, err := exif.Decode(fh)
