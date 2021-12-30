@@ -1,3 +1,4 @@
+// package commandline provides a command-line application for creating picturebooks.
 package commandline
 
 import (
@@ -89,15 +90,16 @@ var verbose bool
 // Boolean flag to signal that all the steps to create a picturebook should be taken but without creating a final picturebook document.
 var debug bool
 
-// A valid aaronland/go-picturebook caption URI.
+// A valid `caption.Caption` URI.
 var caption_uri string
 
-// A valid aaronland/go-picturebook sort URI.
+// A valid `sort.Sorter` URI.
 var sort_uri string
 
-// DOCS: I AM HERE
-
+// One or more valid `filter.Filter` URIs.
 var filter_uris multi.MultiString
+
+// One or more valid `process.Process` URIs.
 var process_uris multi.MultiString
 
 var ocra_font bool
@@ -106,11 +108,13 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
+// type CommandLineApplication implements the `application.Application' interface for creating picturebooks from the command line.
 type CommandLineApplication struct {
 	application.Application
 	flagset *flag.FlagSet
 }
 
+// formatSchemes takes a list of (scheme) strings and ensure that they are lower-cased and have a trailing "://" string.
 func formatSchemes(schemes []string) []string {
 
 	for idx, scheme := range schemes {
@@ -124,11 +128,13 @@ func formatSchemes(schemes []string) []string {
 	return schemes
 }
 
+// formatSchemesAsString takes a list of strings and returns a single comma-separated string.
 func formatSchemesAsString(schemes []string) string {
 	schemes = formatSchemes(schemes)
 	return strings.Join(schemes, ", ")
 }
 
+// DefaultFlagSet returns a `flag.FlagSet` with required flags and default values for a `CommandLineApplication` instance.
 func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs := flagset.NewFlagSet("picturebook")
@@ -198,6 +204,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	return fs, nil
 }
 
+// NewApplication returns a new instance of `CommandLineApplication`.
 func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Application, error) {
 
 	app := &CommandLineApplication{
@@ -207,6 +214,7 @@ func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Applicat
 	return app, nil
 }
 
+// Run executes the `CommandLineApplication` picturebook application.
 func (app *CommandLineApplication) Run(ctx context.Context) error {
 
 	flagset.Parse(app.flagset)
@@ -439,6 +447,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	return nil
 }
 
+// ensureScheme ensures that 'uri' has a valid URI scheme. If the scheme is empty then a default of "file" is applied to 'uri'.
 func ensureScheme(uri string) (string, error) {
 
 	u, err := url.Parse(uri)

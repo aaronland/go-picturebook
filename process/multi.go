@@ -6,11 +6,14 @@ import (
 	"gocloud.dev/blob"
 )
 
+// type MultiProcess implements the `Process` interface and allows multiple `Process` instances to
+// to tranform an image before adding it to a picturebook.
 type MultiProcess struct {
 	Process
 	processes []Process
 }
 
+// NewMultiProcess returns a new instance of `MultiProcess` for 'processes'
 func NewMultiProcess(ctx context.Context, processes ...Process) (Process, error) {
 
 	p := &MultiProcess{
@@ -20,6 +23,8 @@ func NewMultiProcess(ctx context.Context, processes ...Process) (Process, error)
 	return p, nil
 }
 
+// Tranform applies the `Tranform` method for all its internal `Process` instances. All processes must succeed
+// in order for this method to succeed.
 func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
 	final_path := path

@@ -28,10 +28,12 @@ func init() {
 	}
 }
 
+// type RotateProcess implements the `Process` interface and rotates and image based on its EXIF `Orientation` property.
 type RotateProcess struct {
 	Process
 }
 
+// NewRotateProcess returns a new instance of `RotateProcess` for 'uri' which must be parsable as a valid `net/url` URL instance.
 func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 
 	_, err := url.Parse(uri)
@@ -45,6 +47,8 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
+// Tranform rotates the image 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
+// a new relative path on success. If an image is not a JPEG file the method return an empty string.
 func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)

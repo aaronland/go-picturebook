@@ -12,7 +12,7 @@ type MultiFilter struct {
 	filters []Filter
 }
 
-// NewAnyFilter returns a new instance of `MultiFilter` for 'filters'
+// NewMultiFilter returns a new instance of `MultiFilter` for 'filters'
 func NewMultiFilter(ctx context.Context, filters ...Filter) (Filter, error) {
 
 	f := &MultiFilter{
