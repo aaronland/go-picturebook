@@ -18,12 +18,16 @@ func init() {
 	}
 }
 
+// type AnyFilter implements the `Filter` interface that determines whether an image should be included in a picturebook using a regular expression.
 type RegexpFilter struct {
 	Filter
 	mode string
 	re   *regexp.Regexp
 }
 
+// NewRegexpFilter returns a new instance of `RegExpFilter` for 'uri' which must be parsable as a valid `net/url` URL instance.
+// That URI must contain a host value of either 'include' or 'exclude' and query parameter 'pattern' containing a valid regular
+// expression used to test file paths for inclusion in a picturebook.
 func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 
 	u, err := url.Parse(uri)
@@ -65,6 +69,7 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 	return f, nil
 }
 
+// Continues returns a boolean value signaling whether or not 'path' should be included in a picturebook.
 func (f *RegexpFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
 
 	match := f.re.MatchString(path)

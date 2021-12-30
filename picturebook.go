@@ -25,6 +25,7 @@ import (
 	"sync"
 )
 
+// MM2INCH defines the number if millimeters in an inch.
 const MM2INCH float64 = 25.4
 
 type PictureBookOptions struct {

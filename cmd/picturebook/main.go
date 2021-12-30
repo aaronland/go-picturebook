@@ -1,3 +1,4 @@
+// picturebook is a command-line application for creating a PDF file from a folder containing images.
 package main
 
 import (

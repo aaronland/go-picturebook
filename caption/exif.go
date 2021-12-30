@@ -27,7 +27,7 @@ type ExifCaption struct {
 	property string
 }
 
-// NewExifCaption return a new instance of `ExifCaption` for 'url'
+// NewExifCaption return a new instance of `ExifCaption` for 'uri'
 func NewExifCaption(ctx context.Context, uri string) (Caption, error) {
 
 	u, err := url.Parse(uri)

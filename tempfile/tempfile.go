@@ -1,3 +1,4 @@
+// package tempfile provides methods for working with temporary files used to create a picturebook.
 package tempfile
 
 import (
@@ -9,6 +10,8 @@ import (
 	"image"
 )
 
+// TempFileWithImage will write a new JPEG file in 'bucket' derived from 'im'. The return values are the
+// filename of the temporary file, its image format and any errors produced during writing.
 func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, string, error) {
 
 	id, err := uuid.NewUUID()

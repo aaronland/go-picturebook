@@ -10,7 +10,10 @@ import (
 	"regexp"
 )
 
+// flickr_re is a regular expression pattern for matching files with names following the convention for Flickr "original" photos.
 var flickr_re *regexp.Regexp
+
+// orthis_re is a regular expression pattern for matching files with names following the convention for (aaronland) Or This "original" photos.
 var orthis_re *regexp.Regexp
 
 func init() {
@@ -18,11 +21,15 @@ func init() {
 	orthis_re = regexp.MustCompile(`^(\d+)_[a-zA-Z0-9]+_o\.jpg$`)
 }
 
+// type Caption provides a common interface for different mechanisms to derive captions for images.
 type Caption interface {
+	// Text produces a caption derived from a file contained in a gocloud.dev/blob Bucket instance.
 	Text(context.Context, *blob.Bucket, string) (string, error)
-	// Text(context.Context, io.ReadSeeker, string) (string, error)
 }
 
+// type CaptionInitializeFunc defined a common initialization function for instances implementing the Caption interface.
+// This is specified when the packages definining those instances call `RegisterCaption` and invoked with the `NewCaption`
+// method is called.
 type CaptionInitializeFunc func(context.Context, string) (Caption, error)
 
 var captions roster.Roster
@@ -43,6 +50,7 @@ func ensureRoster() error {
 	return nil
 }
 
+// RegisterCaption associates a URI scheme with a `CaptionInitializeFunc` initialization function.
 func RegisterCaption(ctx context.Context, name string, fn CaptionInitializeFunc) error {
 
 	err := ensureRoster()
@@ -54,6 +62,8 @@ func RegisterCaption(ctx context.Context, name string, fn CaptionInitializeFunc)
 	return captions.Register(ctx, name, fn)
 }
 
+// NewCaption returns a new `Caption` instance for 'uri' whose scheme is expected to have been associated
+// with an `CaptionInitializeFunc` (by the `RegisterCaption` method.
 func NewCaption(ctx context.Context, uri string) (Caption, error) {
 
 	u, err := url.Parse(uri)
@@ -81,6 +91,7 @@ func NewCaption(ctx context.Context, uri string) (Caption, error) {
 	return caption, nil
 }
 
+// AvailableCaption returns the list of schemes that have been registered with `CaptionInitializeFunc` functions.
 func AvailableCaptions() []string {
 	ctx := context.Background()
 	return captions.Drivers(ctx)
