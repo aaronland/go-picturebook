@@ -24,10 +24,12 @@ func init() {
 	exif.RegisterParsers(mknote.All...)
 }
 
+// type ExifSorter implements the `Sorter` interface to sort a list of `picture.PictureBookPicture` by their EXIF DateTime properties.
 type ExifSorter struct {
 	Sorter
 }
 
+// NewExifSorter returns a new instance of `ExifSorter` for 'uri' which must be parsable as a valid `net/url` URL instance.
 func NewExifSorter(ctx context.Context, uri string) (Sorter, error) {
 
 	_, err := url.Parse(uri)
@@ -40,6 +42,8 @@ func NewExifSorter(ctx context.Context, uri string) (Sorter, error) {
 	return s, nil
 }
 
+// Sort sorts a list of `picture.PictureBookPicture` by their EXIF DateTime properties. If an image does not have an EXIF DateTime property it is
+// excluded from the sorted result set.
 func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
