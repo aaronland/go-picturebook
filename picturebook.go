@@ -42,7 +42,7 @@ type PictureBookOptions struct {
 	Units string
 	// The number dots per inch to use when calculating the size of the final picturebook.
 	DPI float64
-	// The size of any border to apply to the final picturebook.
+	// The size of any border to apply to each image in the final picturebook.
 	Border float64
 	// The size of any additional bleed to apply to the final picturebook.
 	Bleed float64
@@ -80,44 +80,74 @@ type PictureBookOptions struct {
 	OddOnly bool
 }
 
+// type PictureBookMargins defines a struct for storing margins to be applied to a picturebook
 type PictureBookMargins struct {
-	Top    float64
+	// The size of any margin to add to the top of each page.
+	Top float64
+	// The size of any margin to add to the bottom of each page.
 	Bottom float64
-	Left   float64
-	Right  float64
+	// The size of any margin to add to the left-hand side of each page.
+	Left float64
+	// The size of any margin to add to the right-hand side of each page.
+	Right float64
 }
 
+// type PictureBookBorders defines a struct for storing borders to be applied to a images in a picturebook.
 type PictureBookBorders struct {
-	Top    float64
+	// The size of any border to add to the top of each image.
+	Top float64
+	// The size of any border to add to the bottom of each image.
 	Bottom float64
-	Left   float64
-	Right  float64
+	// The size of any border to add to the left-hand side of each image.
+	Left float64
+	// The size of any border to add to the right-hand side of each image.
+	Right float64
 }
 
+// type PictureBookCanvas defines a struct for storing canvas information for a picturebook.
 type PictureBookCanvas struct {
-	Width  float64
+	// The width of the internal picturebook canvas.
+	Width float64
+	// The height of the internal picturebook canvas.
 	Height float64
 }
 
+// type PictureBookText defines a struct for storing information for how text should be displayed in a picturebook.
 type PictureBookText struct {
-	Font   string
-	Style  string
-	Size   float64
+	// The name of the font to use for text strings.
+	Font string
+	// The style of the font to use for text strings.
+	Style string
+	// The size of the font to use for text strings.
+	Size float64
+	// The margin to apply to text strings.
 	Margin float64
+	// The colour of the font to use for text strings.
 	Colour []int
 }
 
+// type PictureBook provides a struct for creating a PDF file from a folder of images (a picturebook).
 type PictureBook struct {
-	PDF         *gofpdf.Fpdf
-	Mutex       *sync.Mutex
-	Borders     *PictureBookBorders
-	Margins     *PictureBookMargins
-	Canvas      PictureBookCanvas
-	Text        PictureBookText
-	Options     *PictureBookOptions
+	// A `gofpdf.Fpdf` instance used to produce the picturebook PDF file.
+	PDF *gofpdf.Fpdf
+	// A `sync.Mutex` instance used to add images in an orderly fashion.
+	Mutex *sync.Mutex
+	// The `PictureBookBorders` definition to use for this picturebook
+	Borders *PictureBookBorders
+	// The `PictureBookMargins` definition to use for this picturebook
+	Margins *PictureBookMargins
+	// The `PictureBookCanvas` definition to use for this picturebook
+	Canvas PictureBookCanvas
+	// The `PictureBookText` definition to use for this picturebook
+	Text PictureBookText
+	// The `PictureBookOptions` used to create this picturebook
+	Options *PictureBookOptions
+	// The `GatherPicturesProcessFunc` function used to determine whether an image is included in a picturebook
 	ProcessFunc GatherPicturesProcessFunc
-	pages       int
-	tmpfiles    []string
+	// The number of pages in this picturebook
+	pages int
+	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
+	tmpfiles []string
 }
 
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
