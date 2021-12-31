@@ -27,14 +27,10 @@ $> ./bin/picturebook -h
     	The size of the border around images. (default 0.01)
   -caption string
     	A valid caption.Caption URI. Valid schemes are: exif://, filename://, none://.
-  -debug
-    	DEPRECATED: Please use the -verbose flag instead.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -even-only
     	Only include images on even-numbered pages.
-  -exclude value
-    	A valid regular expression to use for testing whether a file should be excluded from your picturebook. DEPRECATED: Please use -filter regexp://exclude/?pattern={REGULAR_EXPRESSION} flag instead.
   -filename string
     	The filename (path) for your picturebook. (default "picturebook.pdf")
   -fill-page
@@ -42,9 +38,7 @@ $> ./bin/picturebook -h
   -filter value
     	A valid filter.Filter URI. Valid schemes are: any://, regexp://.
   -height float
-    	A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.
-  -include value
-    	A valid regular expression to use for testing whether a file should be included in your picturebook. DEPRECATED: Please use -filter regexp://include/?pattern={REGULAR_EXPRESSION} flag instead.
+    	A custom width to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -width flag.
   -margin float
     	The margin around all sides of a page. If non-zero this value will be used to populate all the other -margin-(N) flags.
   -margin-bottom float
@@ -61,8 +55,6 @@ $> ./bin/picturebook -h
     	Only include images on odd-numbered pages.
   -orientation string
     	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
-  -pre-process value
-    	DEPRECATED: Please use -process {PROCESS_NAME}:// flag instead.
   -process value
     	A valid process.Process URI. Valid schemes are: halftone://, null://, rotate://.
   -size string
@@ -71,16 +63,17 @@ $> ./bin/picturebook -h
     	A valid sort.Sorter URI. Valid schemes are: exif://, modtime://.
   -source-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
-  -target string
-    	Valid targets are: cooperhewitt; flickr; orthis. If defined this flag will set the -filter and -caption flags accordingly. DEPRECATED: Please use specific -filter and -caption flags as needed.
   -target-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' if applicable.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' where applicable.
   -tmpfile-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty the operating system's temporary directory will be used.
+  -units string
+    	The unit of measurement to apply to the -height and -width flags. Valid options are inches, millimeters, centimeters (default "inches")
   -verbose
     	Display verbose output as the picturebook is created.
   -width float
-    	A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.```
+    	A custom height to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -height flag.
+```
 
 For example:
 

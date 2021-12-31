@@ -40,7 +40,7 @@ type PictureBookOptions struct {
 	Height float64
 	// The unit of measurement to use for the `Width` and `Height` options.
 	Units string
-	// The number dots per inch to use when calculating the size of the final picturebook.
+	// The number dots per inch to use when calculating the size of the final picturebook. Valid options are "inches", "centimeters", "millimeters".
 	DPI float64
 	// The size of any border to apply to each image in the final picturebook.
 	Border float64
@@ -342,6 +342,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		switch opts.Units {
 		case "inches":
 			// pass
+		case "millimeters":
+			opts.Width = opts.Width / MM2INCH
+			opts.Height = opts.Height / MM2INCH
+		case "centimeters":
+			opts.Width = (opts.Width * 10.0) / MM2INCH
+			opts.Height = (opts.Height * 10.0) / MM2INCH
 		default:
 			return nil, fmt.Errorf("Invalid or unsupported unit '%s'", opts.Units)
 		}

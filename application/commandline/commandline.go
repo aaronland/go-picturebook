@@ -38,6 +38,9 @@ var width float64
 // A custom height to use as the size for a picturebook PDF file.
 var height float64
 
+// The unit of measurement to apply to the height and width of a picturebook PDF file.
+var units string
+
 // The "dots per inch" (DPI) resolution for a picturebook PDF file.
 var dpi float64
 
@@ -163,8 +166,9 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
 	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".`)
-	fs.Float64Var(&width, "width", 0.0, "A custom height to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -height flag.")
-	fs.Float64Var(&height, "height", 0.0, "A custom width to use as the size of your picturebook. Units are currently defined in inches. This flag overrides the -size flag when used in combination with the -width flag.")
+	fs.Float64Var(&width, "width", 0.0, "A custom height to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -height flag.")
+	fs.Float64Var(&height, "height", 0.0, "A custom width to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -width flag.")
+	fs.StringVar(&units, "units", "inches", "The unit of measurement to apply to the -height and -width flags. Valid options are inches, millimeters, centimeters")
 	fs.Float64Var(&dpi, "dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
 	fs.Float64Var(&border, "border", 0.01, "The size of the border around images.")
 
@@ -292,6 +296,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts.Size = size
 	opts.Width = width
 	opts.Height = height
+	opts.Units = units
 	opts.DPI = dpi
 	opts.Border = border
 	opts.Bleed = bleed
