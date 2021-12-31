@@ -28,31 +28,56 @@ import (
 // MM2INCH defines the number if millimeters in an inch.
 const MM2INCH float64 = 25.4
 
+// PictureBookOptions defines a struct containing configuration information for a given picturebook instance.
 type PictureBookOptions struct {
-	Orientation  string
-	Size         string
-	Width        float64
-	Height       float64
-	Units        string
-	DPI          float64
-	Border       float64
-	Bleed        float64
-	MarginTop    float64
+	// The orientation of the final picturebook. Valid options are "P" and "L" for portrait and landscape respectively.
+	Orientation string
+	// A string label corresponding to known size. Valid options are "a1", "a2", "a3", "a4", "a5", "a6", "a7", "letter", "legal" and "tabloid".
+	Size string
+	// The width of the final picturebook.
+	Width float64
+	// The height of the final picturebook.
+	Height float64
+	// The unit of measurement to use for the `Width` and `Height` options.
+	Units string
+	// The number dots per inch to use when calculating the size of the final picturebook.
+	DPI float64
+	// The size of any border to apply to the final picturebook.
+	Border float64
+	// The size of any additional bleed to apply to the final picturebook.
+	Bleed float64
+	// The size of any margin to add to the top of each page.
+	MarginTop float64
+	// The size of any margin to add to the bottom of each page.
 	MarginBottom float64
-	MarginLeft   float64
-	MarginRight  float64
-	Filter       filter.Filter
-	PreProcess   process.Process
-	Caption      caption.Caption
-	Sort         sort.Sorter
-	FillPage     bool
-	Verbose      bool
-	OCRAFont     bool
-	Source       *blob.Bucket
-	Target       *blob.Bucket
-	Temporary    *blob.Bucket
-	EvenOnly     bool
-	OddOnly      bool
+	// The size of any margin to add to the left-hand side of each page.
+	MarginLeft float64
+	// The size of any margin to add to the right-hand side of each page.
+	MarginRight float64
+	// An optional `filter.Filter` instance used to determine whether or not an image should be included in the final picturebook.
+	Filter filter.Filter
+	// An optional `process.Process` instance used to transform images for being included in the final picturebook.
+	PreProcess process.Process
+	// An optional `caption.Caption` instance used to derive a caption string for each image added to the final picturebook.
+	Caption caption.Caption
+	// An optional `sort.Sorter` instance used to sort images before they are added to the final picturebook.
+	Sort sort.Sorter
+	// A boolean value signaling that an image should be rotated if necessary to fill the maximum amount of any given page.
+	FillPage bool
+	// A boolean value to enable verbose logging during the creation of a picturebook.
+	Verbose bool
+	// A boolean value to enable to use of an OCRA font for writing captions.
+	OCRAFont bool
+	// A gocloud.dev/blob `Bucket` instance where source images are stored.
+	Source *blob.Bucket
+	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
+	Target *blob.Bucket
+	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
+	Temporary *blob.Bucket
+	// A boolean value signaling that images should only be added on even-numbered pages.
+	EvenOnly bool
+	// A boolean value signaling that images should only be added on odd-numbered pages.
+	OddOnly bool
 }
 
 type PictureBookMargins struct {
@@ -95,8 +120,11 @@ type PictureBook struct {
 	tmpfiles    []string
 }
 
+// type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
 type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
+//  DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
+// from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
 func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
 
 	fn := func(ctx context.Context, path string) (*picture.PictureBookPicture, error) {
@@ -209,6 +237,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 	return fn, nil
 }
 
+// NewPictureBookDefaultOptions returns a `PictureBookOptions` with default settings.
 func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, error) {
 
 	opts := &PictureBookOptions{
@@ -230,6 +259,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 	return opts, nil
 }
 
+// NewPictureBook returns a new `PictureBook` instances configured according to the settings in 'opts'.
 func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook, error) {
 
 	var pdf *gofpdf.Fpdf
@@ -412,6 +442,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	return &pb, nil
 }
 
+// AddPictures adds images founds in one or more folders defined 'paths' to the picturebook instance.
 func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 	pictures, err := pb.GatherPictures(ctx, paths)
@@ -482,6 +513,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 	return nil
 }
 
+// GatherPictures collects all the images in one or more folders defined by 'paths' and returns a list of `picture.PictureBookPicture` instances.
 func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
 
 	pictures := make([]*picture.PictureBookPicture, 0)
@@ -934,6 +966,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	return nil
 }
 
+// Save will write the picturebook to 'path' in the `Target` bucket specified in the `PictureBookOptions`
+// used to create the picturebook option.
 func (pb *PictureBook) Save(ctx context.Context, path string) error {
 
 	if pb.Options.Target == nil {
