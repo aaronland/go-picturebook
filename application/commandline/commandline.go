@@ -262,10 +262,22 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return fmt.Errorf("Failed to ensure scheme for target URI %s, %w", target_uri, err)
 	}
 
+	target_uri, err = ensureSkipMetadata(target_uri)
+
+	if err != nil {
+		return fmt.Errorf("Failed to ensure ?metadata=skip for target URI %s, %w", target_uri, err)
+	}
+
 	tmpfile_uri, err := ensureScheme(tmpfile_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to ensure scheme for tmpfile URI %s, %w", tmpfile_uri, err)
+	}
+
+	tmpfile_uri, err = ensureSkipMetadata(tmpfile_uri)
+
+	if err != nil {
+		return fmt.Errorf("Failed to ensure ?metadata=skip for tmpfile URI %s, %w", tmpfile_uri, err)
 	}
 
 	source_bucket, err := blob.OpenBucket(ctx, source_uri)
@@ -465,5 +477,29 @@ func ensureScheme(uri string) (string, error) {
 		u.Scheme = "file"
 	}
 
+	return u.String(), nil
+}
+
+// ensureScheme ensures that 'uri' has a '?metadata=skip' query parameter, adding one if necessary.
+func ensureSkipMetadata(uri string) (string, error) {
+
+	u, err := url.Parse(uri)
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
+	}
+
+	q := u.Query()
+
+	m := q.Get("metadata")
+
+	if m == "skip" {
+		return uri, nil
+	}
+
+	q.Del("metadata")
+	q.Set("metadata", "skip")
+
+	u.RawQuery = q.Encode()
 	return u.String(), nil
 }

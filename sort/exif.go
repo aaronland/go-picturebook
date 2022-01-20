@@ -61,7 +61,7 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 		}
 
 		defer fh.Close()
-		
+
 		mtime := fh.ModTime()
 		sz := fh.Size()
 
