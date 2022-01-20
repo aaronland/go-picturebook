@@ -60,9 +60,10 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 			continue
 		}
 
+		defer fh.Close()
+		
 		mtime := fh.ModTime()
 		sz := fh.Size()
-		fh.Close()
 
 		ts := mtime.Unix()
 
@@ -75,6 +76,8 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 			if err == nil {
 				ts = dt.Unix()
 			}
+		} else {
+			log.Printf("Failed to decode EXIF data for %s, %v\n", path, err)
 		}
 
 		key := fmt.Sprintf("%d-%d", ts, sz)
