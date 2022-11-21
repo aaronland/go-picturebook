@@ -23,36 +23,35 @@
 // In any case, absent any stored metadata many blob.Attributes fields
 // will be set to default values.
 //
-// URLs
+// # URLs
 //
 // For blob.OpenBucket, fileblob registers for the scheme "file".
 // To customize the URL opener, or for more details on the URL format,
 // see URLOpener.
 // See https://gocloud.dev/concepts/urls/ for background information.
 //
-// Escaping
+// # Escaping
 //
 // Go CDK supports all UTF-8 strings; to make this work with services lacking
 // full UTF-8 support, strings must be escaped (during writes) and unescaped
 // (during reads). The following escapes are performed for fileblob:
-//  - Blob keys: ASCII characters 0-31 are escaped to "__0x<hex>__".
-//    If os.PathSeparator != "/", it is also escaped.
-//    Additionally, the "/" in "../", the trailing "/" in "//", and a trailing
-//    "/" is key names are escaped in the same way.
-//    On Windows, the characters "<>:"|?*" are also escaped.
+//   - Blob keys: ASCII characters 0-31 are escaped to "__0x<hex>__".
+//     If os.PathSeparator != "/", it is also escaped.
+//     Additionally, the "/" in "../", the trailing "/" in "//", and a trailing
+//     "/" is key names are escaped in the same way.
+//     On Windows, the characters "<>:"|?*" are also escaped.
 //
-// As
+// # As
 //
 // fileblob exposes the following types for As:
-//  - Bucket: os.FileInfo
-//  - Error: *os.PathError
-//  - ListObject: os.FileInfo
-//  - Reader: io.Reader
-//  - ReaderOptions.BeforeRead: *os.File
-//  - Attributes: os.FileInfo
-//  - CopyOptions.BeforeCopy: *os.File
-//  - WriterOptions.BeforeWrite: *os.File
-
+//   - Bucket: os.FileInfo
+//   - Error: *os.PathError
+//   - ListObject: os.FileInfo
+//   - Reader: io.Reader
+//   - ReaderOptions.BeforeRead: *os.File
+//   - Attributes: os.FileInfo
+//   - CopyOptions.BeforeCopy: *os.File
+//   - WriterOptions.BeforeWrite: *os.File
 package fileblob // import "gocloud.dev/blob/fileblob"
 
 import (
@@ -65,6 +64,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -110,20 +110,20 @@ const Scheme = "file"
 //
 // If either of base_url / secret_key_path are provided, both must be.
 //
-//  - file:///a/directory
-//    -> Passes "/a/directory" to OpenBucket.
-//  - file://localhost/a/directory
-//    -> Also passes "/a/directory".
-//  - file://./../..
-//    -> The hostname is ".", signaling a relative path; passes "../..".
-//  - file:///c:/foo/bar on Windows.
-//    -> Passes "c:\foo\bar".
-//  - file://localhost/c:/foo/bar on Windows.
-//    -> Also passes "c:\foo\bar".
-//  - file:///a/directory?base_url=/show&secret_key_path=secret.key
-//    -> Passes "/a/directory" to OpenBucket, and sets Options.URLSigner
-//       to a URLSignerHMAC initialized with base URL "/show" and secret key
-//       bytes read from the file "secret.key".
+//   - file:///a/directory
+//     -> Passes "/a/directory" to OpenBucket.
+//   - file://localhost/a/directory
+//     -> Also passes "/a/directory".
+//   - file://./../..
+//     -> The hostname is ".", signaling a relative path; passes "../..".
+//   - file:///c:/foo/bar on Windows.
+//     -> Passes "c:\foo\bar".
+//   - file://localhost/c:/foo/bar on Windows.
+//     -> Also passes "c:\foo\bar".
+//   - file:///a/directory?base_url=/show&secret_key_path=secret.key
+//     -> Passes "/a/directory" to OpenBucket, and sets Options.URLSigner
+//     to a URLSignerHMAC initialized with base URL "/show" and secret key
+//     bytes read from the file "secret.key".
 type URLOpener struct {
 	// Options specifies the default options to pass to OpenBucket.
 	Options Options
@@ -170,13 +170,19 @@ func (o *URLOpener) forParams(ctx context.Context, q url.Values) (*Options, erro
 	opts := new(Options)
 	*opts = o.Options
 
-	switch metadataOption(q.Get("metadata")) {
-	case MetadataDontWrite:
-		opts.Metadata = MetadataDontWrite
-	case MetadataInSidecar:
-		opts.Metadata = MetadataInSidecar
-	default:
-		return nil, errors.New("fileblob.OpenBucket: unsupported value for query parameter 'metadata'")
+	// Note: can't just use q.Get, because then we can't distinguish between
+	// "not set" (we should leave opts alone) vs "set to empty string" (which is
+	// one of the legal values, we should override opts).
+	metadataVal := q["metadata"]
+	if len(metadataVal) > 0 {
+		switch metadataOption(metadataVal[0]) {
+		case MetadataDontWrite:
+			opts.Metadata = MetadataDontWrite
+		case MetadataInSidecar:
+			opts.Metadata = MetadataInSidecar
+		default:
+			return nil, errors.New("fileblob.OpenBucket: unsupported value for query parameter 'metadata'")
+		}
 	}
 	if q.Get("create_dir") != "" {
 		opts.CreateDir = true
@@ -362,6 +368,7 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 	// added. It is used to avoid adding it again; all files in this "directory"
 	// are collapsed to the single directory entry.
 	var lastPrefix string
+	var lastKeyAdded string
 
 	// If the Prefix contains a "/", we can set the root of the Walk
 	// to the path specified by the Prefix as any files below the path will not
@@ -375,7 +382,7 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 
 	// Do a full recursive scan of the root directory.
 	var result driver.ListPage
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			// Couldn't read this file/directory for some reason; just skip it.
 			return nil
@@ -426,18 +433,22 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 			// For other blobs, md5 will remain nil.
 			md5 = xa.MD5
 		}
+		fi, err := info.Info()
+		if err != nil {
+			return err
+		}
 		asFunc := func(i interface{}) bool {
 			p, ok := i.(*os.FileInfo)
 			if !ok {
 				return false
 			}
-			*p = info
+			*p = fi
 			return true
 		}
 		obj := &driver.ListObject{
 			Key:     key,
-			ModTime: info.ModTime(),
-			Size:    info.Size(),
+			ModTime: fi.ModTime(),
+			Size:    fi.Size(),
 			MD5:     md5,
 			AsFunc:  asFunc,
 		}
@@ -469,15 +480,35 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 			return nil
 		}
 		// If we've already got a full page of results, set NextPageToken and stop.
-		if len(result.Objects) == pageSize {
+		// Unless the current object is a directory, in which case there may
+		// still be objects coming that are alphabetically before it (since
+		// we appended the delimiter). In that case, keep going; we'll trim the
+		// extra entries (if any) before returning.
+		if len(result.Objects) == pageSize && !obj.IsDir {
 			result.NextPageToken = []byte(result.Objects[pageSize-1].Key)
 			return io.EOF
 		}
 		result.Objects = append(result.Objects, obj)
+		// Normally, objects are added in the correct order (by Key).
+		// However, sometimes adding the file delimiter messes that up (e.g.,
+		// if the file delimiter is later in the alphabet than the last character
+		// of a key).
+		// Detect if this happens and swap if needed.
+		if len(result.Objects) > 1 && obj.Key < lastKeyAdded {
+			i := len(result.Objects) - 1
+			result.Objects[i-1], result.Objects[i] = result.Objects[i], result.Objects[i-1]
+			lastKeyAdded = result.Objects[i].Key
+		} else {
+			lastKeyAdded = obj.Key
+		}
 		return nil
 	})
 	if err != nil && err != io.EOF {
 		return nil, err
+	}
+	if len(result.Objects) > pageSize {
+		result.Objects = result.Objects[0:pageSize]
+		result.NextPageToken = []byte(result.Objects[pageSize-1].Key)
 	}
 	return &result, nil
 }
@@ -611,6 +642,29 @@ func (r *reader) As(i interface{}) bool {
 	return true
 }
 
+func createTemp(path string) (*os.File, error) {
+	// Use a custom createTemp function rather than os.CreateTemp() as
+	// os.CreateTemp() sets the permissions of the tempfile to 0600, rather than
+	// 0666, making it inconsistent with the directories and attribute files.
+	try := 0
+	for {
+		// Append the current time with nanosecond precision and .tmp to the
+		// path. If the file already exists try again. Nanosecond changes enough
+		// between each iteration to make a conflict unlikely. Using the full
+		// time lowers the chance of a collision with a file using a similar
+		// pattern, but has undefined behavior after the year 2262.
+		name := path + "." + strconv.FormatInt(time.Now().UnixNano(), 16) + ".tmp"
+		f, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+		if os.IsExist(err) {
+			if try++; try < 10000 {
+				continue
+			}
+			return nil, &os.PathError{Op: "createtemp", Path: path + ".*.tmp", Err: os.ErrExist}
+		}
+		return f, err
+	}
+}
+
 // NewTypedWriter implements driver.NewTypedWriter.
 func (b *bucket) NewTypedWriter(ctx context.Context, key string, contentType string, opts *driver.WriterOptions) (driver.Writer, error) {
 	path, err := b.path(key)
@@ -620,7 +674,7 @@ func (b *bucket) NewTypedWriter(ctx context.Context, key string, contentType str
 	if err := os.MkdirAll(filepath.Dir(path), os.FileMode(0777)); err != nil {
 		return nil, err
 	}
-	f, err := ioutil.TempFile(filepath.Dir(path), "fileblob")
+	f, err := createTemp(path)
 	if err != nil {
 		return nil, err
 	}
