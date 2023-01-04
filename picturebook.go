@@ -78,6 +78,8 @@ type PictureBookOptions struct {
 	EvenOnly bool
 	// A boolean value signaling that images should only be added on odd-numbered pages.
 	OddOnly bool
+	// An optional value to indicate that a picturebook should not exceed this number of pages
+	MaxPages int
 }
 
 // type PictureBookMargins defines a struct for storing margins to be applied to a picturebook
@@ -153,7 +155,8 @@ type PictureBook struct {
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
 type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
-//  DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
+//	DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
+//
 // from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
 func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
 
@@ -602,8 +605,15 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			}
 
 			pb.Mutex.Lock()
+
 			pictures = append(pictures, pic)
+			count_pictures := len(pictures)
+
 			pb.Mutex.Unlock()
+
+			if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
+				break
+			}
 		}
 
 		return nil
@@ -616,6 +626,10 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		if err != nil {
 			return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
 		}
+	}
+
+	if pb.Options.Verbose {
+		log.Printf("Gathered %d pictures\n", len(pictures))
 	}
 
 	return pictures, nil

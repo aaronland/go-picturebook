@@ -49,6 +49,8 @@ $> ./bin/picturebook -h
     	The margin around the right-hand side of each page. (default 1)
   -margin-top float
     	The margin around the top of each page. (default 1)
+  -max-pages int
+    	An optional value to indicate that a picturebook should not exceed this number of pages	
   -ocra-font
     	Use an OCR-compatible font for captions.
   -odd-only

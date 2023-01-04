@@ -107,6 +107,8 @@ var process_uris multi.MultiString
 
 var ocra_font bool
 
+var max_pages int
+
 func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
@@ -204,6 +206,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
 	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
+
+	fs.IntVar(&max_pages, "max-pages", 0, "An optional value to indicate that a picturebook should not exceed this number of pages")
 
 	return fs, nil
 }
@@ -321,6 +325,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	opts.OCRAFont = ocra_font
 	opts.EvenOnly = even_only
 	opts.OddOnly = odd_only
+	opts.MaxPages = max_pages
 
 	processed := make([]string, 0)
 
