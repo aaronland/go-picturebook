@@ -100,26 +100,25 @@ For a complete example, including a PDF file produced by the `picturebook` tool,
 
 Under the hood `picturebook` is using the [Go Cloud `blob` abstraction layer](https://gocloud.dev/howto/blob/) for files and file storage. By default only [local files](https://gocloud.dev/howto/blob/#local) (or `file://` URIs) are supported. If you need to support other sources or targets you will need to create your own custom `picturebook` tool.
 
-In order to facilitate this all of the logic of the `picturebook` tool has been moved in to the [go-picturebook/application/commandline](application/commandline) package. For example here is how you would write your own custom tool with support for reading and writing files to an S3 bucket as well as the local filesystem.
+In order to facilitate this all of the logic of the `picturebook` tool has been moved in to the [go-picturebook/app/picturebook](app/picturebook) package. For example here is how you would write your own custom tool with support for reading and writing files to an S3 bucket as well as the local filesystem.
 
 ```
 package main
 
 import (
 	"context"
-	"github.com/aaronland/go-picturebook/application/commandline"
+	"github.com/aaronland/go-picturebook/app/picturebook"
 	_ "gocloud.dev/blob/fileblob"
-	_ "gocloud.dev/blob/s3blob"	
+	_ "gocloud.dev/blob/s3blob"
+	"log"
 )
 
 func main() {
 
 	ctx := context.Background()
-
-	fs, _ := commandline.DefaultFlagSet(ctx)
-	app, _ := commandline.NewApplication(ctx, fs)
-
-	app.Run(ctx)
+	logger := log.Default()
+	
+	app.Run(ctx, logger)
 }
 ```
 
