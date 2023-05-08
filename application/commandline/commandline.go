@@ -5,6 +5,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	gosort "sort"
+	"strings"
+
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/application"
 	"github.com/aaronland/go-picturebook/caption"
@@ -13,14 +21,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
-	"gocloud.dev/blob"
-	"log"
-	"net/url"
-	"os"
-	"path/filepath"
-	"regexp"
-	gosort "sort"
-	"strings"
+	"gocloud.dev/blob"	
 )
 
 // Regular expression for validating filter and caption URIs.

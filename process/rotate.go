@@ -6,16 +6,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/aaronland/go-image-tools/util"
-	"github.com/aaronland/go-picturebook/tempfile"
-	"github.com/microcosm-cc/exifutil"
-	"github.com/rwcarlsen/goexif/exif"
-	"gocloud.dev/blob"
 	"io"
 	_ "log"
 	"net/url"
 	"path/filepath"
 	"strings"
+
+	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-picturebook/tempfile"
+	"github.com/microcosm-cc/exifutil"
+	"github.com/rwcarlsen/goexif/exif"
+	"gocloud.dev/blob"	
 )
 
 func init() {

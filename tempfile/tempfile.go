@@ -4,10 +4,11 @@ package tempfile
 import (
 	"context"
 	"fmt"
+	"image"
+
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/google/uuid"
-	"gocloud.dev/blob"
-	"image"
+	"gocloud.dev/blob"	
 )
 
 // TempFileWithImage will write a new JPEG file in 'bucket' derived from 'im'. The return values are the

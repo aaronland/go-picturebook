@@ -3,11 +3,13 @@ package sort
 
 import (
 	"context"
-	"github.com/aaronland/go-picturebook/picture"
-	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
+
 	"net/url"
 	"regexp"
+
+	"github.com/aaronland/go-picturebook/picture"
+	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"	
 )
 
 // orthis_re is a regular expression pattern for matching files with names following the convention for (aaronland) Or This "original" photos.

@@ -3,10 +3,11 @@ package filter
 
 import (
 	"context"
-	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
 	"net/url"
 	"regexp"
+
+	"github.com/aaronland/go-roster"
+	"gocloud.dev/blob"	
 )
 
 // flickr_re is a regular expression pattern for matching files with names following the convention for Flickr "original" photos.
