@@ -475,7 +475,7 @@ func ensureScheme(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", uri, err)
 	}
 
 	if u.Scheme == "" {
@@ -491,7 +491,7 @@ func ensureSkipMetadata(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
+		return "", fmt.Errorf("Failed to parse URI '%s', %w",uri,  err)
 	}
 
 	q := u.Query()
