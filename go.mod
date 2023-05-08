@@ -3,8 +3,8 @@ module github.com/aaronland/go-picturebook
 go 1.18
 
 require (
+	github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee
 	github.com/aaronland/go-image-halftone v0.1.0
-	github.com/aaronland/go-image-rotate v0.0.4
 	github.com/aaronland/go-image-tools v0.1.4
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
@@ -20,8 +20,6 @@ require (
 
 require (
 	github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb // indirect
-	github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee // indirect
-	github.com/aaronland/go-image-transform v0.0.0-20201125043008-ea524ffbd26f // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect

@@ -5,7 +5,13 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/aaronland/go-image-rotate"
+	"io"
+	"log"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-image-tools/util"
 	"github.com/aaronland/go-mimetypes"
 	"github.com/aaronland/go-picturebook/caption"
@@ -17,12 +23,7 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
-	"gocloud.dev/blob"
-	"io"
-	"log"
-	"path/filepath"
-	"strings"
-	"sync"
+	"gocloud.dev/blob"	
 )
 
 // MM2INCH defines the number if millimeters in an inch.

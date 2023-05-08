@@ -3,21 +3,16 @@
 github.com/MaxHalford/halfgone
 # github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee
 ## explicit; go 1.20
+github.com/aaronland/go-image/imaging
+github.com/aaronland/go-image/rotate
 github.com/aaronland/go-image/transform
 # github.com/aaronland/go-image-halftone v0.1.0
 ## explicit; go 1.18
 github.com/aaronland/go-image-halftone
-# github.com/aaronland/go-image-rotate v0.0.4
-## explicit; go 1.12
-github.com/aaronland/go-image-rotate
-github.com/aaronland/go-image-rotate/imaging
 # github.com/aaronland/go-image-tools v0.1.4
 ## explicit; go 1.12
 github.com/aaronland/go-image-tools/imaging
 github.com/aaronland/go-image-tools/util
-# github.com/aaronland/go-image-transform v0.0.0-20201125043008-ea524ffbd26f
-## explicit; go 1.12
-github.com/aaronland/go-image-transform
 # github.com/aaronland/go-mimetypes v0.0.2
 ## explicit; go 1.12
 github.com/aaronland/go-mimetypes
