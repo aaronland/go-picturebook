@@ -507,8 +507,8 @@ github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:H
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/VividCortex/gohistogram v1.0.0/go.mod h1:Pf5mBqqDxYaXu3hDrrU+w6nw50o/4+TcAqDqk/vUH7g=
-github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee h1:kkDY6K8QhAVAtYtVK4wgRHbzwvS9osIVEBPezoD7W7s=
-github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee/go.mod h1:KxllUvifQyLGNBCv39ufWRJ5fDw/ntjZg8neb7P6xOw=
+github.com/aaronland/go-image v1.1.0 h1:6hUwg1jtdjiEBOH93rKTevh9NyQhL13cYSkInLptahA=
+github.com/aaronland/go-image v1.1.0/go.mod h1:m3fGqdWxpfMOuTY15iWeRAdGJpeA474+o+Ycon/8O3g=
 github.com/aaronland/go-image-halftone v0.1.0 h1:AJeh5i33vyT9DGvqQ4kFvmQH1I5/vYfKlm7PSI9SC/U=
 github.com/aaronland/go-image-halftone v0.1.0/go.mod h1:o8ySrQ2mQoZcfIVLX1EUbg6mY4QCsGbpMRVuNrInOv0=
 github.com/aaronland/go-mimetypes v0.0.2 h1:Gsi1ak00V+m+g8lVIROkM2mIdj7aLnvaF1iqfVkhHHc=

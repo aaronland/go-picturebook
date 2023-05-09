@@ -1,7 +1,7 @@
 # github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 ## explicit
 github.com/MaxHalford/halfgone
-# github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee
+# github.com/aaronland/go-image v1.1.0
 ## explicit; go 1.20
 github.com/aaronland/go-image/decode
 github.com/aaronland/go-image/encode

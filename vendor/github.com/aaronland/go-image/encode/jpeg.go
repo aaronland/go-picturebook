@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+// JPEGEncoder is a struct that implements the `Encoder` interface for
+// encoding JPEG images.
 type JPEGEncoder struct {
 	Encoder
 	quality int
@@ -21,6 +23,14 @@ func init() {
 	RegisterEncoder(ctx, NewJPEGEncoder, "jpg", "jpeg")
 }
 
+// NewJPEGEncoder returns a new `JPEGEncoder` instance.
+// 'uri' in the form of:
+//
+//	/path/to/image.jpg?{OPTIONS}
+//
+// Where {OPTIONS} are:
+//   - ?quality={QUALITY} - an optional value specifying the quality of the
+//     JPEG image; default is 100.
 func NewJPEGEncoder(ctx context.Context, uri string) (Encoder, error) {
 
 	quality := 100
@@ -53,6 +63,7 @@ func NewJPEGEncoder(ctx context.Context, uri string) (Encoder, error) {
 	return e, nil
 }
 
+// Encode will encode 'im' using the `image/jpeg` package and write the results to 'wr'
 func (e *JPEGEncoder) Encode(ctx context.Context, wr io.Writer, im image.Image) error {
 
 	opts := &jpeg.Options{

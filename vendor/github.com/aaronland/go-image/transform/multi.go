@@ -6,11 +6,14 @@ import (
 	"image"
 )
 
+// Type MultiTransformation implements the `Transformation` interface for applying multiple transformations to images.
 type MultiTransformation struct {
 	Transformation
 	transforms []Transformation
 }
 
+// NewMultiTransformationWithURIs returns a `MultiTransformation` instance derived from 'transformation_uris'.
+// Transformations are applied in the same order as URIs defined in 'transformation_uris'.
 func NewMultiTransformationWithURIs(ctx context.Context, transformation_uris ...string) (Transformation, error) {
 
 	transformations := make([]Transformation, len(transformation_uris))
@@ -29,6 +32,8 @@ func NewMultiTransformationWithURIs(ctx context.Context, transformation_uris ...
 	return NewMultiTransformation(ctx, transformations...)
 }
 
+// NewMultiTransformationWithURIs returns a `MultiTransformation` instance derived from 'transformation'.
+// Transformations are applied in the same order as instances defined in 'transformation'.
 func NewMultiTransformation(ctx context.Context, transformations ...Transformation) (Transformation, error) {
 
 	tr := &MultiTransformation{

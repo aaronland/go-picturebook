@@ -1,52 +1,15 @@
+// Package rotate provides methods for rotating images.
 package rotate
 
 import (
 	"context"
 	"fmt"
 	"image"
-	"net/url"
 
 	"github.com/aaronland/go-image/imaging"
-	"github.com/aaronland/go-image/transform"
 )
 
-type RotateTransformation struct {
-	transform.Transformation
-	orientation string
-}
-
-func init() {
-
-	ctx := context.Background()
-	transform.RegisterTransformation(ctx, "rotate", NewRotateTransformation)
-}
-
-func NewRotateTransformation(ctx context.Context, uri string) (transform.Transformation, error) {
-
-	parsed, err := url.Parse(uri)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse URI, %w", err)
-	}
-
-	query := parsed.Query()
-	orientation := query.Get("orientation")
-
-	if orientation == "" {
-		orientation = "1"
-	}
-
-	tr := &RotateTransformation{
-		orientation: orientation,
-	}
-
-	return tr, nil
-}
-
-func (tr *RotateTransformation) Transform(ctx context.Context, im image.Image) (image.Image, error) {
-	return RotateImageWithOrientation(ctx, im, tr.orientation)
-}
-
+// RotateImageWithOrientation will rotate 'im' based on EXIF orientation value defined in 'orientation'.
 func RotateImageWithOrientation(ctx context.Context, im image.Image, orientation string) (image.Image, error) {
 
 	switch orientation {
@@ -71,6 +34,8 @@ func RotateImageWithOrientation(ctx context.Context, im image.Image, orientation
 	return im, nil
 }
 
+// RotateImageWithOrientation will rotate 'im' by 'degrees' degrees. Currently only values in units of
+// 90 degrees or 0 are supported.
 func RotateImageWithDegrees(ctx context.Context, im image.Image, degrees float64) (image.Image, error) {
 
 	// See also: https://github.com/anthonynsimon/bild#rotate

@@ -3,7 +3,7 @@ module github.com/aaronland/go-picturebook
 go 1.18
 
 require (
-	github.com/aaronland/go-image v0.0.0-20230506164652-2202692bd7ee
+	github.com/aaronland/go-image v1.1.0
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
