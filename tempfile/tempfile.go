@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-image/encode"
 	"github.com/google/uuid"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 // TempFileWithImage will write a new JPEG file in 'bucket' derived from 'im'. The return values are the
@@ -29,7 +29,15 @@ func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image)
 		return "", "", fmt.Errorf("Failed to create new writer for temp file, %w", err)
 	}
 
-	err = util.EncodeImage(im, "jpeg", wr)
+	enc_uri := fmt.Sprintf("%s?quality=100")
+
+	enc, err := encode.NewEncoder(ctx, enc_uri)
+
+	if err != nil {
+		return "", "", fmt.Errorf("Failed to encode temporary image, %w", err)
+	}
+
+	err = enc.Encode(ctx, wr, im)
 
 	if err != nil {
 		return "", "", fmt.Errorf("Failed to encode temp file as JPEG, %w", err)

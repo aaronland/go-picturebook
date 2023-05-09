@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 // type Process provides a common interfaces for manipulating images before adding them to a picturebook.

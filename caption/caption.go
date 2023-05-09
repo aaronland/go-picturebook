@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 // flickr_re is a regular expression pattern for matching files with names following the convention for Flickr "original" photos.

@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 func init() {

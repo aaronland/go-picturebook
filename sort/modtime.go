@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	"github.com/aaronland/go-picturebook/picture"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 func init() {

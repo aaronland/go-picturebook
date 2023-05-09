@@ -21,7 +21,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 // Regular expression for validating filter and caption URIs.
@@ -492,7 +492,7 @@ func ensureSkipMetadata(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URI '%s', %w",uri,  err)
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", uri, err)
 	}
 
 	q := u.Query()

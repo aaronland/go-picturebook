@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 func init() {

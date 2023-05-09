@@ -1,6 +1,6 @@
 package process
 
-// update to use go-image-rotate
+// update to use go-image/rotate
 
 import (
 	"bytes"
@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/microcosm-cc/exifutil"
 	"github.com/rwcarlsen/goexif/exif"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 func init() {
@@ -108,7 +108,13 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 
 	br.Seek(0, 0)
 
-	im, _, err := util.DecodeImageFromReader(br)
+	dec, err := decode.NewDecoder(ctx, path)
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to create new decoder, %w", err)
+	}
+
+	im, _, err := dec.Decode(ctx, br)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

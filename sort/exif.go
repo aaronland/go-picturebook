@@ -10,7 +10,7 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
-	"gocloud.dev/blob"	
+	"gocloud.dev/blob"
 )
 
 func init() {
