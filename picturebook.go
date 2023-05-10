@@ -153,7 +153,8 @@ type PictureBook struct {
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
 type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
-//  DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
+//	DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
+//
 // from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
 func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
 
@@ -950,53 +951,61 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	if caption != "" {
 
-		txt := caption
+		current_x := x
+		current_y := y
 
-		txt_w := pb.PDF.GetStringWidth(txt)
-		txt_h := line_h
+		for _, txt := range strings.Split(caption, "\n") {
 
-		txt_w = txt_w + pb.Text.Margin
-		txt_h = txt_h + pb.Text.Margin
+			txt = strings.TrimSpace(txt)
 
-		// please do this in the constructor...
-		// (20171128/thisisaaronland)
+			txt_w := pb.PDF.GetStringWidth(txt)
+			txt_h := line_h
 
-		font_sz, _ := pb.PDF.GetFontSize()
-		pb.PDF.SetFontSize(font_sz + 2)
+			txt_w = txt_w + pb.Text.Margin
+			txt_h = txt_h + pb.Text.Margin
 
-		_, line_h := pb.PDF.GetFontSize()
+			// please do this in the constructor...
+			// (20171128/thisisaaronland)
 
-		if pb.Options.Verbose {
-			log.Printf("[%d][%s] line height %0.2f\n", pagenum, abs_path, line_h)
+			font_sz, _ := pb.PDF.GetFontSize()
+			pb.PDF.SetFontSize(font_sz + 2)
+
+			_, line_h := pb.PDF.GetFontSize()
+
+			if pb.Options.Verbose {
+				log.Printf("[%d][%s] line height %0.2f\n", pagenum, abs_path, line_h)
+			}
+
+			pb.PDF.SetFontSize(font_sz)
+
+			txt_x := ((current_x + w) / pb.Options.DPI) - txt_w
+			txt_y := ((current_y + h) / pb.Options.DPI) + line_h
+
+			if pb.Options.Verbose {
+				log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
+			}
+
+			// pb.PDF.SetFillColor(255, 255, 255)
+			// pb.PDF.Rect(txt_x, txt_y, txt_w, txt_h, "FD")
+
+			pb.PDF.SetXY(txt_x, txt_y)
+
+			// please account for lack of utf-8 support (20171128/thisisaaronland)
+			// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
+			// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
+			// txt = tr(txt)
+
+			txt = unidecode.Unidecode(txt)
+
+			if pb.Options.Verbose {
+				log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
+			}
+
+			html := pb.PDF.HTMLBasicNew()
+			html.Write(line_h, txt)
+
+			current_y += ((txt_h * pb.Options.DPI) * .65)
 		}
-
-		pb.PDF.SetFontSize(font_sz)
-
-		txt_x := ((x + w) / pb.Options.DPI) - txt_w
-		txt_y := ((y + h) / pb.Options.DPI) + line_h
-
-		if pb.Options.Verbose {
-			log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
-		}
-
-		// pb.PDF.SetFillColor(255, 255, 255)
-		// pb.PDF.Rect(txt_x, txt_y, txt_w, txt_h, "FD")
-
-		pb.PDF.SetXY(txt_x, txt_y)
-
-		// please account for lack of utf-8 support (20171128/thisisaaronland)
-		// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
-		// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
-		// txt = tr(txt)
-
-		txt = unidecode.Unidecode(txt)
-
-		if pb.Options.Verbose {
-			log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
-		}
-
-		html := pb.PDF.HTMLBasicNew()
-		html.Write(line_h, txt)
 	}
 
 	return nil

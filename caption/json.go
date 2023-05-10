@@ -2,12 +2,12 @@ package caption
 
 import (
 	"context"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"os"
-	
-	"gocloud.dev/blob"	
+
+	"gocloud.dev/blob"
 )
 
 func init() {
@@ -53,7 +53,7 @@ func NewJsonCaption(ctx context.Context, uri string) (Caption, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to decode %s, %w", captions_path, err)
 	}
-	
+
 	c := &JsonCaption{
 		captions_table: captions_table,
 	}
