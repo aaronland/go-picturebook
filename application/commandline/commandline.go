@@ -5,6 +5,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	gosort "sort"
+	"strings"
+
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/application"
 	"github.com/aaronland/go-picturebook/caption"
@@ -14,13 +22,6 @@ import (
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
 	"gocloud.dev/blob"
-	"log"
-	"net/url"
-	"os"
-	"path/filepath"
-	"regexp"
-	gosort "sort"
-	"strings"
 )
 
 // Regular expression for validating filter and caption URIs.
@@ -475,7 +476,7 @@ func ensureScheme(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", uri, err)
 	}
 
 	if u.Scheme == "" {
@@ -491,7 +492,7 @@ func ensureSkipMetadata(uri string) (string, error) {
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse URI '%s', %w", err)
+		return "", fmt.Errorf("Failed to parse URI '%s', %w", uri, err)
 	}
 
 	q := u.Query()

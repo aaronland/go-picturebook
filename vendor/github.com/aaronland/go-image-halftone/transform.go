@@ -2,10 +2,12 @@ package halftone
 
 import (
 	"context"
-	"github.com/aaronland/go-image-transform"
+	"fmt"
 	"image"
 	"net/url"
 	"strconv"
+
+	"github.com/aaronland/go-image/transform"
 )
 
 type HalftoneTransformation struct {
@@ -14,43 +16,38 @@ type HalftoneTransformation struct {
 }
 
 func init() {
-
 	ctx := context.Background()
-	err := transform.RegisterTransformation(ctx, "Halftone", NewHalftoneTransformation)
-
-	if err != nil {
-		panic(err)
-	}
+	transform.RegisterTransformation(ctx, "halftone", NewHalftoneTransformation)
 }
 
 func NewHalftoneTransformation(ctx context.Context, str_url string) (transform.Transformation, error) {
 
-	parsed, err := url.Parse(str_url)
+	u, err := url.Parse(str_url)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse URI, %w", err)
 	}
 
 	opts := NewDefaultHalftoneOptions()
 
-	query := parsed.Query()
+	q := u.Query()
 
-	mode := query.Get("mode")
-	str_scale := query.Get("scale-factor")
+	q_process := q.Get("process")
+	q_scale := q.Get("scale-factor")
 
-	if mode != "" {
-		opts.Mode = mode
+	if q_process != "" {
+		opts.Process = q_process
 	}
 
-	if str_scale != "" {
+	if q_scale != "" {
 
-		scale, err := strconv.ParseFloat(str_scale, 64)
+		v, err := strconv.ParseFloat(q_scale, 64)
 
 		if err != nil {
 			return nil, err
 		}
 
-		opts.ScaleFactor = scale
+		opts.ScaleFactor = v
 	}
 
 	tr := &HalftoneTransformation{

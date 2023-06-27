@@ -5,8 +5,15 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/aaronland/go-image-rotate"
-	"github.com/aaronland/go-image-tools/util"
+	"image/png"
+	"io"
+	"log"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	"github.com/aaronland/go-image/decode"
+	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -18,11 +25,6 @@ import (
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
-	"io"
-	"log"
-	"path/filepath"
-	"strings"
-	"sync"
 )
 
 // MM2INCH defines the number if millimeters in an inch.
@@ -664,19 +666,26 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	defer im_r.Close()
 
-	im, format, err := util.DecodeImageFromReader(im_r)
+	dec, err := decode.NewDecoder(ctx, abs_path)
+
+	if err != nil {
+		return fmt.Errorf("Failed to create new decoder for %s, %w", abs_path, err)
+	}
+
+	im, format, err := dec.Decode(ctx, im_r)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
 	}
 
+	// START OF put me somewhere in aaronland/go-image ... maybe?
 	// trap gofpdf "16-bit depth not supported in PNG file" errors
 
 	if format == "png" {
 
 		buf := new(bytes.Buffer)
 
-		err = util.EncodeImage(im, format, buf)
+		err = png.Encode(buf, im)
 
 		if err != nil {
 			return fmt.Errorf("Failed to encode PNG image for %s, %w", abs_path, err)
@@ -714,6 +723,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			is_tempfile = true
 		}
 	}
+
+	// END OF put me somewhere in aaronland/go-image ... maybe?
 
 	dims := im.Bounds()
 

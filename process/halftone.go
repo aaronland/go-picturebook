@@ -3,11 +3,12 @@ package process
 import (
 	"context"
 	"fmt"
+	"net/url"
+
 	"github.com/aaronland/go-image-halftone"
-	"github.com/aaronland/go-image-tools/util"
+	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"gocloud.dev/blob"
-	"net/url"
 )
 
 func init() {
@@ -51,7 +52,13 @@ func (f *HalftoneProcess) Transform(ctx context.Context, source_bucket *blob.Buc
 
 	defer fh.Close()
 
-	im, _, err := util.DecodeImageFromReader(fh)
+	dec, err := decode.NewDecoder(ctx, path)
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to create new decoder for %s, %w", path, err)
+	}
+
+	im, _, err := dec.Decode(ctx, fh)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

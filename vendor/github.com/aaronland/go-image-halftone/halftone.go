@@ -4,21 +4,22 @@ package halftone
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"image"
+
 	"github.com/MaxHalford/halfgone"
 	"github.com/nfnt/resize"
-	"image"
 )
 
 type HalftoneOptions struct {
-	Mode        string
+	Process     string
 	ScaleFactor float64
 }
 
 func NewDefaultHalftoneOptions() *HalftoneOptions {
 
 	opts := &HalftoneOptions{
-		Mode:        "atkinson",
+		Process:     "atkinson",
 		ScaleFactor: 2.0,
 	}
 
@@ -37,13 +38,13 @@ func HalftoneImage(ctx context.Context, im image.Image, opts *HalftoneOptions) (
 	thumb := resize.Thumbnail(scale_w, scale_h, im, resize.Lanczos3)
 	grey := halfgone.ImageToGray(thumb)
 
-	switch opts.Mode {
+	switch opts.Process {
 	case "atkinson":
 		grey = halfgone.AtkinsonDitherer{}.Apply(grey)
 	case "threshold":
 		grey = halfgone.ThresholdDitherer{Threshold: 127}.Apply(grey)
 	default:
-		return nil, errors.New("Invalid or unsupported mode")
+		return nil, fmt.Errorf("Invalid or unsupported process, %s", opts.Process)
 	}
 
 	dither := resize.Resize(w, h, grey, resize.NearestNeighbor)

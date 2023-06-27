@@ -3,11 +3,12 @@ package sort
 import (
 	"context"
 	"fmt"
-	"github.com/aaronland/go-picturebook/picture"
-	"gocloud.dev/blob"
 	"log"
 	"net/url"
 	"sort"
+
+	"github.com/aaronland/go-picturebook/picture"
+	"gocloud.dev/blob"
 )
 
 func init() {

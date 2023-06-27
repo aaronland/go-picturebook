@@ -3,10 +3,11 @@ package main
 
 import (
 	"context"
-	"github.com/aaronland/go-picturebook/application/commandline"
-	_ "gocloud.dev/blob/fileblob"
 	"log"
 	"os"
+
+	"github.com/aaronland/go-picturebook/application/commandline"
+	_ "gocloud.dev/blob/fileblob"
 )
 
 func main() {

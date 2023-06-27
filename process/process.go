@@ -3,9 +3,10 @@ package process
 
 import (
 	"context"
+	"net/url"
+
 	"github.com/aaronland/go-roster"
 	"gocloud.dev/blob"
-	"net/url"
 )
 
 // type Process provides a common interfaces for manipulating images before adding them to a picturebook.
