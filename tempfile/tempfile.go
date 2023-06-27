@@ -29,7 +29,7 @@ func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image)
 		return "", "", fmt.Errorf("Failed to create new writer for temp file, %w", err)
 	}
 
-	enc_uri := fmt.Sprintf("%s?quality=100")
+	enc_uri := fmt.Sprintf("file:///%s?quality=100", fname)
 
 	enc, err := encode.NewEncoder(ctx, enc_uri)
 

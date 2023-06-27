@@ -75,7 +75,7 @@ func NewEncoder(ctx context.Context, uri string) (Encoder, error) {
 		return nil, fmt.Errorf("Failed to parse URI, %w", err)
 	}
 
-	ext := filepath.Ext(uri)
+	ext := filepath.Ext(u.Path)
 	scheme := strings.TrimLeft(ext, ".")
 
 	enc_u := url.URL{}
