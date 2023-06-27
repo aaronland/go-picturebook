@@ -157,6 +157,10 @@ Parameters
 
 This handler will return the filename for a given path of an image.
 
+#### json://{PATH/TO/CAPTIONS.json}
+
+This handler will assign captions derived from a JSON file that can be read from the local disk. The JSON file is expected to be a dictionary whose keys are the filenames of the images being included in the picturebook and whose values are a list of strings to use as caption text.
+
 #### none://
 
 The handler will return an empty string for all images.
