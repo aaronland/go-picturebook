@@ -541,6 +541,16 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pagenum = pb.pages
 			}
 
+			if pic.Text != "" {
+				pb.AddText(ctx, pagenum, pic)
+				pb.pages += 1
+				pagenum = pb.pages
+				
+				pb.AddBlankPage(ctx, pagenum)
+				pb.pages += 1
+				pagenum = pb.pages
+			}
+			
 			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else if pb.Options.OddOnly {
@@ -557,9 +567,26 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pagenum = pb.pages
 			}
 
+			if pic.Text != "" {
+				pb.AddText(ctx, pagenum, pic)
+				pb.pages += 1
+				pagenum = pb.pages
+				
+				pb.AddBlankPage(ctx, pagenum)
+				pb.pages += 1
+				pagenum = pb.pages
+			}
+			
 			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else {
+
+			if pic.Text != "" {			
+				pb.AddText(ctx, pagenum, pic)
+				pb.pages += 1
+				pagenum = pb.pages
+			}
+			
 			err = pb.AddPicture(ctx, pagenum, pic)
 		}
 
@@ -659,6 +686,14 @@ func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 	return nil
 }
 
+func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
+
+	pb.Mutex.Lock()
+	defer pb.Mutex.Unlock()
+
+	return nil
+}
+
 func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
 
 	pb.Mutex.Lock()
@@ -666,7 +701,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	abs_path := pic.Path
 	caption := pic.Caption
-
+	
 	is_tempfile := false
 
 	picture_bucket := pb.Options.Source
