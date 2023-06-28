@@ -21,6 +21,7 @@ import (
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
+	"github.com/aaronland/go-picturebook/text"
 	"github.com/jung-kurt/gofpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
@@ -62,6 +63,8 @@ type PictureBookOptions struct {
 	PreProcess process.Process
 	// An optional `caption.Caption` instance used to derive a caption string for each image added to the final picturebook.
 	Caption caption.Caption
+	// An optional `text.Text` instance used to derive a text string for each image added to the final picturebook.
+	Text text.Text
 	// An optional `sort.Sorter` instance used to sort images before they are added to the final picturebook.
 	Sort sort.Sorter
 	// A boolean value signaling that an image should be rotated if necessary to fill the maximum amount of any given page.
@@ -212,17 +215,30 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		}
 
 		caption := ""
+		text_body := ""
 
 		if pb_opts.Caption != nil {
 
 			txt, err := pb_opts.Caption.Text(ctx, pb_opts.Source, abs_path)
 
 			if err != nil {
-				log.Printf("Failed to generate caption text for %s, %v\n", abs_path, err)
+				log.Printf("Failed to derive caption text for %s, %v\n", abs_path, err)
 				return nil, nil
 			}
 
 			caption = txt
+		}
+
+		if pb_opts.Text != nil {
+
+			txt, err := pb_opts.Text.Body(ctx, pb_opts.Source, abs_path)
+
+			if err != nil {
+				log.Printf("Failed to derive text body for %s, %v\n", abs_path, err)
+				return nil, nil
+			}
+
+			text_body = txt
 		}
 
 		var final_bucket *blob.Bucket
@@ -263,6 +279,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			Bucket:   final_bucket,
 			Path:     final_path,
 			Caption:  caption,
+			Text:     text_body,
 			TempFile: tmpfile_path,
 		}
 

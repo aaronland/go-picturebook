@@ -11,6 +11,7 @@ import (
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/aaronland/go-picturebook/text"
 	"github.com/sfomuseum/go-flags/flagset"
 	"github.com/sfomuseum/go-flags/multi"
 	"gocloud.dev/blob"
@@ -86,6 +87,9 @@ var debug bool
 // A valid `caption.Caption` URI.
 var caption_uri string
 
+// A valid `text.Text` URI.
+var text_uri string
+
 // A valid `sort.Sorter` URI.
 var sort_uri string
 
@@ -133,6 +137,9 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	available_captions := caption.AvailableCaptions()
 	available_captions_str := formatSchemesAsString(available_captions)
 
+	available_texts := text.AvailableTexts()
+	available_texts_str := formatSchemesAsString(available_texts)
+
 	available_processes := process.AvailableProcesses()
 	available_processes_str := formatSchemesAsString(available_processes)
 
@@ -141,6 +148,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s.", available_filters_str)
 	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s.", available_captions_str)
+	desc_texts := fmt.Sprintf("A valid text.Text URI. Valid schemes are: %s.", available_texts_str)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s.", available_processes_str)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s.", available_sorters_str)
 
@@ -172,6 +180,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.BoolVar(&odd_only, "odd-only", false, "Only include images on odd-numbered pages.")
 
 	fs.StringVar(&caption_uri, "caption", "", desc_captions)
+	fs.StringVar(&text_uri, "text", "", desc_texts)
+
 	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
 
 	fs.BoolVar(&ocra_font, "ocra-font", false, "Use an OCR-compatible font for captions.")

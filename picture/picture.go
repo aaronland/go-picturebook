@@ -13,6 +13,8 @@ type PictureBookPicture struct {
 	Path string
 	// The caption associated with the image being added to a picturebook
 	Caption string
+	// The long-form (or at least longer than a caption) text associated with the image being added to a picturebook
+	Text string
 	// The `blob.Bucket` instance where the image (Path) being added to a picturebook is stored.
 	Bucket *blob.Bucket
 	// The path of any temporary file that has been created in the process of adding an image to a picturebook

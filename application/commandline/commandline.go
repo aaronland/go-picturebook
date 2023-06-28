@@ -16,6 +16,7 @@ import (
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/aaronland/go-picturebook/text"
 	"github.com/sfomuseum/go-flags/flagset"
 	"gocloud.dev/blob"
 )
@@ -229,6 +230,21 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		}
 
 		opts.Caption = c
+	}
+
+	if text_uri != "" {
+
+		if !uri_re.MatchString(text_uri) {
+			text_uri = fmt.Sprintf("%s://", text_uri)
+		}
+
+		t, err := text.NewText(ctx, text_uri)
+
+		if err != nil {
+			return fmt.Errorf("Failed to create new text, %w", err)
+		}
+
+		opts.Text = t
 	}
 
 	if sort_uri != "" {
