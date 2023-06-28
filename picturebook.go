@@ -533,6 +533,8 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		var err error
 
+		pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar"
+		
 		if pb.Options.EvenOnly {
 
 			if pagenum%2 != 0 {
@@ -545,12 +547,12 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pb.AddText(ctx, pagenum, pic)
 				pb.pages += 1
 				pagenum = pb.pages
-				
+
 				pb.AddBlankPage(ctx, pagenum)
 				pb.pages += 1
 				pagenum = pb.pages
 			}
-			
+
 			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else if pb.Options.OddOnly {
@@ -571,22 +573,22 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 				pb.AddText(ctx, pagenum, pic)
 				pb.pages += 1
 				pagenum = pb.pages
-				
+
 				pb.AddBlankPage(ctx, pagenum)
 				pb.pages += 1
 				pagenum = pb.pages
 			}
-			
+
 			err = pb.AddPicture(ctx, pagenum, pic)
 
 		} else {
 
-			if pic.Text != "" {			
+			if pic.Text != "" {
 				pb.AddText(ctx, pagenum, pic)
 				pb.pages += 1
 				pagenum = pb.pages
 			}
-			
+
 			err = pb.AddPicture(ctx, pagenum, pic)
 		}
 
@@ -693,62 +695,71 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 	pb.PDF.AddPage()
 
-	current_x := 0
-	current_y := 0
+	_, line_h := pb.PDF.GetFontSize()
+
+	max_w := pb.Canvas.Width
+	max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
+
+	w := max_w
+	h := max_h
+
+	margins := pb.Margins
+
+	current_x := margins.Left
+	current_y := margins.Top
+
+	// START OF reconcile me with code for rendering captions...
 
 	for _, txt := range strings.Split(pic.Text, "\n") {
-		
+
 		txt = strings.TrimSpace(txt)
-		
+
 		txt_w := pb.PDF.GetStringWidth(txt)
 		txt_h := line_h
-		
+
 		txt_w = txt_w + pb.Text.Margin
 		txt_h = txt_h + pb.Text.Margin
-		
+
 		// please do this in the constructor...
 		// (20171128/thisisaaronland)
-		
+
 		font_sz, _ := pb.PDF.GetFontSize()
 		pb.PDF.SetFontSize(font_sz + 2)
-		
+
 		_, line_h := pb.PDF.GetFontSize()
-		
-		if pb.Options.Verbose {
-			log.Printf("[%d][%s] line height %0.2f\n", pagenum, abs_path, line_h)
-		}
-		
+
 		pb.PDF.SetFontSize(font_sz)
+
+		// This is pushing all the text to the bottom of the page
 		
 		txt_x := ((current_x + w) / pb.Options.DPI) - txt_w
 		txt_y := ((current_y + h) / pb.Options.DPI) + line_h
-		
+
 		if pb.Options.Verbose {
-			log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
+			// log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
 		}
-		
-		// pb.PDF.SetFillColor(255, 255, 255)
-		// pb.PDF.Rect(txt_x, txt_y, txt_w, txt_h, "FD")
-		
+
 		pb.PDF.SetXY(txt_x, txt_y)
-		
+
 		// please account for lack of utf-8 support (20171128/thisisaaronland)
 		// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
 		// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
 		// txt = tr(txt)
-		
+
 		txt = unidecode.Unidecode(txt)
-		
+
 		if pb.Options.Verbose {
-			log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
+			// log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
 		}
-		
+
 		html := pb.PDF.HTMLBasicNew()
 		html.Write(line_h, txt)
-		
+
 		current_y += ((txt_h * pb.Options.DPI) * .65)
 	}
-	
+
+	// END OF reconcile me with code for rendering captions...
+
 	return nil
 }
 
@@ -759,7 +770,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	abs_path := pic.Path
 	caption := pic.Caption
-	
+
 	is_tempfile := false
 
 	picture_bucket := pb.Options.Source
