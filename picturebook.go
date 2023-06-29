@@ -533,7 +533,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		var err error
 
-		pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar"
+		pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those."
 		
 		if pb.Options.EvenOnly {
 
@@ -695,14 +695,18 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 	pb.PDF.AddPage()
 
+
 	_, line_h := pb.PDF.GetFontSize()
 
+	
 	max_w := pb.Canvas.Width
-	max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
+	// max_h := pb.Canvas.Height - (pb.Text.Margin + line_h)
 
+	/*
 	w := max_w
 	h := max_h
-
+	*/
+	
 	margins := pb.Margins
 
 	current_x := margins.Left
@@ -717,9 +721,12 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		txt_w := pb.PDF.GetStringWidth(txt)
 		txt_h := line_h
 
+		/*
 		txt_w = txt_w + pb.Text.Margin
+*/
 		txt_h = txt_h + pb.Text.Margin
-
+		
+		log.Printf("DEBUG %d max: %f03 w: %f03 %s\n", len(txt), max_w, txt_w * pb.Options.DPI, txt)
 		// please do this in the constructor...
 		// (20171128/thisisaaronland)
 
@@ -730,11 +737,9 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 		pb.PDF.SetFontSize(font_sz)
 
-		// This is pushing all the text to the bottom of the page
+		txt_x := current_x / pb.Options.DPI
+		txt_y := (current_y / pb.Options.DPI)
 		
-		txt_x := ((current_x + w) / pb.Options.DPI) - txt_w
-		txt_y := ((current_y + h) / pb.Options.DPI) + line_h
-
 		if pb.Options.Verbose {
 			// log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
 		}
