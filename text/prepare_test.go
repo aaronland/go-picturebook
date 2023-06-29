@@ -32,7 +32,7 @@ func TestPrepareText(t *testing.T) {
 
 	pdf.SetFont("Helvetica", "", 8.0)
 
-	prepped := PrepareText(pdf, txt, max_w)
+	prepped := PrepareText(pdf, max_w, txt)
 
 	for i, ln := range prepped {
 		fmt.Printf("%d '%s'\n", i, ln)
