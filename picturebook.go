@@ -712,7 +712,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 	// START OF reconcile me with code for rendering captions...
 
-	prepped := text.PrepareText(pb.PDF, max_w, pic.Text)
+	prepped := text.PrepareText(pb.PDF, pb.Options.DPI, max_w, pic.Text)
 
 	// for _, txt := range strings.Split(pic.Text, "\n") {
 	for _, txt := range prepped {

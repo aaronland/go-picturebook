@@ -2,26 +2,25 @@ package text
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jung-kurt/gofpdf"
 )
 
-func PrepareText(pdf *gofpdf.Fpdf, max_w float64, txt string) []string {
+func PrepareText(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
-	return prepareTextWithSeparator(pdf, max_w, txt, "\n")
+	return prepareTextWithSeparator(pdf, dpi, max_w, txt, "\n")
 }
 
-func prepareTextWithSeparator(pdf *gofpdf.Fpdf, max_w float64, txt string, sep string) []string {
+func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string, sep string) []string {
 
 	prepped := make([]string, 0)
 
 	for _, ln := range strings.Split(txt, "\n") {
 
-		txt_w := pdf.GetStringWidth(ln)
+		ln_w := pdf.GetStringWidth(ln) * dpi
 
-		if txt_w <= max_w {
+		if ln_w <= max_w {
 			prepped = append(prepped, ln)
 			continue
 		}
@@ -31,10 +30,10 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, max_w float64, txt string, sep s
 
 		if count == 1 {
 
-			prepped_ln := prepareTextWithSeparator(pdf, max_w, ln, " ")
+			prepped_ln := prepareTextWithSeparator(pdf, dpi, max_w, ln, " ")
 
 			if len(prepped_ln) == 1 {
-				prepped_ln = prepareTextWithLength(pdf, max_w, txt)
+				prepped_ln = prepareTextWithLength(pdf, dpi, max_w, txt)
 			}
 
 			prepped = append(prepped, prepped_ln[:]...)
@@ -52,15 +51,14 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, max_w float64, txt string, sep s
 				phrase = fmt.Sprintf("%s %s", phrase, words[i])
 			}
 
-			phrase_w := pdf.GetStringWidth(phrase)
-
-			log.Printf("'%s' %f (%f)\n", phrase, phrase_w, max_w)
+			phrase_w := pdf.GetStringWidth(phrase) * dpi
 
 			if phrase_w > max_w {
+
 				prepped = append(prepped, last_phrase)
 
 				new_phrase := strings.Join(words[i:], " ")
-				phrase_prepped := PrepareText(pdf, max_w, new_phrase)
+				phrase_prepped := PrepareText(pdf, dpi, max_w, new_phrase)
 
 				prepped = append(prepped, phrase_prepped[:]...)
 				break
@@ -74,7 +72,7 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, max_w float64, txt string, sep s
 
 }
 
-func prepareTextWithLength(pdf *gofpdf.Fpdf, max_w float64, txt string) []string {
+func prepareTextWithLength(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
 	prepped := make([]string, 0)
 	// Please write me...

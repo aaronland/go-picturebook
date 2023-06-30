@@ -1,7 +1,6 @@
 package text
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/jung-kurt/gofpdf"
@@ -9,7 +8,9 @@ import (
 
 func TestPrepareText(t *testing.T) {
 
-	txt := "This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those."
+	tests := map[string]int{
+		"This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those.": 5,
+	}
 
 	max_w := 972.0
 
@@ -32,9 +33,16 @@ func TestPrepareText(t *testing.T) {
 
 	pdf.SetFont("Helvetica", "", 8.0)
 
-	prepped := PrepareText(pdf, max_w, txt)
+	dpi := 150.0
 
-	for i, ln := range prepped {
-		fmt.Printf("%d '%s'\n", i, ln)
+	for txt, expected_count := range tests {
+
+		prepped := PrepareText(pdf, dpi, max_w, txt)
+		count := len(prepped)
+
+		if count != expected_count {
+			t.Fatalf("Unexpected count %d (expected %d) for '%s'", count, expected_count, txt)
+		}
 	}
+
 }
