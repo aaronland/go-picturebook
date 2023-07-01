@@ -3,7 +3,7 @@ package text
 import (
 	"fmt"
 	"strings"
-	
+
 	"github.com/jung-kurt/gofpdf"
 )
 
@@ -58,7 +58,7 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 			if phrase_w > max_w {
 
 				prepped = append(prepped, last_phrase)
-				
+
 				word_w := pdf.GetStringWidth(words[i]) * dpi
 
 				if word_w > max_w {
@@ -68,7 +68,7 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 
 					new_phrase := strings.Join(words[i:], " ")
 					phrase_prepped := prepareTextWithSeparator(pdf, dpi, max_w, new_phrase, " ")
-					
+
 					prepped = append(prepped, phrase_prepped[:]...)
 					break
 				}
@@ -78,9 +78,12 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 		}
 	}
 
-	for i, ln := range prepped {
-		fmt.Printf("%d '%s'\n", i, ln)
-	}
+	/*
+		for i, ln := range prepped {
+			fmt.Printf("%d '%s'\n", i, ln)
+		}
+	*/
+
 	return prepped
 
 }
@@ -88,6 +91,27 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 func prepareTextWithLength(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
 	prepped := make([]string, 0)
-	prepped = append(prepped, "FIX ME")
+
+	runes := []rune(txt)
+	buf := make([]rune, 0)
+
+	for _, r := range runes {
+
+		buf = append(buf, r)
+		ln := string(buf)
+
+		ln_w := pdf.GetStringWidth(ln) * dpi
+
+		if ln_w == max_w {
+			prepped = append(prepped, ln)
+			buf = make([]rune, 0)
+		}
+	}
+
+	if len(buf) > 0 {
+		ln := string(buf)
+		prepped = append(prepped, ln)
+	}
+
 	return prepped
 }
