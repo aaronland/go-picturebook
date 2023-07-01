@@ -3,7 +3,7 @@ package text
 import (
 	"fmt"
 	"strings"
-
+	
 	"github.com/jung-kurt/gofpdf"
 )
 
@@ -16,7 +16,9 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 
 	prepped := make([]string, 0)
 
-	for _, ln := range strings.Split(txt, "\n") {
+	lines := strings.Split(txt, "\n")
+
+	for _, ln := range lines {
 
 		ln_w := pdf.GetStringWidth(ln) * dpi
 
@@ -56,18 +58,29 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 			if phrase_w > max_w {
 
 				prepped = append(prepped, last_phrase)
+				
+				word_w := pdf.GetStringWidth(words[i]) * dpi
 
-				new_phrase := strings.Join(words[i:], " ")
-				phrase_prepped := PrepareText(pdf, dpi, max_w, new_phrase)
+				if word_w > max_w {
+					word_prepped := prepareTextWithLength(pdf, dpi, max_w, words[i])
+					prepped = append(prepped, word_prepped[:]...)
+				} else {
 
-				prepped = append(prepped, phrase_prepped[:]...)
-				break
+					new_phrase := strings.Join(words[i:], " ")
+					phrase_prepped := prepareTextWithSeparator(pdf, dpi, max_w, new_phrase, " ")
+					
+					prepped = append(prepped, phrase_prepped[:]...)
+					break
+				}
 			}
 
 			last_phrase = phrase
 		}
 	}
 
+	for i, ln := range prepped {
+		fmt.Printf("%d '%s'\n", i, ln)
+	}
 	return prepped
 
 }
@@ -75,6 +88,6 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 func prepareTextWithLength(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
 	prepped := make([]string, 0)
-	// Please write me...
+	prepped = append(prepped, "FIX ME")
 	return prepped
 }
