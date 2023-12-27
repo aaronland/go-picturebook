@@ -7,8 +7,8 @@ require (
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
+	github.com/go-pdf/fpdf v0.9.0
 	github.com/google/uuid v1.5.0
-	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sfomuseum/go-flags v0.10.0

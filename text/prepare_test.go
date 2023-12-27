@@ -2,8 +2,8 @@ package text
 
 import (
 	"testing"
-
-	"github.com/jung-kurt/gofpdf"
+	
+	"github.com/go-pdf/fpdf"
 )
 
 func TestPrepareText(t *testing.T) {
@@ -15,14 +15,14 @@ func TestPrepareText(t *testing.T) {
 
 	max_w := 972.0
 
-	var pdf *gofpdf.Fpdf
+	var pdf *fpdf.Fpdf
 
-	sz := gofpdf.SizeType{
+	sz := fpdf.SizeType{
 		Wd: 8.5,
 		Ht: 11.0,
 	}
 
-	init := gofpdf.InitType{
+	init := fpdf.InitType{
 		OrientationStr: "P",
 		UnitStr:        "in",
 		SizeStr:        "",
@@ -30,7 +30,7 @@ func TestPrepareText(t *testing.T) {
 		FontDirStr:     "",
 	}
 
-	pdf = gofpdf.NewCustom(&init)
+	pdf = fpdf.NewCustom(&init)
 
 	pdf.SetFont("Helvetica", "", 8.0)
 

@@ -22,7 +22,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
-	"github.com/jung-kurt/gofpdf"
+	"github.com/go-pdf/fpdf"
 	"github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
@@ -135,8 +135,8 @@ type PictureBookText struct {
 
 // type PictureBook provides a struct for creating a PDF file from a folder of images (a picturebook).
 type PictureBook struct {
-	// A `gofpdf.Fpdf` instance used to produce the picturebook PDF file.
-	PDF *gofpdf.Fpdf
+	// A `fpdf.Fpdf` instance used to produce the picturebook PDF file.
+	PDF *fpdf.Fpdf
 	// A `sync.Mutex` instance used to add images in an orderly fashion.
 	Mutex *sync.Mutex
 	// The `PictureBookBorders` definition to use for this picturebook
@@ -314,7 +314,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 // NewPictureBook returns a new `PictureBook` instances configured according to the settings in 'opts'.
 func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook, error) {
 
-	var pdf *gofpdf.Fpdf
+	var pdf *fpdf.Fpdf
 
 	// opts_w := opts.Width
 	// opts_h := opts.Height
@@ -377,12 +377,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 
 	// log.Printf("%0.2f x %0.2f (%s)\n", opts.Width, opts.Height, opts.Size)
 
-	sz := gofpdf.SizeType{
+	sz := fpdf.SizeType{
 		Wd: opts.Width + (opts.Bleed * 2.0),
 		Ht: opts.Height + (opts.Bleed * 2.0),
 	}
 
-	init := gofpdf.InitType{
+	init := fpdf.InitType{
 		OrientationStr: opts.Orientation,
 		UnitStr:        "in",
 		SizeStr:        "",
@@ -390,7 +390,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		FontDirStr:     "",
 	}
 
-	pdf = gofpdf.NewCustom(&init)
+	pdf = fpdf.NewCustom(&init)
 
 	/*
 		} else {
@@ -398,7 +398,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 			// TO DO: ACCOUNT FOR BLEED
 			// func (f *Fpdf) GetPageSizeStr(sizeStr string) (size SizeType) {
 
-			pdf = gofpdf.New(opts.Orientation, "in", opts.Size, "")
+			pdf = fpdf.New(opts.Orientation, "in", opts.Size, "")
 		}
 	*/
 
@@ -748,7 +748,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		pb.PDF.SetXY(txt_x, txt_y)
 
 		// please account for lack of utf-8 support (20171128/thisisaaronland)
-		// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
+		// https://github.com/jung-kurt/fpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
 		// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
 		// txt = tr(txt)
 
@@ -806,7 +806,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	// START OF put me somewhere in aaronland/go-image ... maybe?
-	// trap gofpdf "16-bit depth not supported in PNG file" errors
+	// trap fpdf "16-bit depth not supported in PNG file" errors
 
 	if format == "png" {
 
@@ -928,7 +928,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		}
 	}
 
-	opts := gofpdf.ImageOptions{
+	opts := fpdf.ImageOptions{
 		ReadDpi:   false,
 		ImageType: format,
 	}
@@ -1081,9 +1081,9 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	// draw the image
 
-	// https://godoc.org/github.com/jung-kurt/gofpdf#ImageOptions
+	// https://godoc.org/github.com/jung-kurt/fpdf#ImageOptions
 
-	image_opts := gofpdf.ImageOptions{
+	image_opts := fpdf.ImageOptions{
 		ReadDpi:   false,
 		ImageType: format,
 	}

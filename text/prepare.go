@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jung-kurt/gofpdf"
+	"github.com/go-pdf/fpdf"
 )
 
-func PrepareText(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
+func PrepareText(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
 	return prepareTextWithSeparator(pdf, dpi, max_w, txt, "\n")
 }
 
-func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string, sep string) []string {
+func prepareTextWithSeparator(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt string, sep string) []string {
 
 	prepped := make([]string, 0)
 
@@ -88,7 +88,7 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 
 }
 
-func prepareTextWithLength(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
+func prepareTextWithLength(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt string) []string {
 
 	prepped := make([]string, 0)
 
