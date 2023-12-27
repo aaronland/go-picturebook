@@ -2,7 +2,7 @@ package text
 
 import (
 	"testing"
-	
+
 	"github.com/go-pdf/fpdf"
 )
 

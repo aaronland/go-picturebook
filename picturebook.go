@@ -533,7 +533,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
 		var err error
 
-		pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those."
+		// pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those."
 
 		if pb.Options.EvenOnly {
 
@@ -683,6 +683,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	return pictures, nil
 }
 
+// AddBlankPage add a blank page the final PDF document at page 'pagenum'.
 func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 	pb.PDF.AddPage()
 	return nil
@@ -719,7 +720,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 		txt = strings.TrimSpace(txt)
 
-		txt_w := pb.PDF.GetStringWidth(txt)
+		// txt_w := pb.PDF.GetStringWidth(txt)
 		txt_h := line_h
 
 		/*
@@ -727,7 +728,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		*/
 		txt_h = txt_h + pb.Text.Margin
 
-		log.Printf("DEBUG %d max: %f03 w: %f03 %s\n", len(txt), max_w, txt_w*pb.Options.DPI, txt)
+		// log.Printf("DEBUG %d max: %f03 w: %f03 %s\n", len(txt), max_w, txt_w*pb.Options.DPI, txt)
 		// please do this in the constructor...
 		// (20171128/thisisaaronland)
 
