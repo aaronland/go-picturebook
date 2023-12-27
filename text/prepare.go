@@ -58,6 +58,7 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 			if phrase_w > max_w {
 
 				prepped = append(prepped, last_phrase)
+				last_phrase = ""
 
 				word_w := pdf.GetStringWidth(words[i]) * dpi
 
@@ -72,17 +73,16 @@ func prepareTextWithSeparator(pdf *gofpdf.Fpdf, dpi float64, max_w float64, txt 
 					prepped = append(prepped, phrase_prepped[:]...)
 					break
 				}
-			}
 
-			last_phrase = phrase
+			} else {
+				last_phrase = phrase
+			}
+		}
+
+		if last_phrase != "" {
+			prepped = append(prepped, last_phrase)
 		}
 	}
-
-	/*
-		for i, ln := range prepped {
-			fmt.Printf("%d '%s'\n", i, ln)
-		}
-	*/
 
 	return prepped
 
