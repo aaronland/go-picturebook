@@ -45,9 +45,6 @@ github.com/googleapis/gax-go/v2/internal
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
-# github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
-## explicit
-github.com/rainycape/unidecode
 # github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 ## explicit
 github.com/rwcarlsen/goexif/exif

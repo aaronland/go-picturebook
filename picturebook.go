@@ -23,7 +23,7 @@ import (
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
-	"github.com/rainycape/unidecode"
+	// "github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
 )
@@ -689,6 +689,7 @@ func (pb *PictureBook) AddBlankPage(ctx context.Context, pagenum int) error {
 	return nil
 }
 
+// AddText add the value of `pic.Text` on the adjacent page to `pic`.
 func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.PictureBookPicture) error {
 
 	pb.Mutex.Lock()
@@ -753,7 +754,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
 		// txt = tr(txt)
 
-		txt = unidecode.Unidecode(txt)
+		// txt = unidecode.Unidecode(txt)
 
 		if pb.Options.Verbose {
 			// log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
@@ -1147,7 +1148,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
 			// txt = tr(txt)
 
-			txt = unidecode.Unidecode(txt)
+			// txt = unidecode.Unidecode(txt)
 
 			if pb.Options.Verbose {
 				log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
