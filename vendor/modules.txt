@@ -78,7 +78,7 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# gocloud.dev v0.35.0
+# gocloud.dev v0.36.0
 ## explicit; go 1.20
 gocloud.dev/blob
 gocloud.dev/blob/driver
@@ -97,7 +97,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.14.0
+# golang.org/x/sys v0.15.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
 # golang.org/x/text v0.14.0

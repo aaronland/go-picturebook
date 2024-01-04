@@ -12,7 +12,7 @@ require (
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/sfomuseum/go-flags v0.10.0
 	github.com/sfomuseum/go-font-ocra v0.0.2
-	gocloud.dev v0.35.0
+	gocloud.dev v0.36.0
 )
 
 require (
@@ -24,7 +24,7 @@ require (
 	github.com/whosonfirst/go-bindata-assetfs v1.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
-	golang.org/x/sys v0.14.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.151.0 // indirect
