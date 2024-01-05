@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"gocloud.dev/blob"
 )
@@ -18,10 +19,18 @@ func init() {
 	}
 }
 
+type MultiCaptionOptions struct {
+	Captions   []Caption
+	Combined   bool
+	AllowEmpty bool
+}
+
 // type MultiCaption implements the `Caption` interface and derives caption text from image multis.
 type MultiCaption struct {
 	Caption
-	providers []Caption
+	captions    []Caption
+	combined    bool
+	allow_empty bool
 }
 
 // NewExifCaption return a new instance of `MultiCaption` for 'url'
@@ -35,27 +44,40 @@ func NewMultiCaption(ctx context.Context, uri string) (Caption, error) {
 
 	q := u.Query()
 
-	provider_uris := q["uri"]
+	caption_uris := q["uri"]
 
-	if len(provider_uris) == 0 {
-		return nil, fmt.Errorf("No provider URIs")
+	if len(caption_uris) == 0 {
+		return nil, fmt.Errorf("No caption URIs")
 	}
 
-	providers := make([]Caption, len(provider_uris))
+	captions := make([]Caption, len(caption_uris))
 
-	for idx, _uri := range provider_uris {
+	for idx, _uri := range caption_uris {
 
 		pr, err := NewCaption(ctx, _uri)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to create caption provider for %s, %w", _uri, err)
+			return nil, fmt.Errorf("Failed to create caption caption for %s, %w", _uri, err)
 		}
 
-		providers[idx] = pr
+		captions[idx] = pr
 	}
 
+	opts := &MultiCaptionOptions{
+		Captions:   captions,
+		Combined:   false,
+		AllowEmpty: true,
+	}
+
+	return NewMultiCaptionWithOptions(ctx, opts)
+}
+
+func NewMultiCaptionWithOptions(ctx context.Context, opts *MultiCaptionOptions) (Caption, error) {
+
 	c := &MultiCaption{
-		providers: providers,
+		captions:    opts.Captions,
+		combined:    opts.Combined,
+		allow_empty: opts.AllowEmpty,
 	}
 
 	return c, nil
@@ -64,18 +86,28 @@ func NewMultiCaption(ctx context.Context, uri string) (Caption, error) {
 // Text returns a caption string derived from the base name of 'path'
 func (c *MultiCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
-	for _, pr := range c.providers {
+	texts := make([]string, len(c.captions))
+
+	for idx, pr := range c.captions {
 
 		txt, err := pr.Text(ctx, bucket, path)
 
 		if err != nil {
-			return "", fmt.Errorf("Failed to derive text for provider, %w", err)
+			return "", fmt.Errorf("Failed to derive text for caption, %w", err)
 		}
 
-		if txt != "" {
+		if txt != "" && !c.combined {
 			return txt, nil
 		}
+
+		texts[idx] = txt
 	}
 
-	return "", nil
+	combined := strings.Join(texts, " ")
+
+	if !c.allow_empty && combined == "" {
+		return "", fmt.Errorf("Unable to derive caption for %s", path)
+	}
+
+	return combined, nil
 }

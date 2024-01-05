@@ -217,16 +217,35 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		opts.PreProcess = multi
 	}
 
-	if caption_uri != "" {
+	if len(caption_uris) > 0 {
 
-		if !uri_re.MatchString(caption_uri) {
-			caption_uri = fmt.Sprintf("%s://", caption_uri)
+		captions := make([]caption.Caption, len(caption_uris))
+
+		for idx, c_uri := range caption_uris {
+
+			if !uri_re.MatchString(c_uri) {
+				c_uri = fmt.Sprintf("%s://", c_uri)
+			}
+
+			c, err := caption.NewCaption(ctx, c_uri)
+
+			if err != nil {
+				return fmt.Errorf("Failed to create new caption for '%s', %w", c_uri, err)
+			}
+
+			captions[idx] = c
 		}
 
-		c, err := caption.NewCaption(ctx, caption_uri)
+		c_opts := &caption.MultiCaptionOptions{
+			Captions:   captions,
+			Combined:   false,
+			AllowEmpty: true,
+		}
+
+		c, err := caption.NewMultiCaptionWithOptions(ctx, c_opts)
 
 		if err != nil {
-			return fmt.Errorf("Failed to create new caption, %w", err)
+			return fmt.Errorf("Failed to create multi caption, %w", err)
 		}
 
 		opts.Caption = c

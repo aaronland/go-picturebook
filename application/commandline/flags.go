@@ -65,8 +65,7 @@ var target_uri string
 // A valid gocloud.dev/blob URI for where temporary picturebook-related images will be written to and read from.
 var tmpfile_uri string
 
-// FIX ME : WHAT IS THIS AGAIN?
-
+// A boolean flag indicating that, when necessary, an image should be rotated 90 degrees to use the most available page space.
 var fill_page bool
 
 // The base filename of the finished picturebook document.
@@ -84,8 +83,8 @@ var verbose bool
 // Boolean flag to signal that all the steps to create a picturebook should be taken but without creating a final picturebook document.
 var debug bool
 
-// A valid `caption.Caption` URI.
-var caption_uri string
+// Zero or more valid `caption.Caption` URIs.
+var caption_uris multi.MultiString
 
 // A valid `text.Text` URI.
 var text_uri string
@@ -99,8 +98,10 @@ var filter_uris multi.MultiString
 // One or more valid `process.Process` URIs.
 var process_uris multi.MultiString
 
+// A boolean flag indicating that the OCR-69 font should be used for text.
 var ocra_font bool
 
+// The maximum number of pages a picturebook can have.
 var max_pages int
 
 // formatSchemes takes a list of (scheme) strings and ensure that they are lower-cased and have a trailing "://" string.
@@ -147,7 +148,7 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	available_sorters_str := formatSchemesAsString(available_sorters)
 
 	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s.", available_filters_str)
-	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s.", available_captions_str)
+	desc_captions := fmt.Sprintf("Zero or more valid caption.Caption URIs. Valid schemes are: %s.", available_captions_str)
 	desc_texts := fmt.Sprintf("A valid text.Text URI. Valid schemes are: %s.", available_texts_str)
 	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s.", available_processes_str)
 	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s.", available_sorters_str)
@@ -179,7 +180,8 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.BoolVar(&even_only, "even-only", false, "Only include images on even-numbered pages.")
 	fs.BoolVar(&odd_only, "odd-only", false, "Only include images on odd-numbered pages.")
 
-	fs.StringVar(&caption_uri, "caption", "", desc_captions)
+	fs.Var(&caption_uris, "caption", desc_captions)
+
 	fs.StringVar(&text_uri, "text", "", desc_texts)
 
 	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
