@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	// "io"
 
 	// "github.com/mandykoh/prism/meta/autometa"
 	"github.com/aaronland/go-image/colour"
@@ -21,13 +20,20 @@ func init() {
 
 }
 
-// type ColourSpaceProcess implements the `Process` interface and applies a "ColourSpace" dithering transformation to an image.
+// type ColourSpaceProcess implements the `Process` interface to ensure that all the pixels in an image are mapped to a specific colour space.
 type ColourSpaceProcess struct {
 	Process
 	profile string
 }
 
-// NewColourSpaceProcess returns a new instance of `ColourSpaceProcess` for 'uri' which must be parsable as a valid `net/url` URL instance.
+// NewColourSpaceProcess returns a new instance of `ColourSpaceProcess` for 'uri' which is expected to take the form of:
+//
+//	colourspace://{PROFILE}
+//	colorspace://{PROFILE}
+//
+// Where {PROFILE} is one of the following:
+// * `displayp3` which maps pixels to Apple's Display P3 colour space
+// * `adobergb` which maps pixels to Adobe's RGB colour space
 func NewColourSpaceProcess(ctx context.Context, uri string) (Process, error) {
 
 	u, err := url.Parse(uri)
@@ -52,7 +58,7 @@ func NewColourSpaceProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-// Tranform applies a "ColourSpace" dithering tranformation to 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
+// Tranform maps all the pixels in the image located at 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
 // a new relative path on success.
 func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
 
@@ -63,24 +69,6 @@ func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket *blob.
 	}
 
 	defer r.Close()
-
-	// It won't matter because by now we will be working with a temp file that is missing profile info...
-
-	/*
-		profile, err := f.deriveColourSpace(ctx, r)
-
-		if err == nil {
-			log.Println("HELLO", profile)
-		} else {
-			log.Println("WUT", path, err)
-		}
-
-		_, err = r.Seek(0, 0)
-
-		if err != nil {
-			return "", fmt.Errorf("Failed to rewind reader for %s, %w", path, err)
-		}
-	*/
 
 	dec, err := decode.NewDecoder(ctx, path)
 
@@ -111,27 +99,3 @@ func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket *blob.
 
 	return tmpfile, nil
 }
-
-/*
-func (f *ColourSpaceProcess) deriveColourSpace(ctx context.Context, r io.Reader) (string, error) {
-
-	md, _, err := autometa.Load(r)
-
-	if err != nil {
-		return "", err
-	}
-
-	profile, err := md.ICCProfile()
-
-	if err != nil {
-		return "", err
-	}
-
-	if profile == nil {
-		return "", fmt.Errorf("Missing profile")
-	}
-
-	return profile.Description()
-
-}
-*/

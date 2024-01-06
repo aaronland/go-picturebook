@@ -161,6 +161,10 @@ This handler will return the filename for a given path of an image.
 
 This handler will assign captions derived from a JSON file that can be read from the local disk. The JSON file is expected to be a dictionary whose keys are the filenames of the images being included in the picturebook and whose values are a list of strings to use as caption text.
 
+#### modtime://
+
+This handler will assign captions derived from an image's modification time.
+
 #### none://
 
 The handler will return an empty string for all images.
@@ -212,6 +216,14 @@ type Process interface {
 For an example of how to create and register a custom `Process` handler take a look at the code in [process/halftone.go](process/halftone.go).
 
 The following schemes for process handlers are supported by default:
+
+#### colourspace://
+
+This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook.
+
+#### colorspace://
+
+This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook.
 
 #### halftone://
 
