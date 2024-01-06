@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aaronland/go-image/colour"	
+	"github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
@@ -905,7 +905,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			log.Println("COLOR ROTATE TO FILL")
 			new_im = colour.ToDisplayP3(new_im)
-			
+
 			im = new_im
 			dims = im.Bounds()
 

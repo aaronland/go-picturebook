@@ -6,9 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
-	"log"
-	
-	"github.com/aaronland/go-image/colour"	
+
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-picturebook/tempfile"
@@ -93,9 +91,6 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 		return "", fmt.Errorf("Failed to rotate %s, %w", path, err)
 	}
 
-	log.Println("COLOR ROTATE EXIF")	
-	rotated = colour.ToDisplayP3(rotated)
-	
 	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, rotated)
 
 	if err != nil {
