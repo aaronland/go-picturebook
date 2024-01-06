@@ -3,7 +3,7 @@ module github.com/aaronland/go-picturebook
 go 1.21
 
 require (
-	github.com/aaronland/go-image v1.2.2
+	github.com/aaronland/go-image v1.2.3
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
@@ -20,6 +20,8 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/mandykoh/go-parallel v0.1.0 // indirect
+	github.com/mandykoh/prism v0.35.2 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/whosonfirst/go-bindata-assetfs v1.0.1 // indirect
 	go.opencensus.io v0.24.0 // indirect

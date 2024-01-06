@@ -1,8 +1,9 @@
 # github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 ## explicit
 github.com/MaxHalford/halfgone
-# github.com/aaronland/go-image v1.2.2
+# github.com/aaronland/go-image v1.2.3
 ## explicit; go 1.20
+github.com/aaronland/go-image/colour
 github.com/aaronland/go-image/decode
 github.com/aaronland/go-image/encode
 github.com/aaronland/go-image/imaging
@@ -42,6 +43,21 @@ github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
 github.com/googleapis/gax-go/v2/callctx
 github.com/googleapis/gax-go/v2/internal
+# github.com/mandykoh/go-parallel v0.1.0
+## explicit; go 1.15
+github.com/mandykoh/go-parallel
+# github.com/mandykoh/prism v0.35.2
+## explicit; go 1.14
+github.com/mandykoh/prism
+github.com/mandykoh/prism/adobergb
+github.com/mandykoh/prism/cielab
+github.com/mandykoh/prism/ciexyy
+github.com/mandykoh/prism/ciexyz
+github.com/mandykoh/prism/displayp3
+github.com/mandykoh/prism/linear
+github.com/mandykoh/prism/linear/lut
+github.com/mandykoh/prism/matrix
+github.com/mandykoh/prism/srgb
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize

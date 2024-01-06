@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aaronland/go-image/colour"	
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
@@ -23,7 +24,6 @@ import (
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
-	// "github.com/rainycape/unidecode"
 	"github.com/sfomuseum/go-font-ocra"
 	"gocloud.dev/blob"
 )
@@ -903,6 +903,9 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 				return err
 			}
 
+			log.Println("COLOR ROTATE TO FILL")
+			new_im = colour.ToDisplayP3(new_im)
+			
 			im = new_im
 			dims = im.Bounds()
 
@@ -1142,13 +1145,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			// pb.PDF.Rect(txt_x, txt_y, txt_w, txt_h, "FD")
 
 			pb.PDF.SetXY(txt_x, txt_y)
-
-			// please account for lack of utf-8 support (20171128/thisisaaronland)
-			// https://github.com/jung-kurt/gofpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
-			// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
-			// txt = tr(txt)
-
-			// txt = unidecode.Unidecode(txt)
 
 			if pb.Options.Verbose {
 				log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
