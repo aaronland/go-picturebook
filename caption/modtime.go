@@ -18,13 +18,16 @@ func init() {
 	}
 }
 
-// type ModtimeCaption implements the `Caption` interface and derives caption text from image modtimes.
+// type ModtimeCaption implements the `Caption` interface and derives caption text from image modification times.
 type ModtimeCaption struct {
 	Caption
 	format string
 }
 
-// NewExifCaption return a new instance of `ModtimeCaption` for 'url'
+// NewExifCaption return a new instance of `ModtimeCaption` for 'url' which is expected to take
+// the form of:
+//
+// 	modtime://
 func NewModtimeCaption(ctx context.Context, uri string) (Caption, error) {
 
 	_, err := url.Parse(uri)
@@ -40,7 +43,7 @@ func NewModtimeCaption(ctx context.Context, uri string) (Caption, error) {
 	return c, nil
 }
 
-// Text returns a caption string derived from the base name of 'path'
+// Text returns a caption string derived from the modification time of 'path'
 func (c *ModtimeCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
 
 	attrs, err := bucket.Attributes(ctx, path)
