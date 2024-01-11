@@ -225,6 +225,17 @@ This handler will map all the pixels in an image to a given colour space (Apple'
 
 This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook.
 
+#### contour://
+
+...
+
+##### Parameters
+
+| Name | Value | Required | Default |
+| --- | --- | --- | --- |
+| iterations | ... | no | 4 |
+| scale | ... | no | 1.0 |
+
 #### halftone://
 
 This handler will dither (halftone) an image before including it in your picturebook.
