@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/aaronland/gocloud-blob/bucket"	
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -101,19 +102,19 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		return fmt.Errorf("Failed to ensure ?metadata=skip for tmpfile URI %s, %w", tmpfile_uri, err)
 	}
 
-	source_bucket, err := blob.OpenBucket(ctx, source_uri)
+	source_bucket, err := bucket.OpenBucket(ctx, source_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open source bucket, %w", err)
 	}
 
-	target_bucket, err := blob.OpenBucket(ctx, target_uri)
+	target_bucket, err := bucket.OpenBucket(ctx, target_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open target bucket, %w", err)
 	}
 
-	tmpfile_bucket, err := blob.OpenBucket(ctx, tmpfile_uri)
+	tmpfile_bucket, err := bucket.OpenBucket(ctx, tmpfile_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)

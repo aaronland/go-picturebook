@@ -7,6 +7,7 @@ require (
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
+	github.com/aaronland/gocloud-blob v0.0.14
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/google/uuid v1.5.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -24,6 +25,7 @@ require (
 	github.com/mandykoh/prism v0.35.2 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/whosonfirst/go-bindata-assetfs v1.0.1 // indirect
+	github.com/whosonfirst/go-ioutil v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
