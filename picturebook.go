@@ -59,9 +59,9 @@ type PictureBookOptions struct {
 	MarginRight float64
 	// An optional `filter.Filter` instance used to determine whether or not an image should be included in the final picturebook.
 	Filter filter.Filter
-	// An optional `process.Process` instance used to transform images for being included in the final picturebook.
+	// Zero or more optional `process.Process` instance used to transform images being included in the final picturebook.
 	PreProcess process.Process
-	// ...
+	// Zero or more optional `process.Process` instance used to transform images after having been rotated to fill the page and before being included in the final picturebook.
 	RotateToFillPostProcess process.Process	
 	// An optional `caption.Caption` instance used to derive a caption string for each image added to the final picturebook.
 	Caption              caption.Caption

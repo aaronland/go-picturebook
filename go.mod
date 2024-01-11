@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/aaronland/go-image v1.2.3
+	github.com/aaronland/go-image-contour v1.0.2
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
@@ -18,6 +19,10 @@ require (
 
 require (
 	github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb // indirect
+	github.com/fogleman/colormap v0.0.0-20180829212827-f273ae61505a // indirect
+	github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199 // indirect
+	github.com/fogleman/gg v1.3.0 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
@@ -27,6 +32,7 @@ require (
 	github.com/whosonfirst/go-bindata-assetfs v1.0.1 // indirect
 	github.com/whosonfirst/go-ioutil v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/image v0.12.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

@@ -9,6 +9,9 @@ github.com/aaronland/go-image/encode
 github.com/aaronland/go-image/imaging
 github.com/aaronland/go-image/rotate
 github.com/aaronland/go-image/transform
+# github.com/aaronland/go-image-contour v1.0.2
+## explicit; go 1.20
+github.com/aaronland/go-image-contour
 # github.com/aaronland/go-image-halftone v0.1.0
 ## explicit; go 1.18
 github.com/aaronland/go-image-halftone
@@ -22,9 +25,22 @@ github.com/aaronland/go-roster
 # github.com/aaronland/gocloud-blob v0.0.14
 ## explicit; go 1.18
 github.com/aaronland/gocloud-blob/bucket
+# github.com/fogleman/colormap v0.0.0-20180829212827-f273ae61505a
+## explicit
+github.com/fogleman/colormap
+# github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199
+## explicit
+github.com/fogleman/contourmap
+# github.com/fogleman/gg v1.3.0
+## explicit
+github.com/fogleman/gg
 # github.com/go-pdf/fpdf v0.9.0
 ## explicit; go 1.20
 github.com/go-pdf/fpdf
+# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+## explicit
+github.com/golang/freetype/raster
+github.com/golang/freetype/truetype
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
@@ -111,6 +127,13 @@ gocloud.dev/internal/gcerr
 gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
 gocloud.dev/internal/retry
+# golang.org/x/image v0.12.0
+## explicit; go 1.12
+golang.org/x/image/draw
+golang.org/x/image/font
+golang.org/x/image/font/basicfont
+golang.org/x/image/math/f64
+golang.org/x/image/math/fixed
 # golang.org/x/net v0.18.0
 ## explicit; go 1.18
 golang.org/x/net/http/httpguts
