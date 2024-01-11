@@ -27,7 +27,7 @@ type ModtimeCaption struct {
 // NewExifCaption return a new instance of `ModtimeCaption` for 'url' which is expected to take
 // the form of:
 //
-// 	modtime://
+//	modtime://
 func NewModtimeCaption(ctx context.Context, uri string) (Caption, error) {
 
 	_, err := url.Parse(uri)

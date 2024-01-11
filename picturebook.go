@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aaronland/go-image/colour"
+	// "github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
@@ -61,8 +61,10 @@ type PictureBookOptions struct {
 	Filter filter.Filter
 	// An optional `process.Process` instance used to transform images for being included in the final picturebook.
 	PreProcess process.Process
+	// ...
+	RotateToFillPostProcess process.Process	
 	// An optional `caption.Caption` instance used to derive a caption string for each image added to the final picturebook.
-	Caption caption.Caption
+	Caption              caption.Caption
 	// An optional `text.Text` instance used to derive a text string for each image added to the final picturebook.
 	Text text.Text
 	// An optional `sort.Sorter` instance used to sort images before they are added to the final picturebook.
@@ -903,8 +905,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 				return err
 			}
 
-			log.Println("COLOR ROTATE TO FILL")
-			new_im = colour.ToDisplayP3(new_im)
+			// new_im = colour.ToDisplayP3(new_im)
 
 			im = new_im
 			dims = im.Bounds()
@@ -918,6 +919,15 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			if err != nil {
 				return fmt.Errorf("Failed to create temporary file (rotate to fill) for %s, %w", abs_path, err)
+			}
+
+			if pb.Options.RotateToFillPostProcess != nil {
+
+				tmpfile_path, err = pb.Options.RotateToFillPostProcess.Transform(ctx, pb.Options.Temporary, pb.Options.Temporary, tmpfile_path)
+
+				if err != nil {
+					return fmt.Errorf("Failed to apply colour space transformations to temporary file (rotate to fill), %w", err)
+				}
 			}
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)

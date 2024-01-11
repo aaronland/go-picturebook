@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/caption"
@@ -196,16 +197,21 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 	if len(process_uris) > 0 {
 
 		processes := make([]process.Process, len(process_uris))
+		rotatetofill_processes := make([]process.Process, 0)
 
 		for idx, process_uri := range process_uris {
 
-			f, err := process.NewProcess(ctx, process_uri)
+			pr, err := process.NewProcess(ctx, process_uri)
 
 			if err != nil {
 				return fmt.Errorf("Failed to create process '%s', %w", process_uri, err)
 			}
 
-			processes[idx] = f
+			processes[idx] = pr
+
+			if strings.HasPrefix(process_uri, "colorspace://") || strings.HasPrefix(process_uri, "colourspace://") {
+				rotatetofill_processes = append(rotatetofill_processes, pr)
+			}
 		}
 
 		multi, err := process.NewMultiProcess(ctx, processes...)
@@ -215,6 +221,17 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 		}
 
 		opts.PreProcess = multi
+
+		if len(rotatetofill_processes) > 0 {
+
+			rotatetofill_multi, err := process.NewMultiProcess(ctx, rotatetofill_processes...)
+
+			if err != nil {
+				return fmt.Errorf("Failed to create multi process for rotate to fill post processing, %w", err)
+			}
+
+			opts.RotateToFillPostProcess = rotatetofill_multi
+		}
 	}
 
 	if len(caption_uris) > 0 {
