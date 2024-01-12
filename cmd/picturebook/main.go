@@ -3,7 +3,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/aaronland/go-picturebook/application/commandline"
@@ -13,12 +13,13 @@ import (
 func main() {
 
 	ctx := context.Background()
-	logger := log.Default()
+	logger := slog.Default()
 
 	err := commandline.Run(ctx, logger)
 
 	if err != nil {
-		logger.Fatalf("Failed to run picturebook application, %v", err)
+		logger.Error("Failed to run picturebook application, %v", err)
+		os.Exit(1)
 	}
 
 	os.Exit(0)

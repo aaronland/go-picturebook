@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	// "github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
