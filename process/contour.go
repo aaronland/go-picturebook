@@ -42,7 +42,7 @@ func NewContourProcess(ctx context.Context, uri string) (Process, error) {
 
 	q := u.Query()
 
-	iterations := 4
+	iterations := 12
 	scale := 1.0
 	
 	str_iterations := q.Get("iterations")
