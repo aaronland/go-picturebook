@@ -25,8 +25,8 @@ $> ./bin/picturebook -h
     	An additional bleed area to add (on all four sides) to the size of your picturebook.
   -border float
     	The size of the border around images. (default 0.01)
-  -caption string
-    	A valid caption.Caption URI. Valid schemes are: exif://, filename://, none://.
+  -caption value
+    	Zero or more valid caption.Caption URIs. Valid schemes are: exif://, filename://, json://, modtime://, multi://, none://.
   -dpi float
     	The DPI (dots per inch) resolution for your picturebook. (default 150)
   -even-only
@@ -34,7 +34,7 @@ $> ./bin/picturebook -h
   -filename string
     	The filename (path) for your picturebook. (default "picturebook.pdf")
   -fill-page
-    	If necessary rotate image 90 degrees to use the most available page space.
+    	If necessary rotate image 90 degrees to use the most available page space. Note that any '-process' flags involving colour space manipulation will automatically be applied to images after they have been rotated.
   -filter value
     	A valid filter.Filter URI. Valid schemes are: any://, regexp://.
   -height float
@@ -50,7 +50,7 @@ $> ./bin/picturebook -h
   -margin-top float
     	The margin around the top of each page. (default 1)
   -max-pages int
-    	An optional value to indicate that a picturebook should not exceed this number of pages	
+    	An optional value to indicate that a picturebook should not exceed this number of pages
   -ocra-font
     	Use an OCR-compatible font for captions.
   -odd-only
@@ -58,7 +58,7 @@ $> ./bin/picturebook -h
   -orientation string
     	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
   -process value
-    	A valid process.Process URI. Valid schemes are: halftone://, null://, rotate://.
+    	A valid process.Process URI. Valid schemes are: colorspace://, colourspace://, contour://, halftone://, null://, rotate://.
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid". (default "letter")
   -sort string
@@ -67,6 +67,8 @@ $> ./bin/picturebook -h
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
   -target-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' where applicable.
+  -text string
+    	A valid text.Text URI. Valid schemes are: json://.
   -tmpfile-uri string
     	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty the operating system's temporary directory will be used.
   -units string
