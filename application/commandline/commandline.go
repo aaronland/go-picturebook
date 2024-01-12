@@ -12,13 +12,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aaronland/gocloud-blob/bucket"	
 	"github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/text"
+	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/sfomuseum/go-flags/flagset"
 	"gocloud.dev/blob"
 )

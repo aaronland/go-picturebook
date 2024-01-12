@@ -62,9 +62,9 @@ type PictureBookOptions struct {
 	// Zero or more optional `process.Process` instance used to transform images being included in the final picturebook.
 	PreProcess process.Process
 	// Zero or more optional `process.Process` instance used to transform images after having been rotated to fill the page and before being included in the final picturebook.
-	RotateToFillPostProcess process.Process	
+	RotateToFillPostProcess process.Process
 	// An optional `caption.Caption` instance used to derive a caption string for each image added to the final picturebook.
-	Caption              caption.Caption
+	Caption caption.Caption
 	// An optional `text.Text` instance used to derive a text string for each image added to the final picturebook.
 	Text text.Text
 	// An optional `sort.Sorter` instance used to sort images before they are added to the final picturebook.
@@ -1028,11 +1028,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 		if w <= max_w && h <= max_h {
 			break
-
-			if h < max_h {
-				h = max_h
-			}
-
 		}
 	}
 

@@ -219,22 +219,36 @@ The following schemes for process handlers are supported by default:
 
 #### colourspace://
 
-This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook.
+This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook. URIs should take the form of `colourspace://{{LABEL}.
+
+##### Labels
+
+| Name | Description |
+| --- | --- |
+| adobergb | Convert all pixels in to the Adobe RGB colour space |
+| displayp3 | Convert all pixels in to Apple's Display P3 colour space |
 
 #### colorspace://
 
-This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook.
+This handler will map all the pixels in an image to a given colour space (Apple's Display P3, Adobe RGB) before including it in your picturebook. URIs should take the form of `colorspace://{{LABEL}.
+
+##### Labels
+
+| Name | Description |
+| --- | --- |
+| adobergb | Convert all pixels in to the Adobe RGB colour space |
+| displayp3 | Convert all pixels in to Apple's Display P3 colour space |
 
 #### contour://
 
-...
+This handler will convert an image into a series of black and white "contour" lines using the [fogleman/contourmap](https://github.com/fogleman/contourmap) package. URIs should take the form of `contour://?{PARAMETERS}`.
 
 ##### Parameters
 
 | Name | Value | Required | Default |
 | --- | --- | --- | --- |
-| iterations | ... | no | 4 |
-| scale | ... | no | 1.0 |
+| iterations | The number of iterations to perform during the contour process | no | 12 |
+| scale | The scale of the final contoured image | no | 1.0 |
 
 #### halftone://
 

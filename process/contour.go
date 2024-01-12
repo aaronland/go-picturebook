@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-	"strings"
 	"strconv"
-	
-	"github.com/aaronland/go-image/decode"
+	"strings"
+
 	"github.com/aaronland/go-image-contour"
+	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"gocloud.dev/blob"
 )
@@ -24,14 +24,20 @@ func init() {
 	}
 }
 
-// type ContourProcess implements the `Process` interface and contours and image based on its EXIF `Orientation` property.
+// type ContourProcess implements the `Process` interface and transforms an image in to a series of black and white "contour" lines.
 type ContourProcess struct {
 	Process
 	iterations int
-	scale float64
+	scale      float64
 }
 
 // NewContourProcess returns a new instance of `ContourProcess` for 'uri' which must be parsable as a valid `net/url` URL instance.
+//
+//	contour://?{PARAMETERS}
+//
+// Where valid parameters are:
+// * `iterations` The number of iterations to perform during the contour process. Default is 12.
+// * `scale` The scale of the final contoured image. Default is 1.0.
 func NewContourProcess(ctx context.Context, uri string) (Process, error) {
 
 	u, err := url.Parse(uri)
@@ -44,7 +50,7 @@ func NewContourProcess(ctx context.Context, uri string) (Process, error) {
 
 	iterations := 12
 	scale := 1.0
-	
+
 	str_iterations := q.Get("iterations")
 	str_scale := q.Get("scale")
 
@@ -67,10 +73,10 @@ func NewContourProcess(ctx context.Context, uri string) (Process, error) {
 
 		scale = v
 	}
-	
+
 	f := &ContourProcess{
 		iterations: iterations,
-		scale: scale,
+		scale:      scale,
 	}
 
 	return f, nil
@@ -112,7 +118,7 @@ func (f *ContourProcess) Transform(ctx context.Context, source_bucket *blob.Buck
 	if err != nil {
 		return "", fmt.Errorf("Failed to contour image for %s, %w", path, err)
 	}
-	
+
 	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, contoured_im)
 
 	if err != nil {
