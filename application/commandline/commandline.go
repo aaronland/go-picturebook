@@ -10,223 +10,40 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	gosort "sort"
 	"strings"
 
 	"github.com/aaronland/go-picturebook"
-	"github.com/aaronland/go-picturebook/application"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/aaronland/go-picturebook/text"
+	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/sfomuseum/go-flags/flagset"
-	"github.com/sfomuseum/go-flags/multi"
 	"gocloud.dev/blob"
 )
 
 // Regular expression for validating filter and caption URIs.
 var uri_re *regexp.Regexp
 
-// String label defining the orientation of picturebook PDF files. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.
-var orientation string
-
-// A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".
-var size string
-
-// A width height to use as the size for a picturebook PDF file.
-var width float64
-
-// A custom height to use as the size for a picturebook PDF file.
-var height float64
-
-// The unit of measurement to apply to the height and width of a picturebook PDF file.
-var units string
-
-// The "dots per inch" (DPI) resolution for a picturebook PDF file.
-var dpi float64
-
-// The size of the border to apply to each image in a picturebook PDF file.
-var border float64
-
-// The size of the margin to be applied to all sides of a picturebook.
-var margin float64
-
-// The size of the top margin for a picturebook.
-var margin_top float64
-
-// The size of the bottom margin for a picturebook.
-var margin_bottom float64
-
-// The size of the left margin for a picturebook.
-var margin_left float64
-
-// The size of the right margin for a picturebook.
-var margin_right float64
-
-// The size of an exterior "bleed" margin for a picturebook.
-var bleed float64
-
-// A valid gocloud.dev/blob URI for where source input images are read from.
-var source_uri string
-
-// A valid gocloud.dev/blob URI for where the final picturebook file will be written to.
-var target_uri string
-
-// A valid gocloud.dev/blob URI for where temporary picturebook-related images will be written to and read from.
-var tmpfile_uri string
-
-// FIX ME : WHAT IS THIS AGAIN?
-
-var fill_page bool
-
-// The base filename of the finished picturebook document.
-var filename string
-
-// Boolean flag to indicate that images should only be included on even-numbered pages.
-var even_only bool
-
-// Boolean flag to indicate that images should only be included on odd-numbered pages.
-var odd_only bool
-
-// Boolean flag to signal verbose logging during the creation of a picturebook.
-var verbose bool
-
-// Boolean flag to signal that all the steps to create a picturebook should be taken but without creating a final picturebook document.
-var debug bool
-
-// A valid `caption.Caption` URI.
-var caption_uri string
-
-// A valid `sort.Sorter` URI.
-var sort_uri string
-
-// One or more valid `filter.Filter` URIs.
-var filter_uris multi.MultiString
-
-// One or more valid `process.Process` URIs.
-var process_uris multi.MultiString
-
-var ocra_font bool
-
-var max_pages int
-
 func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
-// type CommandLineApplication implements the `application.Application' interface for creating picturebooks from the command line.
-type CommandLineApplication struct {
-	application.Application
-	flagset *flag.FlagSet
-}
+func Run(ctx context.Context, logger *log.Logger) error {
 
-// formatSchemes takes a list of (scheme) strings and ensure that they are lower-cased and have a trailing "://" string.
-func formatSchemes(schemes []string) []string {
+	fs, err := DefaultFlagSet(ctx)
 
-	for idx, scheme := range schemes {
-		scheme = strings.ToLower(scheme)
-		scheme = fmt.Sprintf("%s://", scheme)
-		schemes[idx] = scheme
+	if err != nil {
+		return fmt.Errorf("Failed to create default flag set, %w", err)
 	}
 
-	gosort.Strings(schemes)
-
-	return schemes
+	return RunWithFlagSet(ctx, fs, logger)
 }
 
-// formatSchemesAsString takes a list of strings and returns a single comma-separated string.
-func formatSchemesAsString(schemes []string) string {
-	schemes = formatSchemes(schemes)
-	return strings.Join(schemes, ", ")
-}
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
 
-// DefaultFlagSet returns a `flag.FlagSet` with required flags and default values for a `CommandLineApplication` instance.
-func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
-
-	fs := flagset.NewFlagSet("picturebook")
-
-	available_buckets := blob.DefaultURLMux().BucketSchemes()
-	available_buckets_str := formatSchemesAsString(available_buckets)
-
-	available_filters := filter.AvailableFilters()
-	available_filters_str := formatSchemesAsString(available_filters)
-
-	available_captions := caption.AvailableCaptions()
-	available_captions_str := formatSchemesAsString(available_captions)
-
-	available_processes := process.AvailableProcesses()
-	available_processes_str := formatSchemesAsString(available_processes)
-
-	available_sorters := sort.AvailableSorters()
-	available_sorters_str := formatSchemesAsString(available_sorters)
-
-	desc_filters := fmt.Sprintf("A valid filter.Filter URI. Valid schemes are: %s.", available_filters_str)
-	desc_captions := fmt.Sprintf("A valid caption.Caption URI. Valid schemes are: %s.", available_captions_str)
-	desc_processes := fmt.Sprintf("A valid process.Process URI. Valid schemes are: %s.", available_processes_str)
-	desc_sorters := fmt.Sprintf("A valid sort.Sorter URI. Valid schemes are: %s.", available_sorters_str)
-
-	desc_buckets := fmt.Sprintf("A valid GoCloud blob URI to specify where files should be read from. Available schemes are: %s. If no URI scheme is included then the file:// scheme is assumed.", available_buckets_str)
-
-	fs.StringVar(&orientation, "orientation", "P", "The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively.")
-	fs.StringVar(&size, "size", "letter", `A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid".`)
-	fs.Float64Var(&width, "width", 0.0, "A custom height to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -height flag.")
-	fs.Float64Var(&height, "height", 0.0, "A custom width to use as the size of your picturebook. Units are defined in inches by default. This flag overrides the -size flag when used in combination with the -width flag.")
-	fs.StringVar(&units, "units", "inches", "The unit of measurement to apply to the -height and -width flags. Valid options are inches, millimeters, centimeters")
-	fs.Float64Var(&dpi, "dpi", 150, "The DPI (dots per inch) resolution for your picturebook.")
-	fs.Float64Var(&border, "border", 0.01, "The size of the border around images.")
-
-	fs.Float64Var(&margin_top, "margin-top", 1.0, "The margin around the top of each page.")
-	fs.Float64Var(&margin_bottom, "margin-bottom", 1.0, "The margin around the bottom of each page.")
-	fs.Float64Var(&margin_left, "margin-left", 1.0, "The margin around the left-hand side of each page.")
-	fs.Float64Var(&margin_right, "margin-right", 1.0, "The margin around the right-hand side of each page.")
-	fs.Float64Var(&margin, "margin", 0.0, "The margin around all sides of a page. If non-zero this value will be used to populate all the other -margin-(N) flags.")
-
-	fs.Float64Var(&bleed, "bleed", 0.0, "An additional bleed area to add (on all four sides) to the size of your picturebook.")
-
-	fs.BoolVar(&fill_page, "fill-page", false, "If necessary rotate image 90 degrees to use the most available page space.")
-
-	fs.StringVar(&filename, "filename", "picturebook.pdf", "The filename (path) for your picturebook.")
-
-	fs.BoolVar(&verbose, "verbose", false, "Display verbose output as the picturebook is created.")
-
-	fs.BoolVar(&even_only, "even-only", false, "Only include images on even-numbered pages.")
-	fs.BoolVar(&odd_only, "odd-only", false, "Only include images on odd-numbered pages.")
-
-	fs.StringVar(&caption_uri, "caption", "", desc_captions)
-	fs.StringVar(&sort_uri, "sort", "", desc_sorters)
-
-	fs.BoolVar(&ocra_font, "ocra-font", false, "Use an OCR-compatible font for captions.")
-
-	fs.Var(&filter_uris, "filter", desc_filters)
-	fs.Var(&process_uris, "process", desc_processes)
-
-	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
-
-	desc_buckets_target := fmt.Sprintf("%s If empty then the code will try to use the operating system's 'current working directory' where applicable.", desc_buckets)
-	fs.StringVar(&target_uri, "target-uri", "", desc_buckets_target)
-
-	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
-	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
-
-	fs.IntVar(&max_pages, "max-pages", 0, "An optional value to indicate that a picturebook should not exceed this number of pages")
-
-	return fs, nil
-}
-
-// NewApplication returns a new instance of `CommandLineApplication`.
-func NewApplication(ctx context.Context, fs *flag.FlagSet) (application.Application, error) {
-
-	app := &CommandLineApplication{
-		flagset: fs,
-	}
-
-	return app, nil
-}
-
-// Run executes the `CommandLineApplication` picturebook application.
-func (app *CommandLineApplication) Run(ctx context.Context) error {
-
-	flagset.Parse(app.flagset)
+	flagset.Parse(fs)
 
 	if tmpfile_uri == "" {
 
@@ -285,19 +102,19 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		return fmt.Errorf("Failed to ensure ?metadata=skip for tmpfile URI %s, %w", tmpfile_uri, err)
 	}
 
-	source_bucket, err := blob.OpenBucket(ctx, source_uri)
+	source_bucket, err := bucket.OpenBucket(ctx, source_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open source bucket, %w", err)
 	}
 
-	target_bucket, err := blob.OpenBucket(ctx, target_uri)
+	target_bucket, err := bucket.OpenBucket(ctx, target_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open target bucket, %w", err)
 	}
 
-	tmpfile_bucket, err := blob.OpenBucket(ctx, tmpfile_uri)
+	tmpfile_bucket, err := bucket.OpenBucket(ctx, tmpfile_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)
@@ -381,16 +198,21 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 	if len(process_uris) > 0 {
 
 		processes := make([]process.Process, len(process_uris))
+		rotatetofill_processes := make([]process.Process, 0)
 
 		for idx, process_uri := range process_uris {
 
-			f, err := process.NewProcess(ctx, process_uri)
+			pr, err := process.NewProcess(ctx, process_uri)
 
 			if err != nil {
 				return fmt.Errorf("Failed to create process '%s', %w", process_uri, err)
 			}
 
-			processes[idx] = f
+			processes[idx] = pr
+
+			if strings.HasPrefix(process_uri, "colorspace://") || strings.HasPrefix(process_uri, "colourspace://") {
+				rotatetofill_processes = append(rotatetofill_processes, pr)
+			}
 		}
 
 		multi, err := process.NewMultiProcess(ctx, processes...)
@@ -400,21 +222,66 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		}
 
 		opts.PreProcess = multi
+
+		if len(rotatetofill_processes) > 0 {
+
+			rotatetofill_multi, err := process.NewMultiProcess(ctx, rotatetofill_processes...)
+
+			if err != nil {
+				return fmt.Errorf("Failed to create multi process for rotate to fill post processing, %w", err)
+			}
+
+			opts.RotateToFillPostProcess = rotatetofill_multi
+		}
 	}
 
-	if caption_uri != "" {
+	if len(caption_uris) > 0 {
 
-		if !uri_re.MatchString(caption_uri) {
-			caption_uri = fmt.Sprintf("%s://", caption_uri)
+		captions := make([]caption.Caption, len(caption_uris))
+
+		for idx, c_uri := range caption_uris {
+
+			if !uri_re.MatchString(c_uri) {
+				c_uri = fmt.Sprintf("%s://", c_uri)
+			}
+
+			c, err := caption.NewCaption(ctx, c_uri)
+
+			if err != nil {
+				return fmt.Errorf("Failed to create new caption for '%s', %w", c_uri, err)
+			}
+
+			captions[idx] = c
 		}
 
-		c, err := caption.NewCaption(ctx, caption_uri)
+		c_opts := &caption.MultiCaptionOptions{
+			Captions:   captions,
+			Combined:   false,
+			AllowEmpty: true,
+		}
+
+		c, err := caption.NewMultiCaptionWithOptions(ctx, c_opts)
 
 		if err != nil {
-			return fmt.Errorf("Failed to create new caption, %w", err)
+			return fmt.Errorf("Failed to create multi caption, %w", err)
 		}
 
 		opts.Caption = c
+	}
+
+	if text_uri != "" {
+
+		if !uri_re.MatchString(text_uri) {
+			text_uri = fmt.Sprintf("%s://", text_uri)
+		}
+
+		t, err := text.NewText(ctx, text_uri)
+
+		if err != nil {
+			return fmt.Errorf("Failed to create new text, %w", err)
+		}
+
+		opts.Text = t
 	}
 
 	if sort_uri != "" {
@@ -428,7 +295,7 @@ func (app *CommandLineApplication) Run(ctx context.Context) error {
 		opts.Sort = s
 	}
 
-	sources := app.flagset.Args()
+	sources := fs.Args()
 
 	if len(sources) == 0 {
 

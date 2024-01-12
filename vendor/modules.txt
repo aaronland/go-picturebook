@@ -1,13 +1,17 @@
 # github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 ## explicit
 github.com/MaxHalford/halfgone
-# github.com/aaronland/go-image v1.2.2
+# github.com/aaronland/go-image v1.2.3
 ## explicit; go 1.20
+github.com/aaronland/go-image/colour
 github.com/aaronland/go-image/decode
 github.com/aaronland/go-image/encode
 github.com/aaronland/go-image/imaging
 github.com/aaronland/go-image/rotate
 github.com/aaronland/go-image/transform
+# github.com/aaronland/go-image-contour v1.0.2
+## explicit; go 1.20
+github.com/aaronland/go-image-contour
 # github.com/aaronland/go-image-halftone v0.1.0
 ## explicit; go 1.18
 github.com/aaronland/go-image-halftone
@@ -18,6 +22,25 @@ github.com/aaronland/go-mimetypes/lookup
 # github.com/aaronland/go-roster v1.0.0
 ## explicit; go 1.16
 github.com/aaronland/go-roster
+# github.com/aaronland/gocloud-blob v0.0.14
+## explicit; go 1.18
+github.com/aaronland/gocloud-blob/bucket
+# github.com/fogleman/colormap v0.0.0-20180829212827-f273ae61505a
+## explicit
+github.com/fogleman/colormap
+# github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199
+## explicit
+github.com/fogleman/contourmap
+# github.com/fogleman/gg v1.3.0
+## explicit
+github.com/fogleman/gg
+# github.com/go-pdf/fpdf v0.9.0
+## explicit; go 1.20
+github.com/go-pdf/fpdf
+# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+## explicit
+github.com/golang/freetype/raster
+github.com/golang/freetype/truetype
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
@@ -29,24 +52,34 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/uuid v1.3.0
+# github.com/google/uuid v1.5.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/gax-go/v2 v2.11.0
+# github.com/googleapis/gax-go/v2 v2.12.0
 ## explicit; go 1.19
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
+github.com/googleapis/gax-go/v2/callctx
 github.com/googleapis/gax-go/v2/internal
-# github.com/jung-kurt/gofpdf v1.16.2
-## explicit; go 1.12
-github.com/jung-kurt/gofpdf
+# github.com/mandykoh/go-parallel v0.1.0
+## explicit; go 1.15
+github.com/mandykoh/go-parallel
+# github.com/mandykoh/prism v0.35.2
+## explicit; go 1.14
+github.com/mandykoh/prism
+github.com/mandykoh/prism/adobergb
+github.com/mandykoh/prism/cielab
+github.com/mandykoh/prism/ciexyy
+github.com/mandykoh/prism/ciexyz
+github.com/mandykoh/prism/displayp3
+github.com/mandykoh/prism/linear
+github.com/mandykoh/prism/linear/lut
+github.com/mandykoh/prism/matrix
+github.com/mandykoh/prism/srgb
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
-# github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
-## explicit
-github.com/rainycape/unidecode
 # github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 ## explicit
 github.com/rwcarlsen/goexif/exif
@@ -63,6 +96,9 @@ github.com/sfomuseum/go-font-ocra/fonts
 # github.com/whosonfirst/go-bindata-assetfs v1.0.1
 ## explicit; go 1.12
 github.com/whosonfirst/go-bindata-assetfs
+# github.com/whosonfirst/go-ioutil v1.0.2
+## explicit; go 1.16
+github.com/whosonfirst/go-ioutil
 # go.opencensus.io v0.24.0
 ## explicit; go 1.13
 go.opencensus.io
@@ -80,8 +116,8 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# gocloud.dev v0.30.0
-## explicit; go 1.12
+# gocloud.dev v0.36.0
+## explicit; go 1.20
 gocloud.dev/blob
 gocloud.dev/blob/driver
 gocloud.dev/blob/fileblob
@@ -91,38 +127,45 @@ gocloud.dev/internal/gcerr
 gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
 gocloud.dev/internal/retry
-# golang.org/x/net v0.11.0
-## explicit; go 1.17
+# golang.org/x/image v0.12.0
+## explicit; go 1.12
+golang.org/x/image/draw
+golang.org/x/image/font
+golang.org/x/image/font/basicfont
+golang.org/x/image/math/f64
+golang.org/x/image/math/fixed
+# golang.org/x/net v0.18.0
+## explicit; go 1.18
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.9.0
-## explicit; go 1.17
+# golang.org/x/sys v0.15.0
+## explicit; go 1.18
 golang.org/x/sys/unix
-# golang.org/x/text v0.10.0
-## explicit; go 1.17
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
-## explicit; go 1.17
+# golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
+## explicit; go 1.18
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.128.0
+# google.golang.org/api v0.151.0
 ## explicit; go 1.19
 google.golang.org/api/googleapi
 google.golang.org/api/internal/third_party/uritemplates
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
 ## explicit; go 1.19
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.56.0
-## explicit; go 1.17
+# google.golang.org/grpc v1.59.0
+## explicit; go 1.19
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -152,6 +195,7 @@ google.golang.org/grpc/internal/grpclog
 google.golang.org/grpc/internal/grpcrand
 google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
+google.golang.org/grpc/internal/idle
 google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/resolver
@@ -171,7 +215,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.30.0
+# google.golang.org/protobuf v1.31.0
 ## explicit; go 1.11
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext

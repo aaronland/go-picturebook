@@ -18,6 +18,9 @@
 //
 // See https://gocloud.dev/howto/blob/ for a detailed how-to guide.
 //
+// *blob.Bucket implements io/fs.FS and io/fs.SubFS, so it can be used with
+// functions in that package.
+//
 // # Errors
 //
 // The errors returned from this package can be inspected in several ways:
@@ -233,6 +236,18 @@ func (r *Reader) As(i interface{}) bool {
 //
 // It implements the io.WriterTo interface.
 func (r *Reader) WriteTo(w io.Writer) (int64, error) {
+	// If the writer has a ReaderFrom method, use it to do the copy.
+	// Don't do this for our own *Writer to avoid infinite recursion.
+	// Avoids an allocation and a copy.
+	switch w.(type) {
+	case *Writer:
+	default:
+		if rf, ok := w.(io.ReaderFrom); ok {
+			n, err := rf.ReadFrom(r)
+			return n, err
+		}
+	}
+
 	_, nw, err := readFromWriteTo(r, w)
 	return nw, err
 }
@@ -476,6 +491,18 @@ func (w *Writer) write(p []byte) (int, error) {
 //
 // It implements the io.ReaderFrom interface.
 func (w *Writer) ReadFrom(r io.Reader) (int64, error) {
+	// If the reader has a WriteTo method, use it to do the copy.
+	// Don't do this for our own *Reader to avoid infinite recursion.
+	// Avoids an allocation and a copy.
+	switch r.(type) {
+	case *Reader:
+	default:
+		if wt, ok := r.(io.WriterTo); ok {
+			n, err := wt.WriteTo(w)
+			return n, err
+		}
+	}
+
 	nr, _, err := readFromWriteTo(r, w)
 	return nr, err
 }
@@ -611,6 +638,11 @@ func (o *ListObject) As(i interface{}) bool {
 type Bucket struct {
 	b      driver.Bucket
 	tracer *oc.Tracer
+
+	// ioFSCallback is set via SetIOFSCallback, which must be
+	// called before calling various functions implementing interfaces
+	// from the io/fs package.
+	ioFSCallback func() (context.Context, *ReaderOptions)
 
 	// mu protects the closed variable.
 	// Read locks are kept to allow holding a read lock for long-running calls,
@@ -1106,13 +1138,16 @@ func (b *Bucket) NewWriter(ctx context.Context, key string, opts *WriterOptions)
 		md5hash:          md5.New(),
 		statsTagMutators: []tag.Mutator{tag.Upsert(oc.ProviderKey, b.tracer.Provider)},
 	}
-	if opts.ContentType != "" {
-		t, p, err := mime.ParseMediaType(opts.ContentType)
-		if err != nil {
-			cancel()
-			return nil, err
+	if opts.ContentType != "" || opts.DisableContentTypeDetection {
+		var ct string
+		if opts.ContentType != "" {
+			t, p, err := mime.ParseMediaType(opts.ContentType)
+			if err != nil {
+				cancel()
+				return nil, err
+			}
+			ct = mime.FormatMediaType(t, p)
 		}
-		ct := mime.FormatMediaType(t, p)
 		dw, err := b.b.NewTypedWriter(ctx, key, ct, dopts)
 		if err != nil {
 			cancel()
@@ -1347,8 +1382,17 @@ type WriterOptions struct {
 	// ContentType specifies the MIME type of the blob being written. If not set,
 	// it will be inferred from the content using the algorithm described at
 	// http://mimesniff.spec.whatwg.org/.
+	// Set DisableContentTypeDetection to true to disable the above and force
+	// the ContentType to stay empty.
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 	ContentType string
+
+	// When true, if ContentType is the empty string, it will stay the empty
+	// string rather than being inferred from the content.
+	// Note that while the blob will be written with an empty string ContentType,
+	// most providers will fill one in during reads, so don't expect an empty
+	// ContentType if you read the blob back.
+	DisableContentTypeDetection bool
 
 	// ContentMD5 is used as a message integrity check.
 	// If len(ContentMD5) > 0, the MD5 hash of the bytes written must match

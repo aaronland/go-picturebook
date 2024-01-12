@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/rotate"	
+	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"gocloud.dev/blob"
 )
@@ -62,7 +62,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	defer r.Close()
 
 	o, err := rotate.GetImageOrientation(ctx, r)
-	
+
 	if err != nil {
 		return "", fmt.Errorf("Failed to derive orientation for %s, %w", path, err)
 	}
@@ -86,7 +86,7 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucke
 	}
 
 	rotated, err := rotate.RotateImageWithOrientation(ctx, im, o)
-	
+
 	if err != nil {
 		return "", fmt.Errorf("Failed to rotate %s, %w", path, err)
 	}
