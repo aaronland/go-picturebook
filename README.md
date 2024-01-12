@@ -291,4 +291,5 @@ Sort images, in ascending order, by their modification times. If two or more ima
 * https://github.com/go-pdf/fpdf
 * https://github.com/aaronland/go-image-tools
 * https://github.com/aaronland/go-image-halftone
+* https://github.com/aaronland/go-image-contour
 * https://gocloud.dev/howto/blob/
