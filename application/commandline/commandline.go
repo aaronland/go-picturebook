@@ -144,6 +144,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 	opts.EvenOnly = even_only
 	opts.OddOnly = odd_only
 	opts.MaxPages = max_pages
+	opts.Logger = logger
 
 	processed := make([]string, 0)
 
