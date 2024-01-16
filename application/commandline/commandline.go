@@ -45,6 +45,12 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 
 	flagset.Parse(fs)
 
+	slog.SetDefault(logger)
+	
+	if verbose {
+		LogLevel.Set(slog.LevelDebug)
+	}
+
 	if tmpfile_uri == "" {
 
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())

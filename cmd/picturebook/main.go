@@ -13,7 +13,9 @@ import (
 func main() {
 
 	ctx := context.Background()
-	logger := slog.Default()
+
+	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: commandline.LogLevel})
+	logger := slog.New(h)
 
 	err := commandline.Run(ctx, logger)
 
