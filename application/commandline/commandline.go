@@ -46,7 +46,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 	flagset.Parse(fs)
 
 	slog.SetDefault(logger)
-	
+
 	if verbose {
 		LogLevel.Set(slog.LevelDebug)
 	}
@@ -56,7 +56,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
 
 		if verbose {
-			logger.Debug("Using operating system temporary directory for processing files (%s)\n", tmpfile_uri)
+			logger.Debug("Using operating system temporary directory for processing files", "uri", tmpfile_uri)
 		}
 	}
 
@@ -166,7 +166,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 					return
 				}
 
-				logger.Debug("Remove temporary file", p)
+				logger.Debug("Remove temporary file", "path", p)
 				os.Remove(p)
 			}(p)
 		}

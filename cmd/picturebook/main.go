@@ -20,7 +20,7 @@ func main() {
 	err := commandline.Run(ctx, logger)
 
 	if err != nil {
-		logger.Error("Failed to run picturebook application, %v", err)
+		logger.Error("Failed to run picturebook application", "error", err)
 		os.Exit(1)
 	}
 
