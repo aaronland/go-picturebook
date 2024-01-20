@@ -3,7 +3,6 @@ package sort
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"sort"
 
@@ -52,8 +51,7 @@ func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures 
 		r, err := bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
-			log.Printf("Failed to open %s for modtime sorting, %v\n", path, err)
-			continue
+			return nil, fmt.Errorf("Failed to open %s for modtime sorting, %v\n", path, err)
 		}
 
 		mtime := r.ModTime()
