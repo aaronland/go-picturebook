@@ -1,6 +1,8 @@
 module github.com/aaronland/go-picturebook
 
-go 1.21
+go 1.21.5
+
+toolchain go1.21.6
 
 require (
 	github.com/aaronland/go-image v1.2.3
@@ -8,6 +10,7 @@ require (
 	github.com/aaronland/go-image-halftone v0.1.0
 	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
+	github.com/aaronland/go-slog v0.0.0-20240125194858-f0f00a6c3f5e
 	github.com/aaronland/gocloud-blob v0.0.14
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/google/uuid v1.5.0

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/aaronland/go-picturebook/application/commandline"
+	"github.com/aaronland/go-slog/attr"
 	_ "gocloud.dev/blob/fileblob"
 )
 
@@ -14,7 +15,11 @@ func main() {
 
 	ctx := context.Background()
 
-	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: commandline.LogLevel})
+	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: commandline.LogLevel,
+		ReplaceAttr: attr.EmojiLevelFunc(),
+	})
+	
 	logger := slog.New(h)
 
 	err := commandline.Run(ctx, logger)
