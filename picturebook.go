@@ -7,12 +7,11 @@ import (
 	"fmt"
 	"image/png"
 	"io"
-	"log"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	// "github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
@@ -87,6 +86,7 @@ type PictureBookOptions struct {
 	OddOnly bool
 	// An optional value to indicate that a picturebook should not exceed this number of pages
 	MaxPages int
+	Logger   *slog.Logger
 }
 
 // type PictureBookMargins defines a struct for storing margins to be applied to a picturebook
@@ -179,6 +179,8 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		abs_path := path
 		is_image := false
 
+		logger := pb_opts.Logger.With("path", abs_path)
+
 		ext := filepath.Ext(abs_path)
 		ext = strings.ToLower(ext)
 
@@ -190,11 +192,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		}
 
 		if !is_image {
-
-			if pb_opts.Verbose {
-				log.Printf("%s (%s) does not appear to be an image, skipping\n", abs_path, ext)
-			}
-
+			logger.Debug("File does not appear to be an image, skipping", "extension", ext)
 			return nil, nil
 		}
 
@@ -203,7 +201,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			ok, err := pb_opts.Filter.Continue(ctx, pb_opts.Source, abs_path)
 
 			if err != nil {
-				log.Printf("Failed to filter %s, %v\n", abs_path, err)
+				logger.Error("Failed to filter image", "error", err)
 				return nil, nil
 			}
 
@@ -211,9 +209,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 				return nil, nil
 			}
 
-			if pb_opts.Verbose {
-				log.Printf("Include %s\n", abs_path)
-			}
+			logger.Debug("Include image")
 		}
 
 		caption := ""
@@ -224,7 +220,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			txt, err := pb_opts.Caption.Text(ctx, pb_opts.Source, abs_path)
 
 			if err != nil {
-				log.Printf("Failed to derive caption text for %s, %v\n", abs_path, err)
+				logger.Error("Failed to derive caption text", "error", err)
 				return nil, nil
 			}
 
@@ -236,7 +232,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			txt, err := pb_opts.Text.Body(ctx, pb_opts.Source, abs_path)
 
 			if err != nil {
-				log.Printf("Failed to derive text body for %s, %v\n", abs_path, err)
+				logger.Error("Failed to derive text body", "error", err)
 				return nil, nil
 			}
 
@@ -250,20 +246,16 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 
 		if pb_opts.PreProcess != nil {
 
-			if pb_opts.Verbose {
-				log.Printf("Processing %s\n", abs_path)
-			}
+			logger.Debug("Pre-processing image")
 
 			processed_path, err := pb_opts.PreProcess.Transform(ctx, pb_opts.Source, pb_opts.Temporary, abs_path)
 
 			if err != nil {
-				log.Printf("Failed to process %s, %v\n", abs_path, err)
+				logger.Error("Failed to process image", "error", err)
 				return nil, nil
 			}
 
-			if pb_opts.Verbose {
-				log.Printf("After processing %s becomes %s\n", abs_path, processed_path)
-			}
+			logger.Debug("After pre-processing path becomes", "processed_path", processed_path)
 
 			if processed_path != "" && processed_path != abs_path {
 				final_path = processed_path
@@ -272,9 +264,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			}
 		}
 
-		if pb_opts.Verbose {
-			log.Printf("Append %s (%s) to list for processing\n", final_path, abs_path)
-		}
+		logger.Debug("Append path to list for processing", "final_path", final_path)
 
 		pic := &picture.PictureBookPicture{
 			Source:   abs_path,
@@ -308,6 +298,7 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		MarginLeft:   1.0,
 		MarginRight:  1.0,
 		Verbose:      false,
+		Logger:       slog.Default(),
 	}
 
 	return opts, nil
@@ -393,16 +384,6 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 	}
 
 	pdf = fpdf.NewCustom(&init)
-
-	/*
-		} else {
-
-			// TO DO: ACCOUNT FOR BLEED
-			// func (f *Fpdf) GetPageSizeStr(sizeStr string) (size SizeType) {
-
-			pdf = fpdf.New(opts.Orientation, "in", opts.Size, "")
-		}
-	*/
 
 	t := PictureBookText{
 		Font:   "Helvetica",
@@ -511,9 +492,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		return fmt.Errorf("Failed to gather pictures, %w", err)
 	}
 
-	if pb.Options.Verbose {
-		log.Printf("Count pictures gathered: %d\n", len(pictures))
-	}
+	pb.Options.Logger.Debug("Pictures gathered", "count", len(pictures))
 
 	if pb.Options.Sort != nil {
 
@@ -534,8 +513,6 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pb.Mutex.Unlock()
 
 		var err error
-
-		// pic.Text = "This page left intentionally blank.\nWoo woo\nFoobar\nIt’s good to see Mastodon and Bluesky showing a lot of life, but I will say that I was secretly hoping Twitter would die without a replacement and we’d start sending personal e-mails again. I miss those."
 
 		if pb.Options.EvenOnly {
 
@@ -594,8 +571,8 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 			err = pb.AddPicture(ctx, pagenum, pic)
 		}
 
-		if err != nil && pb.Options.Verbose {
-			log.Printf("Failed to add %s, %v", pic.Path, err)
+		if err != nil {
+			pb.Options.Logger.Debug("Failed to add picture", "path", pic.Path, "error", err)
 		}
 	}
 
@@ -678,10 +655,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		}
 	}
 
-	if pb.Options.Verbose {
-		log.Printf("Gathered %d pictures\n", len(pictures))
-	}
-
 	return pictures, nil
 }
 
@@ -718,7 +691,6 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 
 	prepped := text.PrepareText(pb.PDF, pb.Options.DPI, max_w, pic.Text)
 
-	// for _, txt := range strings.Split(pic.Text, "\n") {
 	for _, txt := range prepped {
 
 		txt = strings.TrimSpace(txt)
@@ -745,22 +717,9 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		txt_x := current_x / pb.Options.DPI
 		txt_y := (current_y / pb.Options.DPI)
 
-		if pb.Options.Verbose {
-			// log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
-		}
+		// pb.Options.Logger.Debug("[%d][%s] text at %0.2f x %0.2f (- x %0.2f)\n", pagenum, pic.Path, txt_x, txt_y, txt_h)
 
 		pb.PDF.SetXY(txt_x, txt_y)
-
-		// please account for lack of utf-8 support (20171128/thisisaaronland)
-		// https://github.com/jung-kurt/fpdf/blob/cc7f4a2880e224dc55d15289863817df6d9f6893/fpdf_test.go#L1440-L1478
-		// tr := pb.PDF.UnicodeTranslatorFromDescriptor("utf8")
-		// txt = tr(txt)
-
-		// txt = unidecode.Unidecode(txt)
-
-		if pb.Options.Verbose {
-			// log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
-		}
 
 		html := pb.PDF.HTMLBasicNew()
 		html.Write(line_h, txt)
@@ -788,6 +747,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	if pic.Bucket != nil {
 		picture_bucket = pic.Bucket
 	}
+
+	logger := pb.Options.Logger.With("path", abs_path, "page_number", pagenum)
 
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
@@ -842,9 +803,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 				return fmt.Errorf("Failed to generate tempfile for %s, %w", abs_path, err)
 			}
 
-			if pb.Options.Verbose {
-				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
-			}
+			logger.Debug("PNG converted to a JPG", "tmpfile_path", tmpfile_path)
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
@@ -862,9 +821,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	w := float64(dims.Max.X)
 	h := float64(dims.Max.Y)
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] dimensions %0.2f x %0.2f\n", pagenum, abs_path, w, h)
-	}
+	logger.Debug("Dimensions", slog.Float64("width", w), slog.Float64("height", h))
 
 	if pb.Options.FillPage {
 
@@ -895,17 +852,13 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 		if rotate_to_fill {
 
-			if pb.Options.Verbose {
-				log.Printf("Rotate %s\b", abs_path)
-			}
+			pb.Options.Logger.Debug("Rotate image to fill path", "path", abs_path)
 
 			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 90.0)
 
 			if err != nil {
 				return err
 			}
-
-			// new_im = colour.ToDisplayP3(new_im)
 
 			im = new_im
 			dims = im.Bounds()
@@ -932,9 +885,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
 
-			if pb.Options.Verbose {
-				log.Printf("%s converted to a JPG (%s)\n", abs_path, tmpfile_path)
-			}
+			logger.Debug("Append rotated image", "tmpfile_path", tmpfile_path)
 
 			abs_path = tmpfile_path
 			format = tmpfile_format
@@ -970,9 +921,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	info.SetDpi(pb.Options.DPI)
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] dimensions %02.f x %02.f\n", pagenum, abs_path, w, h)
-	}
+	logger.Debug("Dimensions", slog.Float64("width", w), slog.Float64("height", h))
 
 	if w == 0.0 || h == 0.0 {
 		return fmt.Errorf("[%d] %s has zero-sized dimension", pagenum, abs_path)
@@ -987,24 +936,18 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	_, line_h := pb.PDF.GetFontSize()
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] margins, left and right %0.2f\n", pagenum, abs_path, (margins.Left + margins.Right))
-		log.Printf("[%d][%s] margins, top and bottom %0.2f\n", pagenum, abs_path, (margins.Top + margins.Bottom))
-		log.Printf("[%d][%s] margins, caption %0.2f\n", pagenum, abs_path, (pb.Text.Margin + line_h))
-	}
+	logger.Debug("margins", slog.Float64("left_and_right", (margins.Left+margins.Right)))
+	logger.Debug("margins", slog.Float64("top_and_bottom", (margins.Top+margins.Bottom)))
+	logger.Debug("margins", slog.Float64("caption", (pb.Text.Margin+line_h)))
 
 	max_w := pb.Canvas.Width
 	max_h := pb.Canvas.Height
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] max dimensions %0.2f (%0.2f) x %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
-	}
+	logger.Debug("max dimensions", slog.Float64("max_width", max_w), slog.Float64("width", w), slog.Float64("max_height", max_h), slog.Float64("height", h))
 
 	for {
 
 		if w >= max_w || h >= max_h {
-
-			// log.Printf("[%d] WTF 1 %0.2f x %0.2f (%0.2f x %0.2f) \n", pagenum, w, h, max_w, max_h)
 
 			if w > max_w {
 
@@ -1031,8 +974,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		}
 	}
 
-	// log.Printf("[%d][%s] max dimensions (1) %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
-
 	if w < max_w {
 		padding := max_w - w
 		x = x + (padding / 2.0)
@@ -1043,17 +984,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		y = y + (padding / 2.0)
 	}
 
-	// log.Printf("[%d][%s] max dimensions (2) %0.2f (%0.2f) H  %0.2f (%0.2f)\n", pagenum, abs_path, max_w, w, max_h, h)
-
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] final %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
-	}
+	logger.Debug("final dimensions", slog.Float64("width", w), slog.Float64("height", h), slog.Float64("x", x), slog.Float64("y", y))
 
 	pb.PDF.AddPage()
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] final dimensions %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, w, h, x, y)
-	}
+	// logger.Debug("final dimensions %0.2f x %0.2f (%0.2f x %0.2f)", w, h, x, y)
 
 	// draw margins
 
@@ -1062,9 +997,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	mw := w / pb.Options.DPI
 	mh := h / pb.Options.DPI
 
-	if pb.Options.Verbose {
-		log.Printf("[%d][%s] margin  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, mx, my, mw, mh)
-	}
+	logger.Debug("margin", slog.Float64("x", mx), slog.Float64("y", my), slog.Float64("width", mw), slog.Float64("height", mh))
 
 	pb.PDF.SetFillColor(0, 0, 0)
 	pb.PDF.Rect(mx, my, mw, mh, "FD")
@@ -1081,9 +1014,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		bw := (w + borders.Left + borders.Right) / pb.Options.DPI
 		bh := (h + borders.Top + borders.Bottom) / pb.Options.DPI
 
-		if pb.Options.Verbose {
-			log.Printf("[%d][%s] border  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, bx, by, bw, bh)
-		}
+		logger.Debug("border", slog.Float64("x", bx), slog.Float64("y", by), slog.Float64("width", bw), slog.Float64("height", bh))
 
 		pb.PDF.SetFillColor(0, 0, 0)
 		pb.PDF.Rect(bx, by, bw, bh, "FD")
@@ -1103,10 +1034,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	image_w := w / pb.Options.DPI
 	image_h := h / pb.Options.DPI
 
-	if pb.Options.Verbose {
-		// log.Printf("[%d][%s] image  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, x, y, w, h)
-		log.Printf("[%d][%s] image  %0.2f x %0.2f @ %0.2f x %0.2f\n", pagenum, abs_path, image_x, image_y, image_w, image_h)
-	}
+	logger.Debug("image", slog.Float64("x", image_x), slog.Float64("y", image_y), slog.Float64("width", image_w), slog.Float64("height", image_h))
 
 	pb.PDF.ImageOptions(abs_path, image_x, image_y, image_w, image_h, false, image_opts, 0, "")
 
@@ -1133,27 +1061,21 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			_, line_h := pb.PDF.GetFontSize()
 
-			if pb.Options.Verbose {
-				log.Printf("[%d][%s] line height %0.2f\n", pagenum, abs_path, line_h)
-			}
+			logger.Debug("line height %0.2f", line_h)
 
 			pb.PDF.SetFontSize(font_sz)
 
 			txt_x := ((current_x + w) / pb.Options.DPI) - txt_w
 			txt_y := ((current_y + h) / pb.Options.DPI) + line_h
 
-			if pb.Options.Verbose {
-				log.Printf("[%d][%s] text at %0.2f x %0.2f (%0.2f x %0.2f)\n", pagenum, abs_path, txt_x, txt_y, txt_w, txt_h)
-			}
+			logger.Debug("Text", slog.Float64("x", txt_x), slog.Float64("y", txt_y), slog.Float64("width", txt_w), slog.Float64("height", txt_h))
 
 			// pb.PDF.SetFillColor(255, 255, 255)
 			// pb.PDF.Rect(txt_x, txt_y, txt_w, txt_h, "FD")
 
 			pb.PDF.SetXY(txt_x, txt_y)
 
-			if pb.Options.Verbose {
-				log.Printf("[%d][%s] caption '%s'\n", pagenum, abs_path, txt)
-			}
+			logger.Debug("caption", "text", txt)
 
 			html := pb.PDF.HTMLBasicNew()
 			html.Write(line_h, txt)
@@ -1189,21 +1111,17 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 				continue
 			}
 
-			if pb.Options.Verbose {
-				log.Printf("Remove tmp file '%s'\n", path)
-			}
+			pb.Options.Logger.Debug("Remove tmp file", "path", path)
 
 			err := pb.Options.Temporary.Delete(ctx, path)
 
 			if err != nil {
-				log.Printf("Failed to delete %s, %v\n", path, err)
+				pb.Options.Logger.Error("Failed to delete tmp file", "path", path, "error", err)
 			}
 		}
 	}()
 
-	if pb.Options.Verbose {
-		log.Printf("Save %s\n", path)
-	}
+	pb.Options.Logger.Debug("Save picturebook", "path", path)
 
 	wr, err := pb.Options.Target.NewWriter(ctx, path, nil)
 

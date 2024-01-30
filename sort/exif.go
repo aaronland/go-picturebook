@@ -3,7 +3,7 @@ package sort
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"sort"
 
@@ -57,7 +57,7 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 		fh, err := bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
-			log.Printf("Failed to open %s for exif sorting, %v\n", path, err)
+			slog.Warn("Failed to open image for exif sorting", "path", path, "error", err)
 			continue
 		}
 
@@ -78,7 +78,7 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 				ts = dt.Unix()
 			}
 		} else {
-			log.Printf("Failed to decode EXIF data for %s, %v\n", path, err)
+			slog.Warn("Failed to decode EXIF data", "path", path, "error", err)
 		}
 
 		key := fmt.Sprintf("%d-%d", ts, sz)

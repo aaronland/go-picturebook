@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 
-	// "github.com/mandykoh/prism/meta/autometa"
 	"github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-picturebook/tempfile"

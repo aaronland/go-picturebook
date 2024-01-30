@@ -1,6 +1,6 @@
 # go-font-ocra
 
-Work in progress
+Go package exporting the OCR-A font.
 
 ## Examples
 
@@ -8,7 +8,7 @@ Work in progress
 
 ```
 import (
-	"github.com/jung-kurt/gofpdf"
+	"github.com/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
 )
 
@@ -16,7 +16,7 @@ func main() {
 
 	font, _ := ocra.LoadFPDFFont()
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.AddFontFromBytes(font.Family, font.Style, font.JSON, font.Z)
 
 	pdf.AddPage()
@@ -33,5 +33,4 @@ _Error handling removed for the sake of brevity._
 
 * https://github.com/opensourcedesign/fonts/tree/master/OCR
 * https://sourceforge.net/projects/ocr-a-font/files/OCR-A/1.0/
-* https://godoc.org/github.com/jung-kurt/gofpdf#example-Fpdf-AddFontFromBytes
-* https://godoc.org/github.com/jung-kurt/gofpdf#hdr-Nonstandard_Fonts
+* https://pkg.go.dev/github.com/go-pdf/fpdf#Fpdf.AddFontFromBytes

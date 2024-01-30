@@ -5,7 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -30,7 +30,7 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
-func Run(ctx context.Context, logger *log.Logger) error {
+func Run(ctx context.Context, logger *slog.Logger) error {
 
 	fs, err := DefaultFlagSet(ctx)
 
@@ -41,16 +41,22 @@ func Run(ctx context.Context, logger *log.Logger) error {
 	return RunWithFlagSet(ctx, fs, logger)
 }
 
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) error {
 
 	flagset.Parse(fs)
+
+	slog.SetDefault(logger)
+
+	if verbose {
+		LogLevel.Set(slog.LevelDebug)
+	}
 
 	if tmpfile_uri == "" {
 
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
 
 		if verbose {
-			log.Printf("Using operating system temporary directory for processing files (%s)\n", tmpfile_uri)
+			logger.Debug("Using operating system temporary directory for processing files", "uri", tmpfile_uri)
 		}
 	}
 
@@ -144,6 +150,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 	opts.EvenOnly = even_only
 	opts.OddOnly = odd_only
 	opts.MaxPages = max_pages
+	opts.Logger = logger
 
 	processed := make([]string, 0)
 
@@ -155,14 +162,12 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *log.Logger) e
 
 				_, err := os.Stat(p)
 
-				// FIX ME...
-
 				if os.IsNotExist(err) {
 					return
 				}
 
-				log.Println("WOULD REMOVE", p)
-				// os.Remove(p)
+				logger.Debug("Remove temporary file", "path", p)
+				os.Remove(p)
 			}(p)
 		}
 	}()
