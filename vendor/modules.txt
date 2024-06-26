@@ -127,8 +127,8 @@ gocloud.dev/internal/gcerr
 gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
 gocloud.dev/internal/retry
-# golang.org/x/image v0.12.0
-## explicit; go 1.12
+# golang.org/x/image v0.18.0
+## explicit; go 1.18
 golang.org/x/image/draw
 golang.org/x/image/font
 golang.org/x/image/font/basicfont
@@ -145,7 +145,7 @@ golang.org/x/net/trace
 # golang.org/x/sys v0.18.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
-# golang.org/x/text v0.14.0
+# golang.org/x/text v0.16.0
 ## explicit; go 1.18
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
