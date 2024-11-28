@@ -3,7 +3,6 @@ package sort
 
 import (
 	"context"
-
 	"net/url"
 	"regexp"
 
