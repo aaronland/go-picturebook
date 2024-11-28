@@ -1,11 +1,12 @@
 # github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 ## explicit
 github.com/MaxHalford/halfgone
-# github.com/aaronland/go-image v1.2.3
-## explicit; go 1.20
+# github.com/aaronland/go-image v1.3.1
+## explicit; go 1.22.4
 github.com/aaronland/go-image/colour
 github.com/aaronland/go-image/decode
 github.com/aaronland/go-image/encode
+github.com/aaronland/go-image/exif
 github.com/aaronland/go-image/imaging
 github.com/aaronland/go-image/rotate
 github.com/aaronland/go-image/transform
@@ -25,9 +26,30 @@ github.com/aaronland/go-roster
 # github.com/aaronland/go-slog v0.0.0-20240125194858-f0f00a6c3f5e
 ## explicit; go 1.21.5
 github.com/aaronland/go-slog/attr
-# github.com/aaronland/gocloud-blob v0.0.14
-## explicit; go 1.18
+# github.com/aaronland/gocloud-blob v0.4.0
+## explicit; go 1.23
 github.com/aaronland/gocloud-blob/bucket
+# github.com/dsoprea/go-exif/v3 v3.0.1
+## explicit; go 1.12
+github.com/dsoprea/go-exif/v3
+github.com/dsoprea/go-exif/v3/common
+github.com/dsoprea/go-exif/v3/undefined
+# github.com/dsoprea/go-iptc v0.0.0-20200609062250-162ae6b44feb
+## explicit; go 1.13
+github.com/dsoprea/go-iptc
+# github.com/dsoprea/go-jpeg-image-structure/v2 v2.0.0-20221012074422-4f3f7e934102
+## explicit; go 1.12
+github.com/dsoprea/go-jpeg-image-structure/v2
+# github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd
+## explicit; go 1.13
+github.com/dsoprea/go-logging
+# github.com/dsoprea/go-photoshop-info-format v0.0.0-20200609050348-3db9b63b202c
+## explicit; go 1.13
+github.com/dsoprea/go-photoshop-info-format
+# github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349
+## explicit; go 1.12
+github.com/dsoprea/go-utility/v2/filesystem
+github.com/dsoprea/go-utility/v2/image
 # github.com/fogleman/colormap v0.0.0-20180829212827-f273ae61505a
 ## explicit
 github.com/fogleman/colormap
@@ -37,29 +59,34 @@ github.com/fogleman/contourmap
 # github.com/fogleman/gg v1.3.0
 ## explicit
 github.com/fogleman/gg
+# github.com/go-errors/errors v1.4.2
+## explicit; go 1.14
+github.com/go-errors/errors
 # github.com/go-pdf/fpdf v0.9.0
 ## explicit; go 1.20
 github.com/go-pdf/fpdf
+# github.com/go-xmlfmt/xmlfmt v0.0.0-20191208150333-d5b6f63a941b
+## explicit
+github.com/go-xmlfmt/xmlfmt
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 ## explicit
 github.com/golang/freetype/raster
 github.com/golang/freetype/truetype
+# github.com/golang/geo v0.0.0-20210211234256-740aa86cb551
+## explicit; go 1.12
+github.com/golang/geo/r1
+github.com/golang/geo/r2
+github.com/golang/geo/r3
+github.com/golang/geo/s1
+github.com/golang/geo/s2
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.5.3
-## explicit; go 1.9
-github.com/golang/protobuf/jsonpb
-github.com/golang/protobuf/proto
-github.com/golang/protobuf/ptypes
-github.com/golang/protobuf/ptypes/any
-github.com/golang/protobuf/ptypes/duration
-github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/uuid v1.5.0
+# github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/gax-go/v2 v2.12.0
-## explicit; go 1.19
+# github.com/googleapis/gax-go/v2 v2.13.0
+## explicit; go 1.20
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
@@ -68,7 +95,7 @@ github.com/googleapis/gax-go/v2/internal
 # github.com/mandykoh/go-parallel v0.1.0
 ## explicit; go 1.15
 github.com/mandykoh/go-parallel
-# github.com/mandykoh/prism v0.35.2
+# github.com/mandykoh/prism v0.35.3
 ## explicit; go 1.14
 github.com/mandykoh/prism
 github.com/mandykoh/prism/adobergb
@@ -79,6 +106,13 @@ github.com/mandykoh/prism/displayp3
 github.com/mandykoh/prism/linear
 github.com/mandykoh/prism/linear/lut
 github.com/mandykoh/prism/matrix
+github.com/mandykoh/prism/meta
+github.com/mandykoh/prism/meta/autometa
+github.com/mandykoh/prism/meta/binary
+github.com/mandykoh/prism/meta/icc
+github.com/mandykoh/prism/meta/jpegmeta
+github.com/mandykoh/prism/meta/pngmeta
+github.com/mandykoh/prism/meta/webpmeta
 github.com/mandykoh/prism/srgb
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
@@ -88,6 +122,10 @@ github.com/nfnt/resize
 github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/mknote
 github.com/rwcarlsen/goexif/tiff
+# github.com/sfomuseum/go-exif-update v0.1.3
+## explicit; go 1.22.4
+github.com/sfomuseum/go-exif-update
+github.com/sfomuseum/go-exif-update/tags
 # github.com/sfomuseum/go-flags v0.10.0
 ## explicit; go 1.16
 github.com/sfomuseum/go-flags/flagset
@@ -116,8 +154,8 @@ go.opencensus.io/trace
 go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
-# gocloud.dev v0.36.0
-## explicit; go 1.20
+# gocloud.dev v0.40.0
+## explicit; go 1.21.0
 gocloud.dev/blob
 gocloud.dev/blob/driver
 gocloud.dev/blob/fileblob
@@ -134,44 +172,47 @@ golang.org/x/image/font
 golang.org/x/image/font/basicfont
 golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
-# golang.org/x/net v0.23.0
+# golang.org/x/net v0.28.0
 ## explicit; go 1.18
+golang.org/x/net/context
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.18.0
+# golang.org/x/sys v0.24.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
-# golang.org/x/text v0.16.0
+golang.org/x/sys/windows
+# golang.org/x/text v0.17.0
 ## explicit; go 1.18
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
+# golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9
 ## explicit; go 1.18
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.151.0
-## explicit; go 1.19
+# google.golang.org/api v0.191.0
+## explicit; go 1.20
 google.golang.org/api/googleapi
 google.golang.org/api/internal/third_party/uritemplates
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f
-## explicit; go 1.19
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20240812133136-8ffd90a71988
+## explicit; go 1.20
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.59.0
-## explicit; go 1.19
+# google.golang.org/grpc v1.65.0
+## explicit; go 1.21
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
 google.golang.org/grpc/balancer
 google.golang.org/grpc/balancer/base
 google.golang.org/grpc/balancer/grpclb/state
+google.golang.org/grpc/balancer/pickfirst
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/channelz
@@ -192,7 +233,6 @@ google.golang.org/grpc/internal/channelz
 google.golang.org/grpc/internal/credentials
 google.golang.org/grpc/internal/envconfig
 google.golang.org/grpc/internal/grpclog
-google.golang.org/grpc/internal/grpcrand
 google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/idle
@@ -200,6 +240,7 @@ google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
 google.golang.org/grpc/internal/resolver
 google.golang.org/grpc/internal/resolver/dns
+google.golang.org/grpc/internal/resolver/dns/internal
 google.golang.org/grpc/internal/resolver/passthrough
 google.golang.org/grpc/internal/resolver/unix
 google.golang.org/grpc/internal/serviceconfig
@@ -211,12 +252,13 @@ google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer
 google.golang.org/grpc/resolver
+google.golang.org/grpc/resolver/dns
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.33.0
-## explicit; go 1.17
+# google.golang.org/protobuf v1.34.2
+## explicit; go 1.20
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -241,13 +283,14 @@ google.golang.org/protobuf/internal/set
 google.golang.org/protobuf/internal/strs
 google.golang.org/protobuf/internal/version
 google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protodesc
+google.golang.org/protobuf/protoadapt
 google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/reflect/protoregistry
 google.golang.org/protobuf/runtime/protoiface
 google.golang.org/protobuf/runtime/protoimpl
-google.golang.org/protobuf/types/descriptorpb
-google.golang.org/protobuf/types/gofeaturespb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15
+gopkg.in/yaml.v2
