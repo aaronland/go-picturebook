@@ -63,8 +63,15 @@ func (f *ExifSorter) Sort(ctx context.Context, source_bucket bucket.Bucket, pict
 
 		defer fh.Close()
 
-		mtime := fh.ModTime()
-		sz := fh.Size()
+		attrs, err := source_bucket.Attributes(ctx, path)
+
+		if err != nil {
+			slog.Warn("Failed to derive attributes", "path", path, "error", err)
+			continue
+		}
+
+		mtime := attrs.ModTime
+		sz := attrs.Size
 
 		ts := mtime.Unix()
 

@@ -25,7 +25,6 @@ import (
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
-	"gocloud.dev/blob"
 )
 
 // MM2INCH defines the number if millimeters in an inch.
@@ -243,7 +242,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (bucket.Gathe
 			text_body = txt
 		}
 
-		var final_bucket *blob.Bucket
+		var final_bucket bucket.Bucket
 		final_path := abs_path
 
 		var tmpfile_path string
@@ -589,7 +588,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	pictures := make([]*picture.PictureBookPicture, 0)
 	var err error
 
-	for p, p_err := range pb.Source.GatherPictures(ctx, pb.ProcessFunc, paths...) {
+	for p, p_err := range pb.Options.Source.GatherPictures(ctx, pb.ProcessFunc, paths...) {
 
 		if err != nil {
 			err = p_err

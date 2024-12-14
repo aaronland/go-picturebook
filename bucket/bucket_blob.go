@@ -133,9 +133,14 @@ func (s *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, 
 
 	attrs := &Attributes{
 		ModTime: blob_attrs.ModTime,
+		Size:    blob_attrs.Size,
 	}
 
 	return attrs, nil
+}
+
+func (s *BlobBucket) Delete(ctx context.Context, key string) error {
+	return s.bucket.Delete(ctx, key)
 }
 
 func (s *BlobBucket) Close() error {

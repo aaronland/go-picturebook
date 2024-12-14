@@ -48,15 +48,14 @@ func (f *ModTimeSorter) Sort(ctx context.Context, source_bucket bucket.Bucket, p
 
 		path := pic.Source
 
-		r, err := source_bucket.NewReader(ctx, path, nil)
+		attrs, err := source_bucket.Attributes(ctx, path)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to open %s for modtime sorting, %v\n", path, err)
+			return nil, fmt.Errorf("Failed to dereive attributes from %s for modtime sorting, %v\n", path, err)
 		}
 
-		mtime := r.ModTime()
-		sz := r.Size()
-		r.Close()
+		mtime := attrs.ModTime
+		sz := attrs.Size
 
 		ts := mtime.Unix()
 
