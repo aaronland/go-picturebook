@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
-	"github.com/aaronland/go-picturebook/source"
 )
 
 func init() {
@@ -53,9 +53,9 @@ func NewExifCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 // Text returns a caption string derived from EXIF data in 'path'
-func (c *ExifCaption) Text(ctx context.Context, src source.Source, path string) (string, error) {
+func (c *ExifCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
-	fh, err := src.NewReader(ctx, path, nil)
+	fh, err := source_bucket.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to create new bucket, %w", err)

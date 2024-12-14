@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/aaronland/go-picturebook/source"	
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -37,6 +37,6 @@ func NewNoneCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 // Text returns an empty caption string
-func (c *NoneCaption) Text(ctx context.Context, src source.Source, path string) (string, error) {
+func (c *NoneCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 	return "", nil
 }

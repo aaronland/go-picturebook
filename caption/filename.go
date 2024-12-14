@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/aaronland/go-picturebook/source"	
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -42,7 +42,7 @@ func NewFilenameCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 // Text returns a caption string derived from the base name of 'path'
-func (c *FilenameCaption) Text(ctx context.Context, src source.Source, path string) (string, error) {
+func (c *FilenameCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
 	if c.parent {
 

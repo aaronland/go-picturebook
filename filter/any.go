@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/aaronland/go-picturebook/source"	
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -38,6 +38,6 @@ func NewAnyFilter(ctx context.Context, uri string) (Filter, error) {
 }
 
 // Continues returns a boolean value signaling whether or not 'path' should be included in a picturebook.
-func (f *AnyFilter) Continue(ctx context.Context, src source.Source, path string) (bool, error) {
+func (f *AnyFilter) Continue(ctx context.Context, source_bucket bucket.Bucket, path string) (bool, error) {
 	return true, nil
 }

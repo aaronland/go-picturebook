@@ -15,13 +15,12 @@ import (
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
-	"github.com/aaronland/go-picturebook/source"
-	"github.com/aaronland/go-picturebook/target"		
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
@@ -78,12 +77,13 @@ type PictureBookOptions struct {
 	OCRAFont bool
 	// A gocloud.dev/blob `Bucket` instance where source images are stored.
 	// Source *blob.Bucket
-	Source source.Source
+	Source bucket.Bucket
 	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
 	// Target *blob.Bucket
-	Target target.Target
+	Target bucket.Bucket
 	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
-	Temporary *blob.Bucket
+	// Temporary *blob.Bucket
+	Temporary bucket.Bucket
 	// A boolean value signaling that images should only be added on even-numbered pages.
 	EvenOnly bool
 	// A boolean value signaling that images should only be added on odd-numbered pages.
@@ -156,7 +156,7 @@ type PictureBook struct {
 	// The `PictureBookOptions` used to create this picturebook
 	Options *PictureBookOptions
 	// The `GatherPicturesProcessFunc` function used to determine whether an image is included in a picturebook
-	ProcessFunc source.GatherPicturesProcessFunc
+	ProcessFunc bucket.GatherPicturesProcessFunc
 	// The number of pages in this picturebook
 	pages int
 	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
@@ -169,7 +169,7 @@ type PictureBook struct {
 //	DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
 //
 // from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
-func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (source.GatherPicturesProcessFunc, error) {
+func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (bucket.GatherPicturesProcessFunc, error) {
 
 	fn := func(ctx context.Context, path string) (*picture.PictureBookPicture, error) {
 
@@ -588,7 +588,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	pictures := make([]*picture.PictureBookPicture, 0)
 	var err error
-	
+
 	for p, p_err := range pb.Source.GatherPictures(ctx, pb.ProcessFunc, paths...) {
 
 		if err != nil {
@@ -602,78 +602,78 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	return pictures, err
 
 	/*
-	var list func(context.Context, *blob.Bucket, string) error
+		var list func(context.Context, *blob.Bucket, string) error
 
-	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
+		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
 
-		iter := bucket.List(&blob.ListOptions{
-			Delimiter: "/",
-			Prefix:    prefix,
-		})
+			iter := bucket.List(&blob.ListOptions{
+				Delimiter: "/",
+				Prefix:    prefix,
+			})
 
-		for {
-			obj, err := iter.Next(ctx)
+			for {
+				obj, err := iter.Next(ctx)
 
-			if err == io.EOF {
-				break
-			}
-
-			if err != nil {
-				return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-			}
-
-			path := obj.Key
-
-			if obj.IsDir {
-
-				err := list(ctx, bucket, path)
-
-				if err != nil {
-					return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+				if err == io.EOF {
+					break
 				}
 
-				continue
+				if err != nil {
+					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
+				}
+
+				path := obj.Key
+
+				if obj.IsDir {
+
+					err := list(ctx, bucket, path)
+
+					if err != nil {
+						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+					}
+
+					continue
+				}
+
+				pic, err := pb.ProcessFunc(ctx, path)
+
+				if err != nil {
+					return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
+				}
+
+				if pic == nil {
+					continue
+				}
+
+				if pic.TempFile != "" {
+					pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
+				}
+
+				pb.Mutex.Lock()
+
+				pictures = append(pictures, pic)
+				count_pictures := len(pictures)
+
+				pb.Mutex.Unlock()
+
+				if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
+					break
+				}
 			}
 
-			pic, err := pb.ProcessFunc(ctx, path)
+			return nil
+		}
+
+		for _, path := range paths {
+
+			err := list(ctx, pb.Options.Source, path)
 
 			if err != nil {
-				return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
-			}
-
-			if pic == nil {
-				continue
-			}
-
-			if pic.TempFile != "" {
-				pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
-			}
-
-			pb.Mutex.Lock()
-
-			pictures = append(pictures, pic)
-			count_pictures := len(pictures)
-
-			pb.Mutex.Unlock()
-
-			if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
-				break
+				return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
 			}
 		}
 
-		return nil
-	}
-
-	for _, path := range paths {
-
-		err := list(ctx, pb.Options.Source, path)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-		}
-	}
-
-	return pictures, nil
+		return pictures, nil
 	*/
 }
 

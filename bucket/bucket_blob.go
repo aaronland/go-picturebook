@@ -8,11 +8,9 @@ import (
 
 	"github.com/aaronland/go-picturebook/picture"
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
+	// "github.com/whosonfirst/go-ioutil"
 	"gocloud.dev/blob"
 )
-
-// type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
-type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
 type BlobBucket struct {
 	Bucket
@@ -107,8 +105,37 @@ func (s *BlobBucket) gatherPictures(ctx context.Context, process_func GatherPict
 	}
 }
 
-func (s *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadCloser, error) {
-	return s.bucket.NewReader(ctx, key, nil)
+func (s *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadSeekCloser, error) {
+
+	r, err := s.bucket.NewReader(ctx, key, nil)
+	return r, err
+
+	/*
+		if err != nil {
+			return nil, err
+		}
+
+		return ioutil.NewReadSeekCloser(r)
+	*/
+}
+
+func (s *BlobBucket) NewWriter(ctx context.Context, key string, opts any) (io.WriteCloser, error) {
+	return s.bucket.NewWriter(ctx, key, nil)
+}
+
+func (s *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, error) {
+
+	blob_attrs, err := s.bucket.Attributes(ctx, path)
+
+	if err != nil {
+		return nil, err
+	}
+
+	attrs := &Attributes{
+		ModTime: blob_attrs.ModTime,
+	}
+
+	return attrs, nil
 }
 
 func (s *BlobBucket) Close() error {

@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/picture"
-	"github.com/aaronland/go-picturebook/source"	
 	"github.com/aaronland/go-roster"
 )
 
@@ -21,7 +21,7 @@ func init() {
 // type Sorter provides a common interface for sorting a list of images to be included in a picturebook.
 type Sorter interface {
 	// Sort takes a list of `picture.PictureBookPicture` instances that are stored in a gocloud.dev/blob Bucket instance and returns new list of sorted picture.PictureBookPicture instances.
-	Sort(context.Context, source.Source, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
+	Sort(context.Context, bucket.Bucket, []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error)
 }
 
 // type SorterInitializeFunc defined a common initialization function for instances implementing the Sorter interface.

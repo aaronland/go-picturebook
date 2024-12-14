@@ -4,16 +4,22 @@ import (
 	"context"
 	"io"
 	"iter"
+	"time"
 
 	"github.com/aaronland/go-picturebook/picture"
 )
 
-// Maybe call it something other than source?
-// NewWriter?
-// Attributes?
+type Attributes struct {
+	ModTime time.Time
+}
+
+// type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
+type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
 type Bucket interface {
 	GatherPictures(context.Context, GatherPicturesProcessFunc, ...string) iter.Seq2[*picture.PictureBookPicture, error]
-	NewReader(context.Context, string, any) (io.ReadCloser, error)	
+	NewReader(context.Context, string, any) (io.ReadSeekCloser, error)
+	NewWriter(context.Context, string, any) (io.WriteCloser, error)
+	Attributes(context.Context, string) (*Attributes, error)
 	Close() error
 }
