@@ -16,10 +16,10 @@ func main() {
 	ctx := context.Background()
 
 	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: commandline.LogLevel,
+		Level:       commandline.LogLevel,
 		ReplaceAttr: attr.EmojiLevelFunc(),
 	})
-	
+
 	logger := slog.New(h)
 
 	err := commandline.Run(ctx, logger)
