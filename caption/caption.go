@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/aaronland/go-roster"
+	"github.com/aaronland/go-picturebook/source"
 	"gocloud.dev/blob"
 )
 
@@ -25,7 +26,7 @@ func init() {
 // type Caption provides a common interface for different mechanisms to derive captions for images.
 type Caption interface {
 	// Text produces a caption derived from a file contained in a gocloud.dev/blob Bucket instance.
-	Text(context.Context, *blob.Bucket, string) (string, error)
+	Text(context.Context, source.Source, string) (string, error)
 }
 
 // type CaptionInitializeFunc defined a common initialization function for instances implementing the Caption interface.

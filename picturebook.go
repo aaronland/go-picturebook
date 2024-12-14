@@ -20,6 +20,8 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
+	"github.com/aaronland/go-picturebook/source"
+	"github.com/aaronland/go-picturebook/target"		
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
@@ -75,9 +77,11 @@ type PictureBookOptions struct {
 	// A boolean value to enable to use of an OCRA font for writing captions.
 	OCRAFont bool
 	// A gocloud.dev/blob `Bucket` instance where source images are stored.
-	Source *blob.Bucket
+	// Source *blob.Bucket
+	Source source.Source
 	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
-	Target *blob.Bucket
+	// Target *blob.Bucket
+	Target target.Target
 	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
 	Temporary *blob.Bucket
 	// A boolean value signaling that images should only be added on even-numbered pages.
@@ -152,7 +156,7 @@ type PictureBook struct {
 	// The `PictureBookOptions` used to create this picturebook
 	Options *PictureBookOptions
 	// The `GatherPicturesProcessFunc` function used to determine whether an image is included in a picturebook
-	ProcessFunc GatherPicturesProcessFunc
+	ProcessFunc source.GatherPicturesProcessFunc
 	// The number of pages in this picturebook
 	pages int
 	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
@@ -160,12 +164,12 @@ type PictureBook struct {
 }
 
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
-type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
+// type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
 //	DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
 //
 // from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
-func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
+func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (source.GatherPicturesProcessFunc, error) {
 
 	fn := func(ctx context.Context, path string) (*picture.PictureBookPicture, error) {
 
@@ -583,7 +587,21 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
 
 	pictures := make([]*picture.PictureBookPicture, 0)
+	var err error
+	
+	for p, p_err := range pb.Source.GatherPictures(ctx, pb.ProcessFunc, paths...) {
 
+		if err != nil {
+			err = p_err
+			break
+		}
+
+		pictures = append(pictures, p)
+	}
+
+	return pictures, err
+
+	/*
 	var list func(context.Context, *blob.Bucket, string) error
 
 	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
@@ -656,6 +674,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	}
 
 	return pictures, nil
+	*/
 }
 
 // AddBlankPage add a blank page the final PDF document at page 'pagenum'.

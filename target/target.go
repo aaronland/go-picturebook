@@ -1,4 +1,4 @@
-package picturebook
+package target
 
 import (
 	"context"

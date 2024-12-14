@@ -7,13 +7,13 @@ import (
 	"net/url"
 
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/source"
 )
 
 // type Text provides a common interface for different mechanisms to derive texts for images.
 type Text interface {
 	// Text produces a text derived from a file contained in a gocloud.dev/blob Bucket instance.
-	Body(context.Context, *blob.Bucket, string) (string, error)
+	Body(context.Context, source.Source, string) (string, error)
 }
 
 // type TextInitializeFunc defined a common initialization function for instances implementing the Text interface.

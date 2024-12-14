@@ -8,6 +8,7 @@ import (
 	"github.com/aaronland/go-image/colour"
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-picturebook/tempfile"
+	"github.com/aaronland/go-picturebook/source"
 	"gocloud.dev/blob"
 )
 
@@ -59,9 +60,9 @@ func NewColourSpaceProcess(ctx context.Context, uri string) (Process, error) {
 
 // Tranform maps all the pixels in the image located at 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
 // a new relative path on success.
-func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (f *ColourSpaceProcess) Transform(ctx context.Context, src source.Source, target_bucket *blob.Bucket, path string) (string, error) {
 
-	r, err := source_bucket.NewReader(ctx, path, nil)
+	r, err := src.NewReader(ctx, path, nil)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to create new reader for %s, %w", path, err)

@@ -1,4 +1,4 @@
-package picturebook
+package source
 
 import (
 	"context"
@@ -8,8 +8,12 @@ import (
 	"github.com/aaronland/go-picturebook/picture"
 )
 
+// Maybe call it something other than source?
+// NewWriter?
+// Attributes?
+
 type Source interface {
 	GatherPictures(context.Context, GatherPicturesProcessFunc, ...string) iter.Seq2[*picture.PictureBookPicture, error]
-	NewReader(context.Context, string) (io.ReadSeekCloser, error)
+	NewReader(context.Context, string, any) (io.ReadCloser, error)	
 	Close() error
 }

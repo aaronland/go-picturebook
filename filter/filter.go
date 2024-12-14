@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/source"
 )
 
 // flickr_re is a regular expression pattern for matching files with names following the convention for Flickr "original" photos.
@@ -24,7 +24,7 @@ func init() {
 // type Filter provides a common interfaces for filtering mechanisms used to determine inclusion in a picturebook.
 type Filter interface {
 	// Continue determines whether a file contained in a gocloud.dev/blob Bucket instance should be included in a picturebook.
-	Continue(context.Context, *blob.Bucket, string) (bool, error)
+	Continue(context.Context, source.Source, string) (bool, error)
 }
 
 // type FilterInitializeFunc defined a common initialization function for instances implementing the Filter interface.

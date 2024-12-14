@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aaronland/go-picturebook/source"
 	"gocloud.dev/blob"
 )
 
@@ -26,7 +27,7 @@ func NewMultiProcess(ctx context.Context, processes ...Process) (Process, error)
 
 // Tranform applies the `Tranform` method for all its internal `Process` instances. All processes must succeed
 // in order for this method to succeed.
-func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (p *MultiProcess) Transform(ctx context.Context, src source.Source, target_bucket *blob.Bucket, path string) (string, error) {
 
 	final_path := path
 

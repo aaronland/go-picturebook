@@ -1,4 +1,4 @@
-package picturebook
+package bucket
 
 import (
 	"context"
@@ -7,31 +7,34 @@ import (
 	"iter"
 
 	"github.com/aaronland/go-picturebook/picture"
-	"github.com/aaronland/gocloud-blob/bucket"
+	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
 	"gocloud.dev/blob"
 )
 
-type BlobSource struct {
-	Source
+// type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
+type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
+
+type BlobBucket struct {
+	Bucket
 	bucket *blob.Bucket
 }
 
-func NewBlobSource(ctx context.Context, uri string) (Source, error) {
+func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
-	b, err := bucket.OpenBucket(ctx, uri)
+	b, err := aa_bucket.OpenBucket(ctx, uri)
 
 	if err != nil {
 		return nil, err
 	}
 
-	s := &BlobSource{
+	s := &BlobBucket{
 		bucket: b,
 	}
 
 	return s, nil
 }
 
-func (s *BlobSource) GatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uris ...string) iter.Seq2[*picture.PictureBookPicture, error] {
+func (s *BlobBucket) GatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uris ...string) iter.Seq2[*picture.PictureBookPicture, error] {
 
 	return func(yield func(*picture.PictureBookPicture, error) bool) {
 
@@ -43,7 +46,7 @@ func (s *BlobSource) GatherPictures(ctx context.Context, process_func GatherPict
 	}
 }
 
-func (s *BlobSource) gatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uri string) iter.Seq2[*picture.PictureBookPicture, error] {
+func (s *BlobBucket) gatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uri string) iter.Seq2[*picture.PictureBookPicture, error] {
 
 	var list func(context.Context, *blob.Bucket, string) error
 
@@ -104,6 +107,10 @@ func (s *BlobSource) gatherPictures(ctx context.Context, process_func GatherPict
 	}
 }
 
-func (s *BlobSource) Close() error {
+func (s *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadCloser, error) {
+	return s.bucket.NewReader(ctx, key, nil)
+}
+
+func (s *BlobBucket) Close() error {
 	return s.bucket.Close()
 }

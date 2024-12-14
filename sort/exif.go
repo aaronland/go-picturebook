@@ -8,9 +8,9 @@ import (
 	"sort"
 
 	"github.com/aaronland/go-picturebook/picture"
+	"github.com/aaronland/go-picturebook/source"	
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
-	"gocloud.dev/blob"
 )
 
 func init() {
@@ -45,7 +45,7 @@ func NewExifSorter(ctx context.Context, uri string) (Sorter, error) {
 
 // Sort sorts a list of `picture.PictureBookPicture` by their EXIF DateTime properties. If an image does not have an EXIF DateTime property it is
 // excluded from the sorted result set.
-func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
+func (f *ExifSorter) Sort(ctx context.Context, src source.Source, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
 	candidates := make([]string, 0)
@@ -54,7 +54,7 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 
 		path := pic.Source
 
-		fh, err := bucket.NewReader(ctx, path, nil)
+		fh, err := src.NewReader(ctx, path, nil)
 
 		if err != nil {
 			slog.Warn("Failed to open image for exif sorting", "path", path, "error", err)

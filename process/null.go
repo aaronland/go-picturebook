@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/aaronland/go-picturebook/source"
 	"gocloud.dev/blob"
 )
 
@@ -38,6 +39,6 @@ func NewNullProcess(ctx context.Context, uri string) (Process, error) {
 }
 
 // Tranform is a no-op, does not apply any tranformations to 'path' and returns an empty string.
-func (f *NullProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (f *NullProcess) Transform(ctx context.Context, src source.Source, target_bucket *blob.Bucket, path string) (string, error) {
 	return "", nil
 }
