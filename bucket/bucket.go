@@ -18,7 +18,12 @@ type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBo
 
 type Bucket interface {
 	GatherPictures(context.Context, GatherPicturesProcessFunc, ...string) iter.Seq2[*picture.PictureBookPicture, error]
+
+	// This needs to implement ModTime and Size...
+	// https://pkg.go.dev/gocloud.dev/blob#Reader
+	// https://github.com/google/go-cloud/blob/v0.40.0/blob/blob.go#L99
 	NewReader(context.Context, string, any) (io.ReadSeekCloser, error)
+	
 	NewWriter(context.Context, string, any) (io.WriteCloser, error)
 	Attributes(context.Context, string) (*Attributes, error)
 	Close() error
