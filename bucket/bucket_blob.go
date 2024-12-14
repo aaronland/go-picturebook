@@ -6,9 +6,7 @@ import (
 	"io"
 	"iter"
 
-	"github.com/aaronland/go-picturebook/picture"
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
-	// "github.com/whosonfirst/go-ioutil"
 	"gocloud.dev/blob"
 )
 
@@ -32,23 +30,23 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	return s, nil
 }
 
-func (s *BlobBucket) GatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uris ...string) iter.Seq2[*picture.PictureBookPicture, error] {
+func (s *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Seq2[string, error] {
 
-	return func(yield func(*picture.PictureBookPicture, error) bool) {
+	return func(yield func(string, error) bool) {
 
 		for _, uri := range uris {
-			for p, err := range s.gatherPictures(ctx, process_func, uri) {
+			for p, err := range s.gatherPictures(ctx, uri) {
 				yield(p, err)
 			}
 		}
 	}
 }
 
-func (s *BlobBucket) gatherPictures(ctx context.Context, process_func GatherPicturesProcessFunc, uri string) iter.Seq2[*picture.PictureBookPicture, error] {
+func (s *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[string, error] {
 
 	var list func(context.Context, *blob.Bucket, string) error
 
-	return func(yield func(*picture.PictureBookPicture, error) bool) {
+	return func(yield func(string, error) bool) {
 
 		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
 
@@ -81,17 +79,21 @@ func (s *BlobBucket) gatherPictures(ctx context.Context, process_func GatherPict
 					continue
 				}
 
-				pic, err := process_func(ctx, path)
+				yield(path, nil)
 
-				if err != nil {
-					return err
-				}
+				/*
+					pic, err := process_func(ctx, path)
 
-				if pic == nil {
-					continue
-				}
+					if err != nil {
+						return err
+					}
 
-				yield(pic, nil)
+					if pic == nil {
+						continue
+					}
+
+					yield(pic, nil)
+				*/
 			}
 
 			return nil
@@ -100,7 +102,7 @@ func (s *BlobBucket) gatherPictures(ctx context.Context, process_func GatherPict
 		err := list(ctx, s.bucket, uri)
 
 		if err != nil {
-			yield(nil, err)
+			yield("", err)
 		}
 	}
 }

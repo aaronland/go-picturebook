@@ -155,7 +155,7 @@ type PictureBook struct {
 	// The `PictureBookOptions` used to create this picturebook
 	Options *PictureBookOptions
 	// The `GatherPicturesProcessFunc` function used to determine whether an image is included in a picturebook
-	ProcessFunc bucket.GatherPicturesProcessFunc
+	ProcessFunc GatherPicturesProcessFunc
 	// The number of pages in this picturebook
 	pages int
 	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
@@ -163,12 +163,12 @@ type PictureBook struct {
 }
 
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
-// type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
+type GatherPicturesProcessFunc func(context.Context, string) (*picture.PictureBookPicture, error)
 
 //	DefaultGatherPicturesProcessFunc returns a default GatherPicturesProcessFunc used to derive a `picture.PictureBookPicture` instance
 //
 // from the path to an image file. It applies any filters and transformation processes and derives caption data per settings defined in 'pb_opts'.
-func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (bucket.GatherPicturesProcessFunc, error) {
+func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPicturesProcessFunc, error) {
 
 	fn := func(ctx context.Context, path string) (*picture.PictureBookPicture, error) {
 
@@ -588,14 +588,23 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	pictures := make([]*picture.PictureBookPicture, 0)
 	var err error
 
-	for p, p_err := range pb.Options.Source.GatherPictures(ctx, pb.ProcessFunc, paths...) {
+	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
 			err = p_err
 			break
 		}
 
-		pictures = append(pictures, p)
+		pic, pic_err := pb.ProcessFunc(ctx, path)
+
+		if err != nil {
+			err = pic_err
+			break
+		}
+
+		if pic != nil {
+			pictures = append(pictures, pic)
+		}
 	}
 
 	return pictures, err
