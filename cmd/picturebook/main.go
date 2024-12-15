@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/aaronland/go-picturebook/application/commandline"
+	"github.com/aaronland/go-picturebook/app/commandline"
 	"github.com/aaronland/go-slog/attr"
 	_ "gocloud.dev/blob/fileblob"
 )

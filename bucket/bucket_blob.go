@@ -15,6 +15,20 @@ type BlobBucket struct {
 	bucket *blob.Bucket
 }
 
+func init() {
+
+	ctx := context.Background()
+
+	for _, scheme := range blob.DefaultURLMux().BucketSchemes() {
+
+		err := RegisterBucket(ctx, scheme, NewBlobBucket)
+
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
 	b, err := aa_bucket.OpenBucket(ctx, uri)
