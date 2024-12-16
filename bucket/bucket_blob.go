@@ -8,7 +8,10 @@ import (
 
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
 	"gocloud.dev/blob"
+	"sync"
 )
+
+var bucket_mu = new(sync.Map)
 
 type BlobBucket struct {
 	Bucket
@@ -18,15 +21,32 @@ type BlobBucket struct {
 func init() {
 
 	ctx := context.Background()
+	err := RegisterGoCloudBuckets(ctx)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+// RegisterGoCloudBuckets will explicitly register all the schemes associated with the `gocloud.dev/blob.Bucket` interface.
+func RegisterGoCloudBuckets(ctx context.Context) error {
 
 	for _, scheme := range blob.DefaultURLMux().BucketSchemes() {
+
+		_, exists := bucket_mu.LoadOrStore(scheme, true)
+
+		if exists {
+			continue
+		}
 
 		err := RegisterBucket(ctx, scheme, NewBlobBucket)
 
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("Failed to register scheme '%s', %w", scheme, err)
 		}
 	}
+
+	return nil
 }
 
 func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {

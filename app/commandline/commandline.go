@@ -50,6 +50,17 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 		LogLevel.Set(slog.LevelDebug)
 	}
 
+	// START OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
+	// because of the way Go imports are ordered.
+	
+	err := bucket.RegisterGoCloudBuckets(ctx)
+
+	if err != nil {
+		return fmt.Errorf("Failed to register gocloud buckets, %w", err)
+	}
+
+	// END OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
+	
 	if tmpfile_uri == "" {
 
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())

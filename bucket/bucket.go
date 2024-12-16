@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"log/slog"
+
 	"github.com/aaronland/go-roster"
 )
 
@@ -75,6 +77,8 @@ func NewBucket(ctx context.Context, uri string) (Bucket, error) {
 	}
 
 	scheme := u.Scheme
+
+	slog.Info("Scheme", "s", scheme)
 
 	i, err := bucket_roster.Driver(ctx, scheme)
 
