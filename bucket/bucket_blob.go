@@ -13,6 +13,7 @@ import (
 
 var bucket_mu = new(sync.Map)
 
+// BlobBucket implements the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 type BlobBucket struct {
 	Bucket
 	bucket *blob.Bucket
@@ -49,6 +50,7 @@ func RegisterGoCloudBuckets(ctx context.Context) error {
 	return nil
 }
 
+// NewBlobBucket returns a new instantiation of the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
 	b, err := aa_bucket.OpenBucket(ctx, uri)
@@ -64,19 +66,20 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	return s, nil
 }
 
-func (s *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Seq2[string, error] {
+// GatherPictures will return a iterator listing items in 'b'
+func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Seq2[string, error] {
 
 	return func(yield func(string, error) bool) {
 
 		for _, uri := range uris {
-			for p, err := range s.gatherPictures(ctx, uri) {
+			for p, err := range b.gatherPictures(ctx, uri) {
 				yield(p, err)
 			}
 		}
 	}
 }
 
-func (s *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[string, error] {
+func (b *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[string, error] {
 
 	var list func(context.Context, *blob.Bucket, string) error
 
@@ -114,26 +117,12 @@ func (s *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[s
 				}
 
 				yield(path, nil)
-
-				/*
-					pic, err := process_func(ctx, path)
-
-					if err != nil {
-						return err
-					}
-
-					if pic == nil {
-						continue
-					}
-
-					yield(pic, nil)
-				*/
 			}
 
 			return nil
 		}
 
-		err := list(ctx, s.bucket, uri)
+		err := list(ctx, b.bucket, uri)
 
 		if err != nil {
 			yield("", err)
@@ -141,27 +130,19 @@ func (s *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[s
 	}
 }
 
-func (s *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadSeekCloser, error) {
+func (b *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadSeekCloser, error) {
 
-	r, err := s.bucket.NewReader(ctx, key, nil)
+	r, err := b.bucket.NewReader(ctx, key, nil)
 	return r, err
-
-	/*
-		if err != nil {
-			return nil, err
-		}
-
-		return ioutil.NewReadSeekCloser(r)
-	*/
 }
 
-func (s *BlobBucket) NewWriter(ctx context.Context, key string, opts any) (io.WriteCloser, error) {
-	return s.bucket.NewWriter(ctx, key, nil)
+func (b *BlobBucket) NewWriter(ctx context.Context, key string, opts any) (io.WriteCloser, error) {
+	return b.bucket.NewWriter(ctx, key, nil)
 }
 
-func (s *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, error) {
+func (b *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, error) {
 
-	blob_attrs, err := s.bucket.Attributes(ctx, path)
+	blob_attrs, err := b.bucket.Attributes(ctx, path)
 
 	if err != nil {
 		return nil, err
@@ -175,10 +156,10 @@ func (s *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, 
 	return attrs, nil
 }
 
-func (s *BlobBucket) Delete(ctx context.Context, key string) error {
-	return s.bucket.Delete(ctx, key)
+func (b *BlobBucket) Delete(ctx context.Context, key string) error {
+	return b.bucket.Delete(ctx, key)
 }
 
-func (s *BlobBucket) Close() error {
-	return s.bucket.Close()
+func (b *BlobBucket) Close() error {
+	return b.bucket.Close()
 }

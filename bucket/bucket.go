@@ -20,12 +20,24 @@ type Attributes struct {
 	Size    int64
 }
 
+// Bucket implements a simple interface for reading and writing Picturebook images to and from
+// different storage implementations. It is modeled after the `gocloud.dev/blob.Bucket` interface
+// which is what this package used to use. This simplified interface reflects the limited methods
+// from the original interface that were used. The goal is to make it easier to implement a variety
+// of Picturebook "sources" (or buckets) without having to implement the entirety of the `gocloud.dev/blob.Bucket`
+// interface.
 type Bucket interface {
+	// GatherPictures returns an iterator for listing Picturebook images URIs that can passed to the (bucket implementation's) `NewReader` method.
 	GatherPictures(context.Context, ...string) iter.Seq2[string, error]
+	// NewReader returns an `io.ReadSeekCloser` instance for a record in the bucket.
 	NewReader(context.Context, string, any) (io.ReadSeekCloser, error)
+	// NewWriter returns an `io.WriterCloser` instance for writing a record to the bucket.
 	NewWriter(context.Context, string, any) (io.WriteCloser, error)
+	// Delete removed a record from the bucket.
 	Delete(context.Context, string) error
+	// Attributes returns an `Attributes` struct for a record in the bucket.
 	Attributes(context.Context, string) (*Attributes, error)
+	// Close signals the implementation to wrap things up (internally).
 	Close() error
 }
 
