@@ -24,8 +24,6 @@ github.com/aaronland/go-mimetypes v0.0.2 h1:Gsi1ak00V+m+g8lVIROkM2mIdj7aLnvaF1iq
 github.com/aaronland/go-mimetypes v0.0.2/go.mod h1:bFXDLXp+3bRrzRhoD7RY2vSKTcsVjgdSckHxbuIdTLA=
 github.com/aaronland/go-roster v1.0.0 h1:FRDGrTqsYySKjWnAhbBGXyeGlI/o5/t9FZYCbUmyQtI=
 github.com/aaronland/go-roster v1.0.0/go.mod h1:KIsYZgrJlAsyb9LsXSCvlqvbcCBVjCSqcQiZx42i9ro=
-github.com/aaronland/go-slog v0.0.0-20240125194858-f0f00a6c3f5e h1:j6mvHQNWZelD1fwcbJHNSKIDAmNG0TGuUUwiCAr3l5A=
-github.com/aaronland/go-slog v0.0.0-20240125194858-f0f00a6c3f5e/go.mod h1:ercEjEMwGKjGS7JqLbNDw9+mOdDIoEZFRkLcfZBlpjE=
 github.com/aaronland/gocloud-blob v0.4.0 h1:Vc8RrtZc97CPlG+oLzP6LmTfFDu7Zo7luQa1q6kf2Xc=
 github.com/aaronland/gocloud-blob v0.4.0/go.mod h1:xywFPeaBwgXO10iJ7zaMI91TmmkMHJeAVHb4dnWddq0=
 github.com/aws/aws-sdk-go v1.55.5 h1:KKUZBfBoyqy5d3swXyiC7Q76ic40rYcbqH7qjh59kzU=

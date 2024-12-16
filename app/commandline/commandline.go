@@ -29,7 +29,7 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
-func Run(ctx context.Context, logger *slog.Logger) error {
+func Run(ctx context.Context) error {
 
 	fs, err := DefaultFlagSet(ctx)
 
@@ -37,22 +37,22 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 		return fmt.Errorf("Failed to create default flag set, %w", err)
 	}
 
-	return RunWithFlagSet(ctx, fs, logger)
+	return RunWithFlagSet(ctx, fs)
 }
 
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	flagset.Parse(fs)
-
-	slog.SetDefault(logger)
 
 	if verbose {
 		LogLevel.Set(slog.LevelDebug)
 	}
 
+	logger := slog.Default()
+
 	// START OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
 	// because of the way Go imports are ordered.
-	
+
 	err := bucket.RegisterGoCloudBuckets(ctx)
 
 	if err != nil {
@@ -60,7 +60,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 	}
 
 	// END OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
-	
+
 	if tmpfile_uri == "" {
 
 		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())

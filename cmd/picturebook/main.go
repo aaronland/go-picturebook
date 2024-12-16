@@ -3,31 +3,18 @@ package main
 
 import (
 	"context"
-	"log/slog"
-	"os"
+	"log"
 
 	"github.com/aaronland/go-picturebook/app/commandline"
-	"github.com/aaronland/go-slog/attr"
 	_ "gocloud.dev/blob/fileblob"
 )
 
 func main() {
 
 	ctx := context.Background()
-
-	h := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level:       commandline.LogLevel,
-		ReplaceAttr: attr.EmojiLevelFunc(),
-	})
-
-	logger := slog.New(h)
-
-	err := commandline.Run(ctx, logger)
+	err := commandline.Run(ctx)
 
 	if err != nil {
-		logger.Error("Failed to run picturebook application", "error", err)
-		os.Exit(1)
+		log.Fatalf("Failed to run picturebook application, %v", err)
 	}
-
-	os.Exit(0)
 }
