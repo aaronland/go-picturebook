@@ -100,7 +100,28 @@ For a complete example, including a PDF file produced by the `picturebook` tool,
 
 ### Source and target URIs
 
-Under the hood `picturebook` is using the [Go Cloud `blob` abstraction layer](https://gocloud.dev/howto/blob/) for files and file storage. By default only [local files](https://gocloud.dev/howto/blob/#local) (or `file://` URIs) are supported. If you need to support other sources or targets you will need to create your own custom `picturebook` tool.
+Under the hood `picturebook` is using its own [Bucket](bucket/bucket.go) abstraction layer for files and file storage.
+
+```
+type Bucket interface {
+	// GatherPictures returns an iterator for listing Picturebook images URIs that can passed to the (bucket implementation's) `NewReader` method.
+	GatherPictures(context.Context, ...string) iter.Seq2[string, error]
+	// NewReader returns an `io.ReadSeekCloser` instance for a record in the bucket.
+	NewReader(context.Context, string, any) (io.ReadSeekCloser, error)
+	// NewWriter returns an `io.WriterCloser` instance for writing a record to the bucket.
+	NewWriter(context.Context, string, any) (io.WriteCloser, error)
+	// Delete removed a record from the bucket.
+	Delete(context.Context, string) error
+	// Attributes returns an `Attributes` struct for a record in the bucket.
+	Attributes(context.Context, string) (*Attributes, error)
+	// Close signals the implementation to wrap things up (internally).
+	Close() error
+}
+```
+
+`Bucket` implements a simple interface for reading and writing Picturebook images to and from different storage implementations. It is modeled after the [gocloud.dev/blob.Bucket](https://gocloud.dev/howto/blob/) interface which is what this package used to use. This simplified interface reflects the limited methods from the original interface that were used. The goal is to make it easier to implement a variety of Picturebook "sources" (or buckets) without having to implement the entirety of the `gocloud.dev/blob.Bucket`
+
+By default only [local files](https://gocloud.dev/howto/blob/#local) (or `file://` URIs) are supported. If you need to support other sources or targets you will need to create your own custom `picturebook` tool and add the relevant `import` statements.
 
 In order to facilitate this all of the logic of the `picturebook` tool has been moved in to the [go-picturebook/application/commandline](application/commandline) package. For example here is how you would write your own custom tool with support for reading and writing files to an S3 bucket as well as the local filesystem.
 
@@ -109,18 +130,14 @@ package main
 
 import (
 	"context"
-	"github.com/aaronland/go-picturebook/application/commandline"
+	
+	"github.com/aaronland/go-picturebook/app/picturebook"
 	_ "gocloud.dev/blob/fileblob"
 	_ "gocloud.dev/blob/s3blob"	
 )
 
 func main() {
-
 	ctx := context.Background()
-
-	fs, _ := commandline.DefaultFlagSet(ctx)
-	app, _ := commandline.NewApplication(ctx, fs)
-
 	app.Run(ctx)
 }
 ```
@@ -286,10 +303,9 @@ Sort images, in ascending order, by their modification times. If two or more ima
 
 ## See also
 
-* https://github.com/aaronland/go-picturebook-cooperhewitt
 * https://github.com/aaronland/go-picturebook-flickr
 * https://github.com/go-pdf/fpdf
-* https://github.com/aaronland/go-image-tools
+* https://github.com/aaronland/go-image
 * https://github.com/aaronland/go-image-halftone
 * https://github.com/aaronland/go-image-contour
 * https://gocloud.dev/howto/blob/

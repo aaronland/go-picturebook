@@ -1,5 +1,5 @@
-// package commandline provides a command-line application for creating picturebooks.
-package commandline
+// package picturebook provides a command-line application for creating picturebooks.
+package picturebook
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aaronland/go-picturebook"
+	pb "github.com/aaronland/go-picturebook"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -45,7 +45,8 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	flagset.Parse(fs)
 
 	if verbose {
-		LogLevel.Set(slog.LevelDebug)
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+		slog.Debug("Verbose logging enabled")
 	}
 
 	logger := slog.Default()
@@ -136,7 +137,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)
 	}
 
-	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
+	opts, err := pb.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create default picturebook options, %w", err)
@@ -331,7 +332,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	opts.Target = target_bucket
 	opts.Temporary = tmpfile_bucket
 
-	pb, err := picturebook.NewPictureBook(ctx, opts)
+	pb, err := pb.NewPictureBook(ctx, opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new picturebook, %v", err)

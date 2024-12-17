@@ -1088,7 +1088,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			_, line_h := pb.PDF.GetFontSize()
 
-			logger.Debug("line height %0.2f", line_h)
+			logger.Debug("line height", "height", fmt.Sprintf("%0.2f", line_h))
 
 			pb.PDF.SetFontSize(font_sz)
 

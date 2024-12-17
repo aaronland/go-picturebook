@@ -5,14 +5,14 @@ import (
 	"context"
 	"log"
 
-	"github.com/aaronland/go-picturebook/app/commandline"
+	"github.com/aaronland/go-picturebook/app/picturebook"
 	_ "gocloud.dev/blob/fileblob"
 )
 
 func main() {
 
 	ctx := context.Background()
-	err := commandline.Run(ctx)
+	err := picturebook.Run(ctx)
 
 	if err != nil {
 		log.Fatalf("Failed to run picturebook application, %v", err)

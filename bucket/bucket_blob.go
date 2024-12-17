@@ -130,16 +130,19 @@ func (b *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[s
 	}
 }
 
+// NewReader returns an `io.ReadSeekCloser` instance for the record named 'key' in 'b'.
 func (b *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadSeekCloser, error) {
 
 	r, err := b.bucket.NewReader(ctx, key, nil)
 	return r, err
 }
 
+// NewWriter returns an `io.WriterCloser` instance for writing to the record named 'key' in 'b'.
 func (b *BlobBucket) NewWriter(ctx context.Context, key string, opts any) (io.WriteCloser, error) {
 	return b.bucket.NewWriter(ctx, key, nil)
 }
 
+// Attributes returns an `Attributes` struct for the record named 'key' in'b'.
 func (b *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, error) {
 
 	blob_attrs, err := b.bucket.Attributes(ctx, path)
@@ -156,10 +159,12 @@ func (b *BlobBucket) Attributes(ctx context.Context, path string) (*Attributes, 
 	return attrs, nil
 }
 
+// Delete removes the record named 'key' in 'b'.
 func (b *BlobBucket) Delete(ctx context.Context, key string) error {
 	return b.bucket.Delete(ctx, key)
 }
 
+// Close tells 'b' to wrap things up.
 func (b *BlobBucket) Close() error {
 	return b.bucket.Close()
 }
