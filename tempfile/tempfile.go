@@ -7,13 +7,13 @@ import (
 	"image"
 
 	"github.com/aaronland/go-image/encode"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/google/uuid"
-	"gocloud.dev/blob"
 )
 
 // TempFileWithImage will write a new JPEG file in 'bucket' derived from 'im'. The return values are the
 // filename of the temporary file, its image format and any errors produced during writing.
-func TempFileWithImage(ctx context.Context, bucket *blob.Bucket, im image.Image) (string, string, error) {
+func TempFileWithImage(ctx context.Context, bucket bucket.Bucket, im image.Image) (string, string, error) {
 
 	id, err := uuid.NewUUID()
 

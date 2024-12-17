@@ -2,7 +2,7 @@
 package picture
 
 import (
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 // type PictureBookPicture provides a struct containing details about an image to be added to a picturebook.
@@ -16,7 +16,7 @@ type PictureBookPicture struct {
 	// The long-form (or at least longer than a caption) text associated with the image being added to a picturebook
 	Text string
 	// The `blob.Bucket` instance where the image (Path) being added to a picturebook is stored.
-	Bucket *blob.Bucket
+	Bucket bucket.Bucket
 	// The path of any temporary file that has been created in the process of adding an image to a picturebook
 	TempFile string
 }

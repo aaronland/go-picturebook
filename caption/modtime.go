@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -44,9 +44,9 @@ func NewModtimeCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 // Text returns a caption string derived from the modification time of 'path'
-func (c *ModtimeCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (c *ModtimeCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
-	attrs, err := bucket.Attributes(ctx, path)
+	attrs, err := source_bucket.Attributes(ctx, path)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to derive attributes for %s, %w", path, err)

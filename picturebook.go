@@ -15,6 +15,7 @@ import (
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
 	"github.com/aaronland/go-mimetypes"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/picture"
@@ -24,7 +25,6 @@ import (
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
-	"gocloud.dev/blob"
 )
 
 // MM2INCH defines the number if millimeters in an inch.
@@ -75,11 +75,14 @@ type PictureBookOptions struct {
 	// A boolean value to enable to use of an OCRA font for writing captions.
 	OCRAFont bool
 	// A gocloud.dev/blob `Bucket` instance where source images are stored.
-	Source *blob.Bucket
+	// Source *blob.Bucket
+	Source bucket.Bucket
 	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
-	Target *blob.Bucket
+	// Target *blob.Bucket
+	Target bucket.Bucket
 	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
-	Temporary *blob.Bucket
+	// Temporary *blob.Bucket
+	Temporary bucket.Bucket
 	// A boolean value signaling that images should only be added on even-numbered pages.
 	EvenOnly bool
 	// A boolean value signaling that images should only be added on odd-numbered pages.
@@ -239,7 +242,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 			text_body = txt
 		}
 
-		var final_bucket *blob.Bucket
+		var final_bucket bucket.Bucket
 		final_path := abs_path
 
 		var tmpfile_path string
@@ -583,79 +586,103 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*picture.PictureBookPicture, error) {
 
 	pictures := make([]*picture.PictureBookPicture, 0)
+	var err error
 
-	var list func(context.Context, *blob.Bucket, string) error
-
-	list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
-
-		iter := bucket.List(&blob.ListOptions{
-			Delimiter: "/",
-			Prefix:    prefix,
-		})
-
-		for {
-			obj, err := iter.Next(ctx)
-
-			if err == io.EOF {
-				break
-			}
-
-			if err != nil {
-				return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-			}
-
-			path := obj.Key
-
-			if obj.IsDir {
-
-				err := list(ctx, bucket, path)
-
-				if err != nil {
-					return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-				}
-
-				continue
-			}
-
-			pic, err := pb.ProcessFunc(ctx, path)
-
-			if err != nil {
-				return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
-			}
-
-			if pic == nil {
-				continue
-			}
-
-			if pic.TempFile != "" {
-				pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
-			}
-
-			pb.Mutex.Lock()
-
-			pictures = append(pictures, pic)
-			count_pictures := len(pictures)
-
-			pb.Mutex.Unlock()
-
-			if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
-				break
-			}
-		}
-
-		return nil
-	}
-
-	for _, path := range paths {
-
-		err := list(ctx, pb.Options.Source, path)
+	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+			err = p_err
+			break
+		}
+
+		pic, pic_err := pb.ProcessFunc(ctx, path)
+
+		if err != nil {
+			err = pic_err
+			break
+		}
+
+		if pic != nil {
+			pictures = append(pictures, pic)
 		}
 	}
 
-	return pictures, nil
+	return pictures, err
+
+	/*
+		var list func(context.Context, *blob.Bucket, string) error
+
+		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
+
+			iter := bucket.List(&blob.ListOptions{
+				Delimiter: "/",
+				Prefix:    prefix,
+			})
+
+			for {
+				obj, err := iter.Next(ctx)
+
+				if err == io.EOF {
+					break
+				}
+
+				if err != nil {
+					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
+				}
+
+				path := obj.Key
+
+				if obj.IsDir {
+
+					err := list(ctx, bucket, path)
+
+					if err != nil {
+						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+					}
+
+					continue
+				}
+
+				pic, err := pb.ProcessFunc(ctx, path)
+
+				if err != nil {
+					return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
+				}
+
+				if pic == nil {
+					continue
+				}
+
+				if pic.TempFile != "" {
+					pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
+				}
+
+				pb.Mutex.Lock()
+
+				pictures = append(pictures, pic)
+				count_pictures := len(pictures)
+
+				pb.Mutex.Unlock()
+
+				if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
+					break
+				}
+			}
+
+			return nil
+		}
+
+		for _, path := range paths {
+
+			err := list(ctx, pb.Options.Source, path)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+			}
+		}
+
+		return pictures, nil
+	*/
 }
 
 // AddBlankPage add a blank page the final PDF document at page 'pagenum'.
@@ -1061,7 +1088,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			_, line_h := pb.PDF.GetFontSize()
 
-			logger.Debug("line height %0.2f", line_h)
+			logger.Debug("line height", "height", fmt.Sprintf("%0.2f", line_h))
 
 			pb.PDF.SetFontSize(font_sz)
 

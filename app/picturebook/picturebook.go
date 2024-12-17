@@ -1,5 +1,5 @@
-// package commandline provides a command-line application for creating picturebooks.
-package commandline
+// package picturebook provides a command-line application for creating picturebooks.
+package picturebook
 
 import (
 	"context"
@@ -12,15 +12,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aaronland/go-picturebook"
+	pb "github.com/aaronland/go-picturebook"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/text"
-	"github.com/aaronland/gocloud-blob/bucket"
 	"github.com/sfomuseum/go-flags/flagset"
-	"gocloud.dev/blob"
 )
 
 // Regular expression for validating filter and caption URIs.
@@ -30,7 +29,7 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
-func Run(ctx context.Context, logger *slog.Logger) error {
+func Run(ctx context.Context) error {
 
 	fs, err := DefaultFlagSet(ctx)
 
@@ -38,18 +37,30 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 		return fmt.Errorf("Failed to create default flag set, %w", err)
 	}
 
-	return RunWithFlagSet(ctx, fs, logger)
+	return RunWithFlagSet(ctx, fs)
 }
 
-func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) error {
+func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	flagset.Parse(fs)
 
-	slog.SetDefault(logger)
-
 	if verbose {
-		LogLevel.Set(slog.LevelDebug)
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+		slog.Debug("Verbose logging enabled")
 	}
+
+	logger := slog.Default()
+
+	// START OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
+	// because of the way Go imports are ordered.
+
+	err := bucket.RegisterGoCloudBuckets(ctx)
+
+	if err != nil {
+		return fmt.Errorf("Failed to register gocloud buckets, %w", err)
+	}
+
+	// END OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
 
 	if tmpfile_uri == "" {
 
@@ -108,25 +119,25 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 		return fmt.Errorf("Failed to ensure ?metadata=skip for tmpfile URI %s, %w", tmpfile_uri, err)
 	}
 
-	source_bucket, err := bucket.OpenBucket(ctx, source_uri)
+	source_bucket, err := bucket.NewBucket(ctx, source_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open source bucket, %w", err)
 	}
 
-	target_bucket, err := bucket.OpenBucket(ctx, target_uri)
+	target_bucket, err := bucket.NewBucket(ctx, target_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open target bucket, %w", err)
 	}
 
-	tmpfile_bucket, err := bucket.OpenBucket(ctx, tmpfile_uri)
+	tmpfile_bucket, err := bucket.NewBucket(ctx, tmpfile_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)
 	}
 
-	opts, err := picturebook.NewPictureBookDefaultOptions(ctx)
+	opts, err := pb.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create default picturebook options, %w", err)
@@ -307,7 +318,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 		base := filepath.Base(source_uri)
 		root := filepath.Dir(source_uri)
 
-		sb, err := blob.OpenBucket(ctx, root)
+		sb, err := bucket.NewBucket(ctx, root)
 
 		if err != nil {
 			return fmt.Errorf("Failed to open bucket for %s, %w", root, err)
@@ -321,7 +332,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 	opts.Target = target_bucket
 	opts.Temporary = tmpfile_bucket
 
-	pb, err := picturebook.NewPictureBook(ctx, opts)
+	pb, err := pb.NewPictureBook(ctx, opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new picturebook, %v", err)

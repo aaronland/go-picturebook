@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/mknote"
-	"gocloud.dev/blob"
 )
 
 func init() {
@@ -45,7 +45,7 @@ func NewExifSorter(ctx context.Context, uri string) (Sorter, error) {
 
 // Sort sorts a list of `picture.PictureBookPicture` by their EXIF DateTime properties. If an image does not have an EXIF DateTime property it is
 // excluded from the sorted result set.
-func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
+func (f *ExifSorter) Sort(ctx context.Context, source_bucket bucket.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
 	candidates := make([]string, 0)
@@ -54,7 +54,7 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 
 		path := pic.Source
 
-		fh, err := bucket.NewReader(ctx, path, nil)
+		fh, err := source_bucket.NewReader(ctx, path, nil)
 
 		if err != nil {
 			slog.Warn("Failed to open image for exif sorting", "path", path, "error", err)
@@ -63,8 +63,15 @@ func (f *ExifSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*
 
 		defer fh.Close()
 
-		mtime := fh.ModTime()
-		sz := fh.Size()
+		attrs, err := source_bucket.Attributes(ctx, path)
+
+		if err != nil {
+			slog.Warn("Failed to derive attributes", "path", path, "error", err)
+			continue
+		}
+
+		mtime := attrs.ModTime
+		sz := attrs.Size
 
 		ts := mtime.Unix()
 

@@ -9,8 +9,8 @@ import (
 
 	"github.com/aaronland/go-image/decode"
 	"github.com/aaronland/go-image/rotate"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
-	"gocloud.dev/blob"
 )
 
 func init() {
@@ -44,7 +44,7 @@ func NewRotateProcess(ctx context.Context, uri string) (Process, error) {
 
 // Tranform rotates the image 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
 // a new relative path on success. If an image is not a JPEG file the method return an empty string.
-func (f *RotateProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (f *RotateProcess) Transform(ctx context.Context, source_bucket bucket.Bucket, target_bucket bucket.Bucket, path string) (string, error) {
 
 	ext := filepath.Ext(path)
 	ext = strings.ToLower(ext)

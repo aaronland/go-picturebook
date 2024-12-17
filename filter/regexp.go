@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -71,7 +71,7 @@ func NewRegexpFilter(ctx context.Context, uri string) (Filter, error) {
 }
 
 // Continues returns a boolean value signaling whether or not 'path' should be included in a picturebook.
-func (f *RegexpFilter) Continue(ctx context.Context, bucket *blob.Bucket, path string) (bool, error) {
+func (f *RegexpFilter) Continue(ctx context.Context, source_bucket bucket.Bucket, path string) (bool, error) {
 
 	match := f.re.MatchString(path)
 

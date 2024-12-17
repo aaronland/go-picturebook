@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"os"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -61,7 +61,7 @@ func NewJsonText(ctx context.Context, uri string) (Text, error) {
 }
 
 // Body returns ...
-func (c *JsonText) Body(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (c *JsonText) Body(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
 	text, exists := c.texts_table[path]
 

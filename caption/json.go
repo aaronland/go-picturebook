@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"os"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -61,7 +61,7 @@ func NewJsonCaption(ctx context.Context, uri string) (Caption, error) {
 }
 
 // Text returns an empty caption string
-func (c *JsonCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (c *JsonCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
 	text, exists := c.captions_table[path]
 

@@ -5,15 +5,15 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
 )
 
 // type Process provides a common interfaces for manipulating images before adding them to a picturebook.
 type Process interface {
 	// Transform reads a file from a `blob.Bucket` instance, processes it and writes the result to a
 	// second `blob.Bucket` instance returning a new filename.
-	Transform(context.Context, *blob.Bucket, *blob.Bucket, string) (string, error)
+	Transform(context.Context, bucket.Bucket, bucket.Bucket, string) (string, error)
 }
 
 // type ProcessInitializeFunc defined a common initialization function for instances implementing the Process interface.

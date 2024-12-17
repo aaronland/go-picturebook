@@ -1,4 +1,4 @@
-package commandline
+package picturebook
 
 import (
 	"context"
@@ -56,13 +56,13 @@ var margin_right float64
 // The size of an exterior "bleed" margin for a picturebook.
 var bleed float64
 
-// A valid gocloud.dev/blob URI for where source input images are read from.
+// A valid aaronland/go-picturebook/bucket.Bucket URI for where source input images are read from.
 var source_uri string
 
-// A valid gocloud.dev/blob URI for where the final picturebook file will be written to.
+// A valid aaronland/go-picturebook/bucket.Bucket URI for where the final picturebook file will be written to.
 var target_uri string
 
-// A valid gocloud.dev/blob URI for where temporary picturebook-related images will be written to and read from.
+// A valid aaronland/go-picturebook/bucket.Bucket URI for where temporary picturebook-related images will be written to and read from.
 var tmpfile_uri string
 
 // A boolean flag indicating that, when necessary, an image should be rotated 90 degrees to use the most available page space.

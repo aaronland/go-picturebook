@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 // type MultiProcess implements the `Process` interface and allows multiple `Process` instances to
@@ -26,7 +26,7 @@ func NewMultiProcess(ctx context.Context, processes ...Process) (Process, error)
 
 // Tranform applies the `Tranform` method for all its internal `Process` instances. All processes must succeed
 // in order for this method to succeed.
-func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (p *MultiProcess) Transform(ctx context.Context, source_bucket bucket.Bucket, target_bucket bucket.Bucket, path string) (string, error) {
 
 	final_path := path
 
@@ -45,7 +45,7 @@ func (p *MultiProcess) Transform(ctx context.Context, source_bucket *blob.Bucket
 			// See this - it's important. Because we're in a loop we need to make sure
 			// we know where to find the second (and third...) temporary file that's been
 			// processed which will be in the "target" (or temporary) bucket and not the
-			// source bucket. (20210223/straup)
+			// bucket bucket. (20210223/straup)
 
 			source_bucket = target_bucket
 		}

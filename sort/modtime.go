@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"sort"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/picture"
-	"gocloud.dev/blob"
 )
 
 func init() {
@@ -39,7 +39,7 @@ func NewModTimeSorter(ctx context.Context, uri string) (Sorter, error) {
 }
 
 // Sort sorts a list of `picture.PictureBookPicture` by their modification dates.
-func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
+func (f *ModTimeSorter) Sort(ctx context.Context, source_bucket bucket.Bucket, pictures []*picture.PictureBookPicture) ([]*picture.PictureBookPicture, error) {
 
 	lookup := make(map[string]*picture.PictureBookPicture)
 	candidates := make([]string, 0)
@@ -48,15 +48,14 @@ func (f *ModTimeSorter) Sort(ctx context.Context, bucket *blob.Bucket, pictures 
 
 		path := pic.Source
 
-		r, err := bucket.NewReader(ctx, path, nil)
+		attrs, err := source_bucket.Attributes(ctx, path)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to open %s for modtime sorting, %v\n", path, err)
+			return nil, fmt.Errorf("Failed to dereive attributes from %s for modtime sorting, %v\n", path, err)
 		}
 
-		mtime := r.ModTime()
-		sz := r.Size()
-		r.Close()
+		mtime := attrs.ModTime
+		sz := attrs.Size
 
 		ts := mtime.Unix()
 

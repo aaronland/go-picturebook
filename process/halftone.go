@@ -7,8 +7,8 @@ import (
 
 	"github.com/aaronland/go-image-halftone"
 	"github.com/aaronland/go-image/decode"
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
-	"gocloud.dev/blob"
 )
 
 func init() {
@@ -40,9 +40,9 @@ func NewHalftoneProcess(ctx context.Context, uri string) (Process, error) {
 	return f, nil
 }
 
-// Tranform applies a "halftone" dithering tranformation to 'path' in 'source_bucket' and writes the results to 'target_bucket' returning
+// Tranform applies a "halftone" dithering tranformation to 'path' in 'bucket_bucket' and writes the results to 'target_bucket' returning
 // a new relative path on success.
-func (f *HalftoneProcess) Transform(ctx context.Context, source_bucket *blob.Bucket, target_bucket *blob.Bucket, path string) (string, error) {
+func (f *HalftoneProcess) Transform(ctx context.Context, source_bucket bucket.Bucket, target_bucket bucket.Bucket, path string) (string, error) {
 
 	fh, err := source_bucket.NewReader(ctx, path, nil)
 

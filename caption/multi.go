@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"gocloud.dev/blob"
+	"github.com/aaronland/go-picturebook/bucket"
 )
 
 func init() {
@@ -84,13 +84,13 @@ func NewMultiCaptionWithOptions(ctx context.Context, opts *MultiCaptionOptions) 
 }
 
 // Text returns a caption string derived from the base name of 'path'
-func (c *MultiCaption) Text(ctx context.Context, bucket *blob.Bucket, path string) (string, error) {
+func (c *MultiCaption) Text(ctx context.Context, source_bucket bucket.Bucket, path string) (string, error) {
 
 	texts := make([]string, len(c.captions))
 
 	for idx, pr := range c.captions {
 
-		txt, err := pr.Text(ctx, bucket, path)
+		txt, err := pr.Text(ctx, source_bucket, path)
 
 		if err != nil {
 			return "", fmt.Errorf("Failed to derive text for caption, %w", err)

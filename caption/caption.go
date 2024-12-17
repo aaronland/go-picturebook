@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-roster"
-	"gocloud.dev/blob"
 )
 
 // flickr_re is a regular expression pattern for matching files with names following the convention for Flickr "original" photos.
@@ -25,7 +25,7 @@ func init() {
 // type Caption provides a common interface for different mechanisms to derive captions for images.
 type Caption interface {
 	// Text produces a caption derived from a file contained in a gocloud.dev/blob Bucket instance.
-	Text(context.Context, *blob.Bucket, string) (string, error)
+	Text(context.Context, bucket.Bucket, string) (string, error)
 }
 
 // type CaptionInitializeFunc defined a common initialization function for instances implementing the Caption interface.
