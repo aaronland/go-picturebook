@@ -42,9 +42,18 @@ func Run(ctx context.Context) error {
 
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
-	flagset.Parse(fs)
+	opts, err := RunOptionsFromFlagSet(ctx, fs)
 
-	if verbose {
+	if err != nil {
+		return err
+	}
+
+	return RunWithOptions(ctx, opts)
+}
+
+func RunWithOptions(ctx context.Context, opts *RunOptions) error {
+
+	if opts.Verbose {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 		slog.Debug("Verbose logging enabled")
 	}
@@ -61,22 +70,6 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	}
 
 	// END OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
-
-	if tmpfile_uri == "" {
-
-		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
-
-		if verbose {
-			logger.Debug("Using operating system temporary directory for processing files", "uri", tmpfile_uri)
-		}
-	}
-
-	if margin != 0.0 {
-		margin_top = margin
-		margin_bottom = margin
-		margin_left = margin
-		margin_right = margin
-	}
 
 	source_uri, err := ensureScheme(source_uri)
 
