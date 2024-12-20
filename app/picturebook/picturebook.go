@@ -19,7 +19,6 @@ import (
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/text"
-	"github.com/sfomuseum/go-flags/flagset"
 )
 
 // Regular expression for validating filter and caption URIs.
@@ -29,6 +28,7 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
+// Run will run the `picturebook` application configured using the default flagset and options.
 func Run(ctx context.Context) error {
 
 	fs, err := DefaultFlagSet(ctx)
@@ -40,11 +40,22 @@ func Run(ctx context.Context) error {
 	return RunWithFlagSet(ctx, fs)
 }
 
+// Run will run the `picturebook` application configured using 'fs'.
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
-	flagset.Parse(fs)
+	opts, err := RunOptionsFromFlagSet(ctx, fs)
 
-	if verbose {
+	if err != nil {
+		return err
+	}
+
+	return RunWithOptions(ctx, opts)
+}
+
+// Run will run the `picturebook` application configured using 'app_opts'.
+func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
+
+	if app_opts.Verbose {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 		slog.Debug("Verbose logging enabled")
 	}
@@ -62,23 +73,11 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	// END OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
 
-	if tmpfile_uri == "" {
+	source_uri := app_opts.SourceBucketURI
+	target_uri := app_opts.TargetBucketURI
+	tmpfile_uri := app_opts.TempBucketURI
 
-		tmpfile_uri = fmt.Sprintf("file://%s", os.TempDir())
-
-		if verbose {
-			logger.Debug("Using operating system temporary directory for processing files", "uri", tmpfile_uri)
-		}
-	}
-
-	if margin != 0.0 {
-		margin_top = margin
-		margin_bottom = margin
-		margin_left = margin
-		margin_right = margin
-	}
-
-	source_uri, err := ensureScheme(source_uri)
+	source_uri, err = ensureScheme(source_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to ensure scheme for source URI %s, %w", source_uri, err)
@@ -95,7 +94,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		target_uri = cwd
 	}
 
-	target_uri, err := ensureScheme(target_uri)
+	target_uri, err = ensureScheme(target_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to ensure scheme for target URI %s, %w", target_uri, err)
@@ -107,7 +106,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		return fmt.Errorf("Failed to ensure ?metadata=skip for target URI %s, %w", target_uri, err)
 	}
 
-	tmpfile_uri, err := ensureScheme(tmpfile_uri)
+	tmpfile_uri, err = ensureScheme(tmpfile_uri)
 
 	if err != nil {
 		return fmt.Errorf("Failed to ensure scheme for tmpfile URI %s, %w", tmpfile_uri, err)
@@ -137,31 +136,31 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		return fmt.Errorf("Failed to open tmpfile bucket, %w", err)
 	}
 
-	opts, err := pb.NewPictureBookDefaultOptions(ctx)
+	pb_opts, err := pb.NewPictureBookDefaultOptions(ctx)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create default picturebook options, %w", err)
 	}
 
-	opts.Orientation = orientation
-	opts.Size = size
-	opts.Width = width
-	opts.Height = height
-	opts.Units = units
-	opts.DPI = dpi
-	opts.Border = border
-	opts.Bleed = bleed
-	opts.MarginTop = margin_top
-	opts.MarginBottom = margin_bottom
-	opts.MarginLeft = margin_left
-	opts.MarginRight = margin_right
-	opts.FillPage = fill_page
-	opts.Verbose = verbose
-	opts.OCRAFont = ocra_font
-	opts.EvenOnly = even_only
-	opts.OddOnly = odd_only
-	opts.MaxPages = max_pages
-	opts.Logger = logger
+	pb_opts.Orientation = app_opts.Orientation
+	pb_opts.Size = app_opts.Size
+	pb_opts.Width = app_opts.Width
+	pb_opts.Height = app_opts.Height
+	pb_opts.Units = app_opts.Units
+	pb_opts.DPI = app_opts.DPI
+	pb_opts.Border = app_opts.Border
+	pb_opts.Bleed = app_opts.Bleed
+	pb_opts.MarginTop = app_opts.MarginTop
+	pb_opts.MarginBottom = app_opts.MarginBottom
+	pb_opts.MarginLeft = app_opts.MarginLeft
+	pb_opts.MarginRight = app_opts.MarginRight
+	pb_opts.FillPage = app_opts.FillPage
+	pb_opts.Verbose = app_opts.Verbose
+	pb_opts.OCRAFont = app_opts.OCRAFont
+	pb_opts.EvenOnly = app_opts.EvenOnly
+	pb_opts.OddOnly = app_opts.OddOnly
+	pb_opts.MaxPages = app_opts.MaxPages
+	pb_opts.Logger = logger
 
 	processed := make([]string, 0)
 
@@ -183,11 +182,11 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		}
 	}()
 
-	if len(filter_uris) > 0 {
+	if len(app_opts.FilterURIs) > 0 {
 
-		filters := make([]filter.Filter, len(filter_uris))
+		filters := make([]filter.Filter, len(app_opts.FilterURIs))
 
-		for idx, filter_uri := range filter_uris {
+		for idx, filter_uri := range app_opts.FilterURIs {
 
 			if !uri_re.MatchString(filter_uri) {
 				filter_uri = fmt.Sprintf("%s://", filter_uri)
@@ -208,15 +207,15 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("Failed to create multi filter, %w", err)
 		}
 
-		opts.Filter = multi
+		pb_opts.Filter = multi
 	}
 
-	if len(process_uris) > 0 {
+	if len(app_opts.ProcessURIs) > 0 {
 
-		processes := make([]process.Process, len(process_uris))
+		processes := make([]process.Process, len(app_opts.ProcessURIs))
 		rotatetofill_processes := make([]process.Process, 0)
 
-		for idx, process_uri := range process_uris {
+		for idx, process_uri := range app_opts.ProcessURIs {
 
 			pr, err := process.NewProcess(ctx, process_uri)
 
@@ -237,7 +236,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("Failed to create multi process, %w", err)
 		}
 
-		opts.PreProcess = multi
+		pb_opts.PreProcess = multi
 
 		if len(rotatetofill_processes) > 0 {
 
@@ -247,15 +246,15 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 				return fmt.Errorf("Failed to create multi process for rotate to fill post processing, %w", err)
 			}
 
-			opts.RotateToFillPostProcess = rotatetofill_multi
+			pb_opts.RotateToFillPostProcess = rotatetofill_multi
 		}
 	}
 
-	if len(caption_uris) > 0 {
+	if len(app_opts.CaptionURIs) > 0 {
 
-		captions := make([]caption.Caption, len(caption_uris))
+		captions := make([]caption.Caption, len(app_opts.CaptionURIs))
 
-		for idx, c_uri := range caption_uris {
+		for idx, c_uri := range app_opts.CaptionURIs {
 
 			if !uri_re.MatchString(c_uri) {
 				c_uri = fmt.Sprintf("%s://", c_uri)
@@ -282,38 +281,36 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 			return fmt.Errorf("Failed to create multi caption, %w", err)
 		}
 
-		opts.Caption = c
+		pb_opts.Caption = c
 	}
 
-	if text_uri != "" {
+	if app_opts.TextURI != "" {
 
-		if !uri_re.MatchString(text_uri) {
-			text_uri = fmt.Sprintf("%s://", text_uri)
+		if !uri_re.MatchString(app_opts.TextURI) {
+			app_opts.TextURI = fmt.Sprintf("%s://", app_opts.TextURI)
 		}
 
-		t, err := text.NewText(ctx, text_uri)
+		t, err := text.NewText(ctx, app_opts.TextURI)
 
 		if err != nil {
 			return fmt.Errorf("Failed to create new text, %w", err)
 		}
 
-		opts.Text = t
+		pb_opts.Text = t
 	}
 
-	if sort_uri != "" {
+	if app_opts.SortURI != "" {
 
-		s, err := sort.NewSorter(ctx, sort_uri)
+		s, err := sort.NewSorter(ctx, app_opts.SortURI)
 
 		if err != nil {
 			return fmt.Errorf("Failed to create new sorter, %w", err)
 		}
 
-		opts.Sort = s
+		pb_opts.Sort = s
 	}
 
-	sources := fs.Args()
-
-	if len(sources) == 0 {
+	if len(app_opts.Sources) == 0 {
 
 		base := filepath.Base(source_uri)
 		root := filepath.Dir(source_uri)
@@ -325,26 +322,26 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 		}
 
 		source_bucket = sb
-		sources = []string{base}
+		app_opts.Sources = []string{base}
 	}
 
-	opts.Source = source_bucket
-	opts.Target = target_bucket
-	opts.Temporary = tmpfile_bucket
+	pb_opts.Source = source_bucket
+	pb_opts.Target = target_bucket
+	pb_opts.Temporary = tmpfile_bucket
 
-	pb, err := pb.NewPictureBook(ctx, opts)
+	pb, err := pb.NewPictureBook(ctx, pb_opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new picturebook, %v", err)
 	}
 
-	err = pb.AddPictures(ctx, sources)
+	err = pb.AddPictures(ctx, app_opts.Sources)
 
 	if err != nil {
 		return fmt.Errorf("Failed to add pictures to picturebook, %w", err)
 	}
 
-	err = pb.Save(ctx, filename)
+	err = pb.Save(ctx, app_opts.Filename)
 
 	if err != nil {
 		return fmt.Errorf("Failed to save picturebook, %w", err)
