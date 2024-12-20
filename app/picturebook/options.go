@@ -43,7 +43,8 @@ type RunOptions struct {
 
 	Sources []string
 
-	Verbose bool
+	Filename string
+	Verbose  bool
 }
 
 func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, error) {
@@ -92,7 +93,8 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		TextURI:     text_uri,
 		SortURI:     sort_uri,
 
-		Sources: fs.Args(),
+		Sources:  fs.Args(),
+		Filename: filename,
 
 		Verbose: verbose,
 	}

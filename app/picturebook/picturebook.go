@@ -338,7 +338,7 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 		return fmt.Errorf("Failed to add pictures to picturebook, %w", err)
 	}
 
-	err = pb.Save(ctx, filename)
+	err = pb.Save(ctx, app_opts.Filename)
 
 	if err != nil {
 		return fmt.Errorf("Failed to save picturebook, %w", err)
