@@ -20,6 +20,7 @@ import (
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
+	"github.com/aaronland/go-picturebook/progress"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
@@ -160,6 +161,8 @@ type PictureBook struct {
 	pages int
 	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
 	tmpfiles []string
+
+	monitor progress.Monitor
 }
 
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
@@ -470,6 +473,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		return nil, fmt.Errorf("Failed to return DefaultGatherPicturesProcessFunc, %w", err)
 	}
 
+	m, err := progress.NewProgressbarMonitor(ctx, "")
+
+	if err != nil {
+		return nil, err
+	}
+
 	pb := PictureBook{
 		PDF:         pdf,
 		Mutex:       mu,
@@ -481,6 +490,7 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		ProcessFunc: process_func,
 		pages:       0,
 		tmpfiles:    tmpfiles,
+		monitor:     m,
 	}
 
 	return &pb, nil
@@ -514,6 +524,10 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pb.pages += 1
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
+
+		go func(pagenum int, pages int) {
+			slog.Info("Progress", "pagenum", pagenum, "pages", len(pictures))
+		}(pagenum, pb.pages)
 
 		var err error
 
