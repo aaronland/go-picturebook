@@ -28,6 +28,7 @@ func init() {
 	uri_re = regexp.MustCompile(`(?:[a-z0-9_]+):\/\/.*`)
 }
 
+// Run will run the `picturebook` application configured using the default flagset and options.
 func Run(ctx context.Context) error {
 
 	fs, err := DefaultFlagSet(ctx)
@@ -39,6 +40,7 @@ func Run(ctx context.Context) error {
 	return RunWithFlagSet(ctx, fs)
 }
 
+// Run will run the `picturebook` application configured using 'fs'.
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 
 	opts, err := RunOptionsFromFlagSet(ctx, fs)
@@ -50,6 +52,7 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet) error {
 	return RunWithOptions(ctx, opts)
 }
 
+// Run will run the `picturebook` application configured using 'app_opts'.
 func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 
 	if app_opts.Verbose {
