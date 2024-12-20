@@ -19,7 +19,6 @@ import (
 	"github.com/aaronland/go-picturebook/process"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/text"
-	// "github.com/sfomuseum/go-flags/flagset"
 )
 
 // Regular expression for validating filter and caption URIs.
@@ -154,7 +153,7 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 	pb_opts.MarginRight = app_opts.MarginRight
 	pb_opts.FillPage = app_opts.FillPage
 	pb_opts.Verbose = app_opts.Verbose
-	// pb_opts.OCRAFont = ocra_font
+	pb_opts.OCRAFont = app_opts.OCRAFont
 	pb_opts.EvenOnly = app_opts.EvenOnly
 	pb_opts.OddOnly = app_opts.OddOnly
 	pb_opts.MaxPages = app_opts.MaxPages

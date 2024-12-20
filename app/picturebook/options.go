@@ -20,10 +20,10 @@ type RunOptions struct {
 	Height      float64
 	Units       string
 	DPI         float64
-
-	Border   float64
-	Bleed    float64
-	FillPage bool
+	OCRAFont    bool
+	Border      float64
+	Bleed       float64
+	FillPage    bool
 
 	EvenOnly bool
 	OddOnly  bool
@@ -83,9 +83,9 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		Bleed:    bleed,
 		FillPage: fill_page,
 
-		EvenOnly: even_only,
-		OddOnly:  odd_only,
-
+		EvenOnly:    even_only,
+		OddOnly:     odd_only,
+		OCRAFont:    ocra_font,
 		FilterURIs:  filter_uris,
 		ProcessURIs: process_uris,
 		CaptionURIs: caption_uris,
