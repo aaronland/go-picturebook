@@ -20,6 +20,7 @@ import (
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/picture"
 	"github.com/aaronland/go-picturebook/process"
+	"github.com/aaronland/go-picturebook/progress"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
@@ -74,15 +75,14 @@ type PictureBookOptions struct {
 	Verbose bool
 	// A boolean value to enable to use of an OCRA font for writing captions.
 	OCRAFont bool
-	// A gocloud.dev/blob `Bucket` instance where source images are stored.
-	// Source *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where picturebook data is read from.
 	Source bucket.Bucket
-	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
-	// Target *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where the final picturebook is written to.
 	Target bucket.Bucket
-	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
-	// Temporary *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where the temporary files necessary in the creation of the picturebook are written to.
 	Temporary bucket.Bucket
+	// A `aaronland/go-picturebook/progress.Monitor` instance used to signal picturebook creation progress.
+	Monitor progress.Monitor
 	// A boolean value signaling that images should only be added on even-numbered pages.
 	EvenOnly bool
 	// A boolean value signaling that images should only be added on odd-numbered pages.
@@ -160,6 +160,8 @@ type PictureBook struct {
 	pages int
 	// A list of temporary files used in the creation of a picturebook and to be removed when the picturebook is saved
 	tmpfiles []string
+
+	monitor progress.Monitor
 }
 
 // type GatherPicturesProcessFunc defines a method for processing the path to an image file in to a `picture.PictureBookPicture` instance.
@@ -515,6 +517,12 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
+		go func(page_num int) {
+			page_count := max(pb.pages, len(pictures))
+			ev := progress.NewEvent(page_num, page_count)
+			pb.Options.Monitor.Signal(ctx, ev)
+		}(pb.pages)
+
 		var err error
 
 		if pb.Options.EvenOnly {
@@ -579,6 +587,12 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		}
 	}
 
+	err = pb.Options.Monitor.Clear()
+
+	if err != nil {
+		pb.Options.Logger.Warn("Failed to clear progress monitor", "error", err)
+	}
+
 	return nil
 }
 
@@ -588,12 +602,21 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	pictures := make([]*picture.PictureBookPicture, 0)
 	var err error
 
+	i := 0
+
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
 			err = p_err
 			break
 		}
+
+		i += 1
+
+		ev := progress.NewEvent(i, -1)
+		ev.Message = "Gathering items"
+
+		pb.Options.Monitor.Signal(ctx, ev)
 
 		pic, pic_err := pb.ProcessFunc(ctx, path)
 
@@ -607,82 +630,13 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		}
 	}
 
+	err = pb.Options.Monitor.Clear()
+
+	if err != nil {
+		slog.Warn("Failed to clear monitor", "error", err)
+	}
+
 	return pictures, err
-
-	/*
-		var list func(context.Context, *blob.Bucket, string) error
-
-		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
-
-			iter := bucket.List(&blob.ListOptions{
-				Delimiter: "/",
-				Prefix:    prefix,
-			})
-
-			for {
-				obj, err := iter.Next(ctx)
-
-				if err == io.EOF {
-					break
-				}
-
-				if err != nil {
-					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-				}
-
-				path := obj.Key
-
-				if obj.IsDir {
-
-					err := list(ctx, bucket, path)
-
-					if err != nil {
-						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-					}
-
-					continue
-				}
-
-				pic, err := pb.ProcessFunc(ctx, path)
-
-				if err != nil {
-					return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
-				}
-
-				if pic == nil {
-					continue
-				}
-
-				if pic.TempFile != "" {
-					pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
-				}
-
-				pb.Mutex.Lock()
-
-				pictures = append(pictures, pic)
-				count_pictures := len(pictures)
-
-				pb.Mutex.Unlock()
-
-				if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
-					break
-				}
-			}
-
-			return nil
-		}
-
-		for _, path := range paths {
-
-			err := list(ctx, pb.Options.Source, path)
-
-			if err != nil {
-				return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-			}
-		}
-
-		return pictures, nil
-	*/
 }
 
 // AddBlankPage add a blank page the final PDF document at page 'pagenum'.

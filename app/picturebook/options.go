@@ -65,6 +65,8 @@ type RunOptions struct {
 	Sources []string
 	// The base filename of the finished picturebook document.
 	Filename string
+	// A registered `aaronland/go-picturebook/progress.Monitor` URI used to signal picturebook creation progress.
+	ProgressMonitorURI string
 	// Boolean flag to signal verbose logging during the creation of a picturebook.
 	Verbose bool
 }
@@ -116,10 +118,10 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		TextURI:     text_uri,
 		SortURI:     sort_uri,
 
-		Sources:  fs.Args(),
-		Filename: filename,
-
-		Verbose: verbose,
+		Sources:            fs.Args(),
+		Filename:           filename,
+		ProgressMonitorURI: progress_monitor_uri,
+		Verbose:            verbose,
 	}
 
 	return opts, nil
