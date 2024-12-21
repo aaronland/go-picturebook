@@ -602,12 +602,21 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	pictures := make([]*picture.PictureBookPicture, 0)
 	var err error
 
+	i := 0
+
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
 			err = p_err
 			break
 		}
+
+		i += 1
+
+		ev := progress.NewEvent(i, -1)
+		ev.Message = "Gathering items"
+
+		pb.Options.Monitor.Signal(ctx, ev)
 
 		pic, pic_err := pb.ProcessFunc(ctx, path)
 
@@ -621,82 +630,13 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		}
 	}
 
+	err = pb.Options.Monitor.Clear()
+
+	if err != nil {
+		slog.Warn("Failed to clear monitor", "error", err)
+	}
+
 	return pictures, err
-
-	/*
-		var list func(context.Context, *blob.Bucket, string) error
-
-		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
-
-			iter := bucket.List(&blob.ListOptions{
-				Delimiter: "/",
-				Prefix:    prefix,
-			})
-
-			for {
-				obj, err := iter.Next(ctx)
-
-				if err == io.EOF {
-					break
-				}
-
-				if err != nil {
-					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-				}
-
-				path := obj.Key
-
-				if obj.IsDir {
-
-					err := list(ctx, bucket, path)
-
-					if err != nil {
-						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-					}
-
-					continue
-				}
-
-				pic, err := pb.ProcessFunc(ctx, path)
-
-				if err != nil {
-					return fmt.Errorf("Failed to apply ProcessFunc for %s, %w", path, err)
-				}
-
-				if pic == nil {
-					continue
-				}
-
-				if pic.TempFile != "" {
-					pb.tmpfiles = append(pb.tmpfiles, pic.TempFile)
-				}
-
-				pb.Mutex.Lock()
-
-				pictures = append(pictures, pic)
-				count_pictures := len(pictures)
-
-				pb.Mutex.Unlock()
-
-				if pb.Options.MaxPages > 0 && count_pictures >= pb.Options.MaxPages {
-					break
-				}
-			}
-
-			return nil
-		}
-
-		for _, path := range paths {
-
-			err := list(ctx, pb.Options.Source, path)
-
-			if err != nil {
-				return nil, fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-			}
-		}
-
-		return pictures, nil
-	*/
 }
 
 // AddBlankPage add a blank page the final PDF document at page 'pagenum'.

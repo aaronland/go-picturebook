@@ -35,6 +35,7 @@ func (m *ProgressBarMonitor) Signal(ctx context.Context, ev *Event) error {
 		m.progressbar = progressbar.Default(int64(ev.Pages))
 	}
 
+	m.progressbar.Describe(ev.Message)
 	m.progressbar.ChangeMax(ev.Pages)
 	m.progressbar.Set(ev.Page)
 	return nil
@@ -42,6 +43,7 @@ func (m *ProgressBarMonitor) Signal(ctx context.Context, ev *Event) error {
 
 // Clear removes the current progress bar.
 func (m *ProgressBarMonitor) Clear() error {
+	m.progressbar.Reset()
 	return m.progressbar.Clear()
 }
 

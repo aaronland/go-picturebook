@@ -6,6 +6,8 @@ type Event struct {
 	Pages int
 	// The current page being processed
 	Page int
+	// An optional string describing the event
+	Message string
 }
 
 // NewEvent returns a new `Event` instance derived from 'page' and 'count'.
