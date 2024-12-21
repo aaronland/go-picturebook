@@ -104,6 +104,9 @@ var ocra_font bool
 // The maximum number of pages a picturebook can have.
 var max_pages int
 
+// A registered `aaronland/go-picturebook/progress.Monitor` URI used to signal picturebook creation progress.
+var progress_monitor_uri string
+
 // formatSchemes takes a list of (scheme) strings and ensure that they are lower-cased and have a trailing "://" string.
 func formatSchemes(schemes []string) []string {
 
@@ -201,5 +204,6 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 
 	fs.IntVar(&max_pages, "max-pages", 0, "An optional value to indicate that a picturebook should not exceed this number of pages")
 
+	fs.StringVar(&progress_monitor_uri, "progress-monitor-uri", "progressbar://", "A registered aaronland/go-picturebook/progress.Monitor URI")
 	return fs, nil
 }

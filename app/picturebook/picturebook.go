@@ -17,6 +17,7 @@ import (
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
 	"github.com/aaronland/go-picturebook/process"
+	"github.com/aaronland/go-picturebook/progress"
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/text"
 )
@@ -325,9 +326,16 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 		app_opts.Sources = []string{base}
 	}
 
+	monitor, err := progress.NewMonitor(ctx, app_opts.ProgressMonitorURI)
+
+	if err != nil {
+		return fmt.Errorf("Failed to create new progress monitor, %w", err)
+	}
+
 	pb_opts.Source = source_bucket
 	pb_opts.Target = target_bucket
 	pb_opts.Temporary = tmpfile_bucket
+	pb_opts.Monitor = monitor
 
 	pb, err := pb.NewPictureBook(ctx, pb_opts)
 

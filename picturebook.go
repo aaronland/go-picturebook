@@ -75,15 +75,14 @@ type PictureBookOptions struct {
 	Verbose bool
 	// A boolean value to enable to use of an OCRA font for writing captions.
 	OCRAFont bool
-	// A gocloud.dev/blob `Bucket` instance where source images are stored.
-	// Source *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where picturebook data is read from.
 	Source bucket.Bucket
-	// A gocloud.dev/blob `Bucket` instance where the final picturebook is written to.
-	// Target *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where the final picturebook is written to.
 	Target bucket.Bucket
-	// A gocloud.dev/blob `Bucket` instance where are temporary files necessary in the creation of the picturebook are written to.
-	// Temporary *blob.Bucket
+	// A `aaronland/go-picturebook/bucket.Bucket` instance where the temporary files necessary in the creation of the picturebook are written to.
 	Temporary bucket.Bucket
+	// A `aaronland/go-picturebook/progress.Monitor` instance used to signal picturebook creation progress.
+	Monitor progress.Monitor
 	// A boolean value signaling that images should only be added on even-numbered pages.
 	EvenOnly bool
 	// A boolean value signaling that images should only be added on odd-numbered pages.
@@ -473,12 +472,6 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		return nil, fmt.Errorf("Failed to return DefaultGatherPicturesProcessFunc, %w", err)
 	}
 
-	m, err := progress.NewProgressbarMonitor(ctx, "")
-
-	if err != nil {
-		return nil, err
-	}
-
 	pb := PictureBook{
 		PDF:         pdf,
 		Mutex:       mu,
@@ -490,7 +483,6 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 		ProcessFunc: process_func,
 		pages:       0,
 		tmpfiles:    tmpfiles,
-		monitor:     m,
 	}
 
 	return &pb, nil
@@ -525,9 +517,11 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		go func(pagenum int, pages int) {
-			slog.Info("Progress", "pagenum", pagenum, "pages", len(pictures))
-		}(pagenum, pb.pages)
+		go func(page_num int) {
+			page_count := max(pb.pages, len(pictures))
+			ev := progress.NewEvent(page_num, page_count)
+			pb.Options.Monitor.Signal(ctx, ev)
+		}(pb.pages)
 
 		var err error
 
@@ -591,6 +585,12 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		if err != nil {
 			pb.Options.Logger.Debug("Failed to add picture", "path", pic.Path, "error", err)
 		}
+	}
+
+	err = pb.Options.Monitor.Clear()
+
+	if err != nil {
+		pb.Options.Logger.Warn("Failed to clear progress monitor", "error", err)
 	}
 
 	return nil
