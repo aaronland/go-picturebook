@@ -61,8 +61,6 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 		slog.Debug("Verbose logging enabled")
 	}
 
-	logger := slog.Default()
-
 	// START OF unfortunate bit of hoop-jumping to (re) register gocloud stuff
 	// because of the way Go imports are ordered.
 
@@ -161,7 +159,6 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 	pb_opts.EvenOnly = app_opts.EvenOnly
 	pb_opts.OddOnly = app_opts.OddOnly
 	pb_opts.MaxPages = app_opts.MaxPages
-	pb_opts.Logger = logger
 
 	processed := make([]string, 0)
 
@@ -177,7 +174,7 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 					return
 				}
 
-				logger.Debug("Remove temporary file", "path", p)
+				slog.Debug("Remove temporary file", "path", p)
 				os.Remove(p)
 			}(p)
 		}

@@ -89,7 +89,6 @@ type PictureBookOptions struct {
 	OddOnly bool
 	// An optional value to indicate that a picturebook should not exceed this number of pages
 	MaxPages int
-	Logger   *slog.Logger
 }
 
 // type PictureBookMargins defines a struct for storing margins to be applied to a picturebook
@@ -184,7 +183,8 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		abs_path := path
 		is_image := false
 
-		logger := pb_opts.Logger.With("path", abs_path)
+		logger := slog.Default()
+		logger = logger.With("path", abs_path)
 
 		ext := filepath.Ext(abs_path)
 		ext = strings.ToLower(ext)
@@ -303,7 +303,6 @@ func NewPictureBookDefaultOptions(ctx context.Context) (*PictureBookOptions, err
 		MarginLeft:   1.0,
 		MarginRight:  1.0,
 		Verbose:      false,
-		Logger:       slog.Default(),
 	}
 
 	return opts, nil
@@ -497,7 +496,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		return fmt.Errorf("Failed to gather pictures, %w", err)
 	}
 
-	pb.Options.Logger.Debug("Pictures gathered", "count", len(pictures))
+	slog.Debug("Pictures gathered", "count", len(pictures))
 
 	if pb.Options.Sort != nil {
 
@@ -583,14 +582,14 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		}
 
 		if err != nil {
-			pb.Options.Logger.Debug("Failed to add picture", "path", pic.Path, "error", err)
+			slog.Debug("Failed to add picture", "path", pic.Path, "error", err)
 		}
 	}
 
 	err = pb.Options.Monitor.Clear()
 
 	if err != nil {
-		pb.Options.Logger.Warn("Failed to clear progress monitor", "error", err)
+		slog.Warn("Failed to clear progress monitor", "error", err)
 	}
 
 	return nil
@@ -698,7 +697,7 @@ func (pb *PictureBook) AddText(ctx context.Context, pagenum int, pic *picture.Pi
 		txt_x := current_x / pb.Options.DPI
 		txt_y := (current_y / pb.Options.DPI)
 
-		// pb.Options.Logger.Debug("[%d][%s] text at %0.2f x %0.2f (- x %0.2f)\n", pagenum, pic.Path, txt_x, txt_y, txt_h)
+		// slog.Debug("[%d][%s] text at %0.2f x %0.2f (- x %0.2f)\n", pagenum, pic.Path, txt_x, txt_y, txt_h)
 
 		pb.PDF.SetXY(txt_x, txt_y)
 
@@ -729,7 +728,8 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		picture_bucket = pic.Bucket
 	}
 
-	logger := pb.Options.Logger.With("path", abs_path, "page_number", pagenum)
+	logger := slog.Default()
+	logger = logger.With("path", abs_path, "page_number", pagenum)
 
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
@@ -833,7 +833,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 		if rotate_to_fill {
 
-			pb.Options.Logger.Debug("Rotate image to fill path", "path", abs_path)
+			slog.Debug("Rotate image to fill path", "path", abs_path)
 
 			new_im, err := rotate.RotateImageWithDegrees(ctx, im, 90.0)
 
@@ -874,6 +874,28 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 			is_tempfile = true
 		}
 	}
+
+	// START OF adjust height relative to caption so that
+	// it (the caption) doesn't spill in to the margin
+
+	caption_h := 0.0
+
+	if caption != "" {
+
+		lines := strings.Split(caption, "\n")
+		count := len(lines)
+
+		font_sz, _ := pb.PDF.GetFontSize()
+		// pb.PDF.SetFontSize(font_sz + 2)
+
+		line_h := font_sz + 2 // pb.PDF.GetFontSize()
+
+		caption_h = (float64(line_h) + pb.Text.Margin) * float64(count)
+
+		// slog.Info("CAPTION H", "l", line_h, "h", h, "caption", caption_h, "new", h - caption_h)
+	}
+
+	// END OF adjust height relative to caption so that
 
 	opts := fpdf.ImageOptions{
 		ReadDpi:   false,
@@ -938,9 +960,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			}
 
-			if h > max_h {
+			// slog.Info("CALC", "h", h, "max_h", max_h, "caption_h", caption_h)
 
-				ratio := max_h / h
+			if (h + caption_h) > max_h {
+
+				ratio := max_h / (h + caption_h)
 				w = w * ratio
 				h = max_h
 
@@ -1092,17 +1116,17 @@ func (pb *PictureBook) Save(ctx context.Context, path string) error {
 				continue
 			}
 
-			pb.Options.Logger.Debug("Remove tmp file", "path", path)
+			slog.Debug("Remove tmp file", "path", path)
 
 			err := pb.Options.Temporary.Delete(ctx, path)
 
 			if err != nil {
-				pb.Options.Logger.Error("Failed to delete tmp file", "path", path, "error", err)
+				slog.Error("Failed to delete tmp file", "path", path, "error", err)
 			}
 		}
 	}()
 
-	pb.Options.Logger.Debug("Save picturebook", "path", path)
+	slog.Debug("Save picturebook", "path", path)
 
 	wr, err := pb.Options.Target.NewWriter(ctx, path, nil)
 
