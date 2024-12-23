@@ -946,6 +946,23 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	max_w := pb.Canvas.Width
 	max_h := pb.Canvas.Height
 
+	// START OF adjust height relative to caption
+	// so that it (the caption) doesn't spill in to the margin
+
+	if caption != "" {
+
+		lines := strings.Split(caption, "\n")
+		count := len(lines)
+
+		font_sz, _ := pb.PDF.GetFontSize()
+		line_h := font_sz + 2 // pb.PDF.GetFontSize()
+
+		caption_h := (float64(line_h) + pb.Text.Margin) * float64(count)
+		max_h = max_h - caption_h
+	}
+
+	// END OF adjust height relative to caption
+
 	logger.Debug("max dimensions", slog.Float64("max_width", max_w), slog.Float64("width", w), slog.Float64("max_height", max_h), slog.Float64("height", h))
 
 	for {
@@ -967,7 +984,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 				ratio := max_h / (h + caption_h)
 				w = w * ratio
 				h = max_h
-
 			}
 
 		}
