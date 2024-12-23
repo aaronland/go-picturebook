@@ -875,28 +875,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		}
 	}
 
-	// START OF adjust height relative to caption so that
-	// it (the caption) doesn't spill in to the margin
-
-	caption_h := 0.0
-
-	if caption != "" {
-
-		lines := strings.Split(caption, "\n")
-		count := len(lines)
-
-		font_sz, _ := pb.PDF.GetFontSize()
-		// pb.PDF.SetFontSize(font_sz + 2)
-
-		line_h := font_sz + 2 // pb.PDF.GetFontSize()
-
-		caption_h = (float64(line_h) + pb.Text.Margin) * float64(count)
-
-		// slog.Info("CAPTION H", "l", line_h, "h", h, "caption", caption_h, "new", h - caption_h)
-	}
-
-	// END OF adjust height relative to caption so that
-
 	opts := fpdf.ImageOptions{
 		ReadDpi:   false,
 		ImageType: format,
@@ -946,6 +924,23 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	max_w := pb.Canvas.Width
 	max_h := pb.Canvas.Height
 
+	// START OF adjust height relative to caption
+	// so that it (the caption) doesn't spill in to the margin
+
+	if caption != "" {
+
+		lines := strings.Split(caption, "\n")
+		count := len(lines)
+
+		font_sz, _ := pb.PDF.GetFontSize()
+		line_h := font_sz + 2 // pb.PDF.GetFontSize()
+
+		caption_h := (float64(line_h) + pb.Text.Margin) * float64(count)
+		max_h = max_h - caption_h
+	}
+
+	// END OF adjust height relative to caption
+
 	logger.Debug("max dimensions", slog.Float64("max_width", max_w), slog.Float64("width", w), slog.Float64("max_height", max_h), slog.Float64("height", h))
 
 	for {
@@ -960,14 +955,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			}
 
-			// slog.Info("CALC", "h", h, "max_h", max_h, "caption_h", caption_h)
+			if h > max_h {
 
-			if (h + caption_h) > max_h {
-
-				ratio := max_h / (h + caption_h)
+				ratio := max_h / h
 				w = w * ratio
 				h = max_h
-
 			}
 
 		}
