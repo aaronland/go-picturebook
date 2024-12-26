@@ -186,7 +186,10 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		logger := slog.Default()
 		logger = logger.With("path", abs_path)
 
-		ext := filepath.Ext(abs_path)
+		// Be sure to strip/account for fragment if present
+		parts := strings.Split(path, "#")
+
+		ext := filepath.Ext(parts[0])
 		ext = strings.ToLower(ext)
 
 		for _, t := range mimetypes.TypesByExtension(ext) {
@@ -245,7 +248,7 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		}
 
 		var final_bucket bucket.Bucket
-		final_path := abs_path
+		final_path := parts[0] // abs_path
 
 		var tmpfile_path string
 
