@@ -78,6 +78,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"gocloud.dev/blob"
@@ -477,7 +478,7 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 		if err != nil {
 			return err
 		}
-		asFunc := func(i interface{}) bool {
+		asFunc := func(i any) bool {
 			p, ok := i.(*os.FileInfo)
 			if !ok {
 				return false
@@ -554,7 +555,7 @@ func (b *bucket) ListPaged(ctx context.Context, opts *driver.ListOptions) (*driv
 }
 
 // As implements driver.As.
-func (b *bucket) As(i interface{}) bool {
+func (b *bucket) As(i any) bool {
 	p, ok := i.(*os.FileInfo)
 	if !ok {
 		return false
@@ -568,7 +569,7 @@ func (b *bucket) As(i interface{}) bool {
 }
 
 // As implements driver.ErrorAs.
-func (b *bucket) ErrorAs(err error, i interface{}) bool {
+func (b *bucket) ErrorAs(err error, i any) bool {
 	if perr, ok := err.(*os.PathError); ok {
 		if p, ok := i.(**os.PathError); ok {
 			*p = perr
@@ -596,7 +597,7 @@ func (b *bucket) Attributes(ctx context.Context, key string) (*driver.Attributes
 		Size:    info.Size(),
 		MD5:     xa.MD5,
 		ETag:    fmt.Sprintf("\"%x-%x\"", info.ModTime().UnixNano(), info.Size()),
-		AsFunc: func(i interface{}) bool {
+		AsFunc: func(i any) bool {
 			p, ok := i.(*os.FileInfo)
 			if !ok {
 				return false
@@ -618,7 +619,7 @@ func (b *bucket) NewRangeReader(ctx context.Context, key string, offset, length 
 		return nil, err
 	}
 	if opts.BeforeRead != nil {
-		if err := opts.BeforeRead(func(i interface{}) bool {
+		if err := opts.BeforeRead(func(i any) bool {
 			p, ok := i.(**os.File)
 			if !ok {
 				return false
@@ -673,7 +674,7 @@ func (r *reader) Attributes() *driver.ReaderAttributes {
 	return &r.attrs
 }
 
-func (r *reader) As(i interface{}) bool {
+func (r *reader) As(i any) bool {
 	p, ok := i.(*io.Reader)
 	if !ok {
 		return false
@@ -725,7 +726,7 @@ func (b *bucket) NewTypedWriter(ctx context.Context, key, contentType string, op
 		return nil, err
 	}
 	if opts.BeforeWrite != nil {
-		if err := opts.BeforeWrite(func(i interface{}) bool {
+		if err := opts.BeforeWrite(func(i any) bool {
 			p, ok := i.(**os.File)
 			if !ok {
 				return false
@@ -739,9 +740,11 @@ func (b *bucket) NewTypedWriter(ctx context.Context, key, contentType string, op
 
 	if b.opts.Metadata == MetadataDontWrite {
 		w := &writer{
-			ctx:  ctx,
-			File: f,
-			path: path,
+			ctx:        ctx,
+			File:       f,
+			path:       path,
+			ifNotExist: opts.IfNotExist,
+			mu:         &sync.Mutex{},
 		}
 		return w, nil
 	}
@@ -765,6 +768,8 @@ func (b *bucket) NewTypedWriter(ctx context.Context, key, contentType string, op
 		attrs:      attrs,
 		contentMD5: opts.ContentMD5,
 		md5hash:    md5.New(),
+		ifNotExist: opts.IfNotExist,
+		mu:         &sync.Mutex{},
 	}
 	return w, nil
 }
@@ -778,7 +783,9 @@ type writerWithSidecar struct {
 	contentMD5 []byte
 	// We compute the MD5 hash so that we can store it with the file attributes,
 	// not for verification.
-	md5hash hash.Hash
+	md5hash    hash.Hash
+	ifNotExist bool
+	mu         *sync.Mutex
 }
 
 func (w *writerWithSidecar) Write(p []byte) (n int, err error) {
@@ -817,6 +824,15 @@ func (w *writerWithSidecar) Close() error {
 	if err := setAttrs(w.path, w.attrs); err != nil {
 		return err
 	}
+
+	if w.ifNotExist {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		_, err = os.Stat(w.path)
+		if err == nil {
+			return gcerr.New(gcerrors.FailedPrecondition, err, 1, "File already exist")
+		}
+	}
 	// Rename the temp file to path.
 	if err := os.Rename(w.f.Name(), w.path); err != nil {
 		_ = os.Remove(w.path + attrsExt)
@@ -831,8 +847,10 @@ func (w *writerWithSidecar) Close() error {
 // which is why it is not folded into writerWithSidecar.
 type writer struct {
 	*os.File
-	ctx  context.Context
-	path string
+	ctx        context.Context
+	path       string
+	ifNotExist bool
+	mu         *sync.Mutex
 }
 
 func (w *writer) Upload(r io.Reader) error {
@@ -853,6 +871,15 @@ func (w *writer) Close() error {
 	// Check if the write was cancelled.
 	if err := w.ctx.Err(); err != nil {
 		return err
+	}
+
+	if w.ifNotExist {
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		_, err = os.Stat(w.path)
+		if err == nil {
+			return gcerr.New(gcerrors.FailedPrecondition, err, 1, "File already exist")
+		}
 	}
 
 	// Rename the temp file to path.
@@ -925,7 +952,7 @@ func (b *bucket) SignedURL(ctx context.Context, key string, opts *driver.SignedU
 		return "", gcerr.New(gcerr.Unimplemented, nil, 1, "fileblob.SignedURL: bucket does not have an Options.URLSigner")
 	}
 	if opts.BeforeSign != nil {
-		if err := opts.BeforeSign(func(interface{}) bool { return false }); err != nil {
+		if err := opts.BeforeSign(func(any) bool { return false }); err != nil {
 			return "", err
 		}
 	}
