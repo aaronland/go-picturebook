@@ -77,12 +77,12 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 
 		for _, uri := range uris {
 
-			uri = strings.TrimLeft(uri, "/")
+			bucket_uri := strings.TrimLeft(uri, "/")
 
 			logger := slog.Default()
-			logger = logger.With("uri", uri)
+			logger = logger.With("uri", bucket_uri)
 
-			uri_b := blob.PrefixedBucket(b.bucket, uri)
+			uri_b := blob.PrefixedBucket(b.bucket, bucket_uri)
 
 			cb := func(ctx context.Context, obj *blob.ListObject) error {
 				path := filepath.Join(uri, obj.Key)

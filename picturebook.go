@@ -585,7 +585,7 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		}
 
 		if err != nil {
-			slog.Debug("Failed to add picture", "path", pic.Path, "error", err)
+			slog.Warn("Failed to add picture", "path", pic.Path, "error", err)
 		}
 	}
 
