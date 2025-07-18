@@ -493,7 +493,6 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 // AddPictures adds images founds in one or more folders defined 'paths' to the picturebook instance.
 func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
-	slog.Info("Gather", "paths", paths)
 	pictures, err := pb.GatherPictures(ctx, paths)
 
 	if err != nil {
@@ -607,8 +606,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	i := 0
 
-	slog.Info("Gather pictures from source", "paths", paths)
-
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
@@ -627,7 +624,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 		pb.Options.Monitor.Signal(ctx, ev)
 
-		logger.Info("Process image")
+		logger.Debug("Process image")
 
 		pic, pic_err := pb.ProcessFunc(ctx, path)
 
@@ -642,7 +639,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 			continue
 		}
 
-		logger.Debug("Append picture")
+		logger.Debug("Append picture", "source", pic.Source, "picture", pic.Path)
 		pictures = append(pictures, pic)
 	}
 

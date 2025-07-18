@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 	"iter"
-	"strings"
-
 	"log/slog"
+	"path/filepath"
+	"strings"
 
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
 	aa_walk "github.com/aaronland/gocloud-blob/walk"
@@ -70,7 +70,7 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	return s, nil
 }
 
-// GatherPictures will return a iterator listing items in 'b'
+// GatherPictures will return a iterator listing items in 'uris' (parented by 'b').
 func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Seq2[string, error] {
 
 	return func(yield func(string, error) bool) {
@@ -85,8 +85,9 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 			uri_b := blob.PrefixedBucket(b.bucket, uri)
 
 			cb := func(ctx context.Context, obj *blob.ListObject) error {
-				logger.Debug("Yield", "path", obj.Key)
-				yield(obj.Key, nil)
+				path := filepath.Join(uri, obj.Key)
+				logger.Debug("Yield", "path", path)
+				yield(path, nil)
 				return nil
 			}
 
@@ -95,6 +96,8 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 			err := aa_walk.WalkBucket(ctx, uri_b, cb)
 
 			if err != nil {
+
+				logger.Error("Walk bucket failed", "error", err)
 
 				if !yield("", err) {
 					break
