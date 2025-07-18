@@ -52,13 +52,7 @@ func (f *HalftoneProcess) Transform(ctx context.Context, source_bucket bucket.Bu
 
 	defer fh.Close()
 
-	dec, err := decode.NewDecoder(ctx, path)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to create new decoder for %s, %w", path, err)
-	}
-
-	im, _, err := dec.Decode(ctx, fh)
+	im, _, _, err := decode.DecodeImage(ctx, fh)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

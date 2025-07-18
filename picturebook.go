@@ -606,13 +606,20 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	i := 0
 
+	slog.Info("WTF", "paths", paths)
+	
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
+		
 		if err != nil {
+			slog.Error("Failed to gather pictures", "error", err)
 			err = p_err
 			break
 		}
 
+		logger := slog.Default()
+		logger = logger.With("path", path)
+		
 		i += 1
 
 		ev := progress.NewEvent(i, -1)
@@ -620,9 +627,12 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 		pb.Options.Monitor.Signal(ctx, ev)
 
+		logger.Info("process")
+		
 		pic, pic_err := pb.ProcessFunc(ctx, path)
 
 		if err != nil {
+			logger.Error("Failed to process path", "error", err)
 			err = pic_err
 			break
 		}
@@ -637,7 +647,7 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	if err != nil {
 		slog.Warn("Failed to clear monitor", "error", err)
 	}
-
+	
 	return pictures, err
 }
 
@@ -742,13 +752,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	defer im_r.Close()
 
-	dec, err := decode.NewDecoder(ctx, abs_path)
-
-	if err != nil {
-		return fmt.Errorf("Failed to create new decoder for %s, %w", abs_path, err)
-	}
-
-	im, format, err := dec.Decode(ctx, im_r)
+	im, format, _, err := decode.DecodeImage(ctx, im_r)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)

@@ -101,13 +101,7 @@ func (f *ContourProcess) Transform(ctx context.Context, source_bucket bucket.Buc
 
 	defer r.Close()
 
-	dec, err := decode.NewDecoder(ctx, path)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to create new decoder, %w", err)
-	}
-
-	im, _, err := dec.Decode(ctx, r)
+	im, _, _, err := decode.DecodeImage(ctx, r)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

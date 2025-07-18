@@ -29,15 +29,7 @@ func TempFileWithImage(ctx context.Context, bucket bucket.Bucket, im image.Image
 		return "", "", fmt.Errorf("Failed to create new writer for temp file, %w", err)
 	}
 
-	enc_uri := fmt.Sprintf("file:///%s?quality=100", fname)
-
-	enc, err := encode.NewEncoder(ctx, enc_uri)
-
-	if err != nil {
-		return "", "", fmt.Errorf("Failed to encode temporary image, %w", err)
-	}
-
-	err = enc.Encode(ctx, wr, im)
+	err = encode.EncodeJPEG(ctx, wr, im, nil, nil)
 
 	if err != nil {
 		return "", "", fmt.Errorf("Failed to encode temp file as JPEG, %w", err)
