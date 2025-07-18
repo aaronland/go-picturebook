@@ -340,6 +340,7 @@ func RunWithOptions(ctx context.Context, app_opts *RunOptions) error {
 		return fmt.Errorf("Failed to create new picturebook, %v", err)
 	}
 
+	slog.Info("Add pictures", "sources", app_opts.Sources)
 	err = pb.AddPictures(ctx, app_opts.Sources)
 
 	if err != nil {

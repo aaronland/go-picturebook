@@ -72,7 +72,7 @@ func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket bucket
 	opts := &decode.DecodeImageOptions{
 		Rotate: false,
 	}
-	
+
 	im, _, _, err := decode.DecodeImageWithOptions(ctx, r, opts)
 
 	if err != nil {

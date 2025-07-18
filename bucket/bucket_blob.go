@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"io"
 	"iter"
+	"strings"
+
+	"log/slog"
 
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
+	aa_walk "github.com/aaronland/gocloud-blob/walk"
 	"gocloud.dev/blob"
 	"sync"
 )
@@ -72,60 +76,30 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 	return func(yield func(string, error) bool) {
 
 		for _, uri := range uris {
-			for p, err := range b.gatherPictures(ctx, uri) {
-				yield(p, err)
+
+			uri = strings.TrimLeft(uri, "/")
+
+			logger := slog.Default()
+			logger = logger.With("uri", uri)
+
+			uri_b := blob.PrefixedBucket(b.bucket, uri)
+
+			cb := func(ctx context.Context, obj *blob.ListObject) error {
+				logger.Debug("Yield", "path", obj.Key)
+				yield(obj.Key, nil)
+				return nil
 			}
-		}
-	}
-}
 
-func (b *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[string, error] {
+			logger.Debug("Walk bucket")
 
-	var list func(context.Context, *blob.Bucket, string) error
+			err := aa_walk.WalkBucket(ctx, uri_b, cb)
 
-	return func(yield func(string, error) bool) {
+			if err != nil {
 
-		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
-
-			iter := bucket.List(&blob.ListOptions{
-				Delimiter: "/",
-				Prefix:    prefix,
-			})
-
-			for {
-				obj, err := iter.Next(ctx)
-
-				if err == io.EOF {
+				if !yield("", err) {
 					break
 				}
-
-				if err != nil {
-					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-				}
-
-				path := obj.Key
-
-				if obj.IsDir {
-
-					err := list(ctx, bucket, path)
-
-					if err != nil {
-						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
-					}
-
-					continue
-				}
-
-				yield(path, nil)
 			}
-
-			return nil
-		}
-
-		err := list(ctx, b.bucket, uri)
-
-		if err != nil {
-			yield("", err)
 		}
 	}
 }

@@ -47,7 +47,7 @@ func (m *ProgressBarMonitor) Clear() error {
 	if m.progressbar == nil {
 		return nil
 	}
-	
+
 	m.progressbar.Reset()
 	return m.progressbar.Clear()
 }
@@ -58,6 +58,6 @@ func (m *ProgressBarMonitor) Close() error {
 	if m.progressbar == nil {
 		return nil
 	}
-	
+
 	return m.progressbar.Close()
 }
