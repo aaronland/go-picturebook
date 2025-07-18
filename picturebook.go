@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/rotate"
+	"github.com/aaronland/go-image/v2/decode"
+	"github.com/aaronland/go-image/v2/rotate"
 	"github.com/aaronland/go-mimetypes"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"

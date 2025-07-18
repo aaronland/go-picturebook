@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"image"
 
-	"github.com/aaronland/go-image/encode"
+	"github.com/aaronland/go-image/v2/encode"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/google/uuid"
 )

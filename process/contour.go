@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aaronland/go-image-contour"
-	"github.com/aaronland/go-image/decode"
+	"github.com/aaronland/go-image-contour/v2"
+	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
 )
