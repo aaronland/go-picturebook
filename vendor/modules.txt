@@ -23,7 +23,7 @@ github.com/aaronland/go-mimetypes/lookup
 # github.com/aaronland/go-roster v1.0.0
 ## explicit; go 1.16
 github.com/aaronland/go-roster
-# github.com/aaronland/gocloud-blob v0.5.0
+# github.com/aaronland/gocloud-blob v0.6.1
 ## explicit; go 1.24
 github.com/aaronland/gocloud-blob/bucket
 github.com/aaronland/gocloud-blob/walk
@@ -77,6 +77,13 @@ github.com/gabriel-vasile/mimetype/internal/magic
 # github.com/go-errors/errors v1.4.2
 ## explicit; go 1.14
 github.com/go-errors/errors
+# github.com/go-logr/logr v1.4.3
+## explicit; go 1.18
+github.com/go-logr/logr
+github.com/go-logr/logr/funcr
+# github.com/go-logr/stdr v1.2.2
+## explicit; go 1.16
+github.com/go-logr/stdr
 # github.com/go-pdf/fpdf v0.9.0
 ## explicit; go 1.20
 github.com/go-pdf/fpdf
@@ -94,13 +101,10 @@ github.com/golang/geo/r2
 github.com/golang/geo/r3
 github.com/golang/geo/s1
 github.com/golang/geo/s2
-# github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8
-## explicit; go 1.20
-github.com/golang/groupcache/lru
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/gax-go/v2 v2.14.2
+# github.com/googleapis/gax-go/v2 v2.15.0
 ## explicit; go 1.23.0
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
@@ -164,28 +168,52 @@ github.com/strukturag/libheif-go
 # github.com/whosonfirst/go-ioutil v1.0.2
 ## explicit; go 1.16
 github.com/whosonfirst/go-ioutil
-# go.opencensus.io v0.24.0
-## explicit; go 1.13
-go.opencensus.io
-go.opencensus.io/internal
-go.opencensus.io/internal/tagencoding
-go.opencensus.io/metric/metricdata
-go.opencensus.io/metric/metricproducer
-go.opencensus.io/plugin/ocgrpc
-go.opencensus.io/resource
-go.opencensus.io/stats
-go.opencensus.io/stats/internal
-go.opencensus.io/stats/view
-go.opencensus.io/tag
-go.opencensus.io/trace
-go.opencensus.io/trace/internal
-go.opencensus.io/trace/propagation
-go.opencensus.io/trace/tracestate
+# go.opentelemetry.io/auto/sdk v1.1.0
+## explicit; go 1.22.0
+go.opentelemetry.io/auto/sdk
+go.opentelemetry.io/auto/sdk/internal/telemetry
+# go.opentelemetry.io/otel v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel
+go.opentelemetry.io/otel/attribute
+go.opentelemetry.io/otel/attribute/internal
+go.opentelemetry.io/otel/baggage
+go.opentelemetry.io/otel/codes
+go.opentelemetry.io/otel/internal/baggage
+go.opentelemetry.io/otel/internal/global
+go.opentelemetry.io/otel/propagation
+go.opentelemetry.io/otel/semconv/v1.26.0
+go.opentelemetry.io/otel/semconv/v1.34.0
+# go.opentelemetry.io/otel/metric v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/metric
+go.opentelemetry.io/otel/metric/embedded
+go.opentelemetry.io/otel/metric/noop
+# go.opentelemetry.io/otel/sdk v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/sdk
+go.opentelemetry.io/otel/sdk/instrumentation
+go.opentelemetry.io/otel/sdk/internal/x
+go.opentelemetry.io/otel/sdk/resource
+# go.opentelemetry.io/otel/sdk/metric v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/sdk/metric
+go.opentelemetry.io/otel/sdk/metric/exemplar
+go.opentelemetry.io/otel/sdk/metric/internal
+go.opentelemetry.io/otel/sdk/metric/internal/aggregate
+go.opentelemetry.io/otel/sdk/metric/internal/x
+go.opentelemetry.io/otel/sdk/metric/metricdata
+# go.opentelemetry.io/otel/trace v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/trace
+go.opentelemetry.io/otel/trace/embedded
+go.opentelemetry.io/otel/trace/internal/telemetry
+go.opentelemetry.io/otel/trace/noop
 # go4.org v0.0.0-20200411211856-f5505b9728dd
 ## explicit; go 1.13
 go4.org/media/heif
 go4.org/media/heif/bmff
-# gocloud.dev v0.42.0
+# gocloud.dev v0.43.0
 ## explicit; go 1.24
 gocloud.dev/blob
 gocloud.dev/blob/driver
@@ -193,8 +221,8 @@ gocloud.dev/blob/fileblob
 gocloud.dev/gcerrors
 gocloud.dev/internal/escape
 gocloud.dev/internal/gcerr
-gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
+gocloud.dev/internal/otel
 gocloud.dev/internal/retry
 # golang.org/x/image v0.27.0
 ## explicit; go 1.23.0
@@ -211,7 +239,7 @@ golang.org/x/image/tiff/lzw
 golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
-# golang.org/x/net v0.41.0
+# golang.org/x/net v0.42.0
 ## explicit; go 1.23.0
 golang.org/x/net/context
 golang.org/x/net/html
@@ -223,15 +251,16 @@ golang.org/x/net/idna
 golang.org/x/net/internal/httpcommon
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.33.0
+# golang.org/x/sys v0.34.0
 ## explicit; go 1.23.0
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.32.0
+golang.org/x/sys/windows/registry
+# golang.org/x/term v0.33.0
 ## explicit; go 1.23.0
 golang.org/x/term
-# golang.org/x/text v0.26.0
+# golang.org/x/text v0.27.0
 ## explicit; go 1.23.0
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
@@ -241,11 +270,11 @@ golang.org/x/text/unicode/norm
 ## explicit; go 1.18
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.235.0
+# google.golang.org/api v0.242.0
 ## explicit; go 1.23.0
 google.golang.org/api/googleapi
 google.golang.org/api/internal/third_party/uritemplates
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79
 ## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails

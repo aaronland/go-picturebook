@@ -6,7 +6,7 @@ import (
 	"io"
 	"iter"
 	"log/slog"
-	"path/filepath"
+	_ "path/filepath"
 	"strings"
 
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
@@ -20,6 +20,7 @@ var bucket_mu = new(sync.Map)
 // BlobBucket implements the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 type BlobBucket struct {
 	Bucket
+	bucket_uri string
 	bucket *blob.Bucket
 }
 
@@ -57,6 +58,8 @@ func RegisterGoCloudBuckets(ctx context.Context) error {
 // NewBlobBucket returns a new instantiation of the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
+	slog.Info("WTF", "uri", uri)
+	
 	b, err := aa_bucket.OpenBucket(ctx, uri)
 
 	if err != nil {
@@ -65,6 +68,7 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
 	s := &BlobBucket{
 		bucket: b,
+		bucket_uri: uri,
 	}
 
 	return s, nil
@@ -77,29 +81,17 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 
 		for _, uri := range uris {
 
-			bucket_uri := strings.TrimLeft(uri, "/")
+			prefix := strings.TrimLeft(uri, "/")
 
-			logger := slog.Default()
-			logger = logger.With("uri", bucket_uri)
+			for obj, err := range aa_walk.WalkBucketWithIter(ctx, b.bucket, prefix) {
 
-			uri_b := blob.PrefixedBucket(b.bucket, bucket_uri)
+				if err != nil {
+					if !yield("", err){
+						break
+					}
+				}
 
-			cb := func(ctx context.Context, obj *blob.ListObject) error {
-				path := filepath.Join(uri, obj.Key)
-				logger.Debug("Yield", "path", path)
-				yield(path, nil)
-				return nil
-			}
-
-			logger.Debug("Walk bucket")
-
-			err := aa_walk.WalkBucket(ctx, uri_b, cb)
-
-			if err != nil {
-
-				logger.Error("Walk bucket failed", "error", err)
-
-				if !yield("", err) {
+				if !yield(obj.Key, nil){
 					break
 				}
 			}
@@ -143,5 +135,6 @@ func (b *BlobBucket) Delete(ctx context.Context, key string) error {
 
 // Close tells 'b' to wrap things up.
 func (b *BlobBucket) Close() error {
+	slog.Info("CLOSE BUCKET")
 	return b.bucket.Close()
 }
