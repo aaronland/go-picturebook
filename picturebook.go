@@ -493,15 +493,12 @@ func NewPictureBook(ctx context.Context, opts *PictureBookOptions) (*PictureBook
 // AddPictures adds images founds in one or more folders defined 'paths' to the picturebook instance.
 func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 
-	slog.Info("GATHER")
 	pictures, err := pb.GatherPictures(ctx, paths)
 
 	if err != nil {
 		return fmt.Errorf("Failed to gather pictures, %w", err)
 	}
 
-	slog.Info("PICTURES YO")
-	
 	slog.Debug("Pictures gathered", "count", len(pictures))
 
 	if pb.Options.Sort != nil {
@@ -522,8 +519,6 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		pagenum := pb.pages
 		pb.Mutex.Unlock()
 
-		slog.Info("PICTURE YEAH")
-		
 		go func(page_num int) {
 			page_count := max(pb.pages, len(pictures))
 			ev := progress.NewEvent(page_num, page_count)
@@ -611,8 +606,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 	i := 0
 
-	slog.Info("OKAY GATHER FROM SOURCE")
-	
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
@@ -649,8 +642,6 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 		logger.Debug("Append picture", "source", pic.Source, "picture", pic.Path)
 		pictures = append(pictures, pic)
 	}
-
-	slog.Info("GATHERED")
 
 	err = pb.Options.Monitor.Clear()
 
@@ -743,7 +734,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	logger := slog.Default()
 	logger = logger.With("path", pic.Path)
 	logger = logger.With("pagenum", pagenum)
-	
+
 	abs_path := pic.Path
 	caption := pic.Caption
 
@@ -751,8 +742,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	picture_bucket := pb.Options.Source
 
-	slog.Info("picture bucket", "SOURCE", fmt.Sprintf("%T", picture_bucket))
-	
 	if pic.Bucket != nil {
 		picture_bucket = pic.Bucket
 	}
@@ -760,7 +749,6 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
 	if err != nil {
-		logger.Error("SAD", "error", err)
 		return fmt.Errorf("Failed to derive bucket for adding picture (%s), %w", abs_path, err)
 	}
 
@@ -940,7 +928,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	info := pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
 
 	if info == nil {
-		return fmt.Errorf("unable to determine info for %s", abs_path)
+		return fmt.Errorf("unable to determine info for %s with format (%s)", abs_path, format)
 	}
 
 	info.SetDpi(pb.Options.DPI)

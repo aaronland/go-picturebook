@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"iter"
-	"log/slog"
+	_ "log/slog"
 	_ "path/filepath"
 	"strings"
 
@@ -21,7 +21,7 @@ var bucket_mu = new(sync.Map)
 type BlobBucket struct {
 	Bucket
 	bucket_uri string
-	bucket *blob.Bucket
+	bucket     *blob.Bucket
 }
 
 func init() {
@@ -58,8 +58,6 @@ func RegisterGoCloudBuckets(ctx context.Context) error {
 // NewBlobBucket returns a new instantiation of the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 
-	slog.Info("WTF", "uri", uri)
-	
 	b, err := aa_bucket.OpenBucket(ctx, uri)
 
 	if err != nil {
@@ -67,7 +65,7 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	}
 
 	s := &BlobBucket{
-		bucket: b,
+		bucket:     b,
 		bucket_uri: uri,
 	}
 
@@ -81,17 +79,21 @@ func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Se
 
 		for _, uri := range uris {
 
-			prefix := strings.TrimLeft(uri, "/")
+			// Strip the leading slash because that's what gocloud.dev/blob likes
+			walk_uri := strings.TrimLeft(uri, "/")
 
-			for obj, err := range aa_walk.WalkBucketWithIter(ctx, b.bucket, prefix) {
+			for obj, err := range aa_walk.WalkBucketWithIter(ctx, b.bucket, walk_uri) {
 
 				if err != nil {
-					if !yield("", err){
+					if !yield("", err) {
 						break
 					}
 				}
 
-				if !yield(obj.Key, nil){
+				// Put the leading slash back because that's what everything else likes
+				path := fmt.Sprintf("/%s", obj.Key)
+
+				if !yield(path, nil) {
 					break
 				}
 			}
@@ -135,6 +137,5 @@ func (b *BlobBucket) Delete(ctx context.Context, key string) error {
 
 // Close tells 'b' to wrap things up.
 func (b *BlobBucket) Close() error {
-	slog.Info("CLOSE BUCKET")
 	return b.bucket.Close()
 }
