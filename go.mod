@@ -6,9 +6,9 @@ require (
 	github.com/aaronland/go-image-contour/v2 v2.1.0
 	github.com/aaronland/go-image-halftone/v2 v2.0.0
 	github.com/aaronland/go-image/v2 v2.1.2
-	github.com/aaronland/go-mimetypes v0.0.2
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/gocloud-blob v0.6.1
+	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/google/uuid v1.6.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -32,7 +32,6 @@ require (
 	github.com/fogleman/colormap v0.0.0-20240324153029-3da9a245d155 // indirect
 	github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

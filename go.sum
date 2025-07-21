@@ -49,8 +49,6 @@ github.com/aaronland/go-image-halftone/v2 v2.0.0 h1:hZpcNjP2MazOCknqQufR1d4fG4yx
 github.com/aaronland/go-image-halftone/v2 v2.0.0/go.mod h1:UnoB+cuba72+1rIe519JuR0VHdK+wuKyT6ibg/c3Urg=
 github.com/aaronland/go-image/v2 v2.1.2 h1:41/gJE6eP7buDaU6lBMWx9zAIXy1jgkdQIOGaao+wQo=
 github.com/aaronland/go-image/v2 v2.1.2/go.mod h1:f4LaEmnI5JU7yLzJm+ZbCVxHhcEbnYns1QeRr8hd0IY=
-github.com/aaronland/go-mimetypes v0.0.2 h1:Gsi1ak00V+m+g8lVIROkM2mIdj7aLnvaF1iqfVkhHHc=
-github.com/aaronland/go-mimetypes v0.0.2/go.mod h1:bFXDLXp+3bRrzRhoD7RY2vSKTcsVjgdSckHxbuIdTLA=
 github.com/aaronland/go-roster v1.0.0 h1:FRDGrTqsYySKjWnAhbBGXyeGlI/o5/t9FZYCbUmyQtI=
 github.com/aaronland/go-roster v1.0.0/go.mod h1:KIsYZgrJlAsyb9LsXSCvlqvbcCBVjCSqcQiZx42i9ro=
 github.com/aaronland/gocloud-blob v0.6.1 h1:3Qpr1snX8qf5k/QOzYiav3f4uCj2aWbrIUoOAjey2M8=

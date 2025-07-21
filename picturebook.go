@@ -14,7 +14,6 @@ import (
 
 	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-image/v2/rotate"
-	"github.com/aaronland/go-mimetypes"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -24,6 +23,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
 )
@@ -181,26 +181,28 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		}
 
 		abs_path := path
-		is_image := false
 
 		logger := slog.Default()
 		logger = logger.With("path", abs_path)
 
-		// Be sure to strip/account for fragment if present
 		parts := strings.Split(path, "#")
 
-		ext := filepath.Ext(parts[0])
-		ext = strings.ToLower(ext)
+		r, err := pb_opts.Source.NewReader(ctx, parts[0], nil)
 
-		for _, t := range mimetypes.TypesByExtension(ext) {
-			if strings.HasPrefix(t, "image/") {
-				is_image = true
-				break
-			}
+		if err != nil {
+			return nil, err
 		}
 
-		if !is_image {
-			logger.Debug("File does not appear to be an image, skipping", "extension", ext)
+		defer r.Close()
+
+		mtype, err := mimetype.DetectReader(r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !strings.HasPrefix(mtype.String(), "image/") {
+			logger.Debug("File does not appear to be an image, skipping", "mime", mtype.String())
 			return nil, nil
 		}
 
@@ -765,6 +767,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
 	}
 
+	if im == nil {
+		logger.Warn("Image decoded but did not return an image object, skipping.")
+		return nil
+	}
+
 	format := strings.Replace(im_format, "image/", "", 1)
 
 	switch format {
@@ -814,6 +821,23 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		}
 
 		// END OF put me somewhere in aaronland/go-image ... maybe?
+
+	case "webp", "tiff", "tif", "heic":
+
+		tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
+
+		if err != nil {
+			return fmt.Errorf("Failed to generate tempfile for %s, %w", abs_path, err)
+		}
+
+		logger.Debug("Image converted to a JPG", "tmpfile_path", tmpfile_path)
+
+		pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+
+		abs_path = tmpfile_path
+		format = tmpfile_format
+
+		is_tempfile = true
 
 	default:
 
