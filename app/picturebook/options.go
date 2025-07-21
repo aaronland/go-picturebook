@@ -88,6 +88,21 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		margin_right = margin
 	}
 
+	if source_uri == "" {
+		source_uri = "file:///"
+	}
+
+	if target_uri == "cwd://" {
+
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive current directory, %w", err)
+		}
+
+		target_uri = fmt.Sprintf("file://%s", cwd)
+	}
+
 	opts := &RunOptions{
 		SourceBucketURI: source_uri,
 		TargetBucketURI: target_uri,

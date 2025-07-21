@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/aaronland/go-image/colour"
-	"github.com/aaronland/go-image/decode"
+	"github.com/aaronland/go-image/v2/colour"
+	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
 )
@@ -69,13 +69,11 @@ func (f *ColourSpaceProcess) Transform(ctx context.Context, source_bucket bucket
 
 	defer r.Close()
 
-	dec, err := decode.NewDecoder(ctx, path)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to create new decoder for %s, %w", path, err)
+	opts := &decode.DecodeImageOptions{
+		Rotate: false,
 	}
 
-	im, _, err := dec.Decode(ctx, r)
+	im, _, _, err := decode.DecodeImageWithOptions(ctx, r, opts)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

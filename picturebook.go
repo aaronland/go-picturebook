@@ -12,9 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/rotate"
-	"github.com/aaronland/go-mimetypes"
+	"github.com/aaronland/go-image/v2/decode"
+	"github.com/aaronland/go-image/v2/rotate"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/caption"
 	"github.com/aaronland/go-picturebook/filter"
@@ -24,6 +23,7 @@ import (
 	"github.com/aaronland/go-picturebook/sort"
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
 )
@@ -181,26 +181,28 @@ func DefaultGatherPicturesProcessFunc(pb_opts *PictureBookOptions) (GatherPictur
 		}
 
 		abs_path := path
-		is_image := false
 
 		logger := slog.Default()
 		logger = logger.With("path", abs_path)
 
-		// Be sure to strip/account for fragment if present
 		parts := strings.Split(path, "#")
 
-		ext := filepath.Ext(parts[0])
-		ext = strings.ToLower(ext)
+		r, err := pb_opts.Source.NewReader(ctx, parts[0], nil)
 
-		for _, t := range mimetypes.TypesByExtension(ext) {
-			if strings.HasPrefix(t, "image/") {
-				is_image = true
-				break
-			}
+		if err != nil {
+			return nil, err
 		}
 
-		if !is_image {
-			logger.Debug("File does not appear to be an image, skipping", "extension", ext)
+		defer r.Close()
+
+		mtype, err := mimetype.DetectReader(r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if !strings.HasPrefix(mtype.String(), "image/") {
+			logger.Debug("File does not appear to be an image, skipping", "mime", mtype.String())
 			return nil, nil
 		}
 
@@ -585,7 +587,8 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		}
 
 		if err != nil {
-			slog.Debug("Failed to add picture", "path", pic.Path, "error", err)
+			slog.Error("Failed to add picture", "path", pic.Path, "error", err)
+			return err
 		}
 	}
 
@@ -609,9 +612,13 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 	for path, p_err := range pb.Options.Source.GatherPictures(ctx, paths...) {
 
 		if err != nil {
+			slog.Error("Failed to gather pictures", "error", err)
 			err = p_err
 			break
 		}
+
+		logger := slog.Default()
+		logger = logger.With("path", path)
 
 		i += 1
 
@@ -620,16 +627,23 @@ func (pb *PictureBook) GatherPictures(ctx context.Context, paths []string) ([]*p
 
 		pb.Options.Monitor.Signal(ctx, ev)
 
+		logger.Debug("Process image")
+
 		pic, pic_err := pb.ProcessFunc(ctx, path)
 
 		if err != nil {
+			logger.Error("Failed to process path", "error", err)
 			err = pic_err
 			break
 		}
 
-		if pic != nil {
-			pictures = append(pictures, pic)
+		if pic == nil {
+			logger.Debug("No picture, skipping")
+			continue
 		}
+
+		logger.Debug("Append picture", "source", pic.Source, "picture", pic.Path)
+		pictures = append(pictures, pic)
 	}
 
 	err = pb.Options.Monitor.Clear()
@@ -720,6 +734,10 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	pb.Mutex.Lock()
 	defer pb.Mutex.Unlock()
 
+	logger := slog.Default()
+	logger = logger.With("path", pic.Path)
+	logger = logger.With("pagenum", pagenum)
+
 	abs_path := pic.Path
 	caption := pic.Caption
 
@@ -731,33 +749,39 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		picture_bucket = pic.Bucket
 	}
 
-	logger := slog.Default()
-	logger = logger.With("path", abs_path, "page_number", pagenum)
-
 	im_r, err := picture_bucket.NewReader(ctx, abs_path, nil)
 
 	if err != nil {
-		return fmt.Errorf("Failed to create new bucket for %s, %w", abs_path, err)
+		return fmt.Errorf("Failed to derive bucket for adding picture (%s), %w", abs_path, err)
 	}
 
 	defer im_r.Close()
 
-	dec, err := decode.NewDecoder(ctx, abs_path)
-
-	if err != nil {
-		return fmt.Errorf("Failed to create new decoder for %s, %w", abs_path, err)
+	decode_opts := &decode.DecodeImageOptions{
+		Rotate: false,
 	}
 
-	im, format, err := dec.Decode(ctx, im_r)
+	im, im_format, _, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {
-		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
+		logger.Error("Failed to decode image", "error", err)
+		return nil
 	}
 
-	// START OF put me somewhere in aaronland/go-image ... maybe?
-	// trap fpdf "16-bit depth not supported in PNG file" errors
+	if im == nil {
+		logger.Error("Image decoded but did not return an image object, skipping.")
+		return nil
+	}
 
-	if format == "png" {
+	format := strings.Replace(im_format, "image/", "", 1)
+
+	switch format {
+	case "jpeg", "jpg", "gif":
+		// pass
+	case "png":
+
+		// START OF put me somewhere in aaronland/go-image ... maybe?
+		// trap fpdf "16-bit depth not supported in PNG file" errors
 
 		buf := new(bytes.Buffer)
 
@@ -796,9 +820,31 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			is_tempfile = true
 		}
-	}
 
-	// END OF put me somewhere in aaronland/go-image ... maybe?
+		// END OF put me somewhere in aaronland/go-image ... maybe?
+
+	case "webp", "tiff", "tif", "heic":
+
+		tmpfile_path, tmpfile_format, err := tempfile.TempFileWithImage(ctx, pb.Options.Temporary, im)
+
+		if err != nil {
+			return fmt.Errorf("Failed to generate tempfile for %s, %w", abs_path, err)
+		}
+
+		logger.Debug("Image converted to a JPG", "tmpfile_path", tmpfile_path)
+
+		pb.tmpfiles = append(pb.tmpfiles, tmpfile_path)
+
+		abs_path = tmpfile_path
+		format = tmpfile_format
+
+		is_tempfile = true
+
+	default:
+
+		logger.Warn("Image format not supported yet, skipping", "format", format)
+		return nil
+	}
 
 	dims := im.Bounds()
 
@@ -922,7 +968,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	info := pb.PDF.RegisterImageOptionsReader(abs_path, opts, r)
 
 	if info == nil {
-		return fmt.Errorf("unable to determine info for %s", abs_path)
+		return fmt.Errorf("unable to determine info for %s with format (%s)", abs_path, format)
 	}
 
 	info.SetDpi(pb.Options.DPI)

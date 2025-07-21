@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aaronland/go-image-contour"
-	"github.com/aaronland/go-image/decode"
+	"github.com/aaronland/go-image-contour/v2"
+	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
 )
@@ -101,13 +101,7 @@ func (f *ContourProcess) Transform(ctx context.Context, source_bucket bucket.Buc
 
 	defer r.Close()
 
-	dec, err := decode.NewDecoder(ctx, path)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to create new decoder, %w", err)
-	}
-
-	im, _, err := dec.Decode(ctx, r)
+	im, _, _, err := decode.DecodeImage(ctx, r)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)

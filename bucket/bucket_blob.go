@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"iter"
+	_ "log/slog"
+	"strings"
 
 	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
+	aa_walk "github.com/aaronland/gocloud-blob/walk"
 	"gocloud.dev/blob"
 	"sync"
 )
@@ -66,72 +69,40 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	return s, nil
 }
 
-// GatherPictures will return a iterator listing items in 'b'
+// GatherPictures will return a iterator listing items in 'uris' (parented by 'b').
 func (b *BlobBucket) GatherPictures(ctx context.Context, uris ...string) iter.Seq2[string, error] {
 
 	return func(yield func(string, error) bool) {
 
 		for _, uri := range uris {
-			for p, err := range b.gatherPictures(ctx, uri) {
-				yield(p, err)
-			}
-		}
-	}
-}
 
-func (b *BlobBucket) gatherPictures(ctx context.Context, uri string) iter.Seq2[string, error] {
+			// Strip the leading slash because that's what gocloud.dev/blob likes
+			walk_uri := strings.TrimLeft(uri, "/")
 
-	var list func(context.Context, *blob.Bucket, string) error
-
-	return func(yield func(string, error) bool) {
-
-		list = func(ctx context.Context, bucket *blob.Bucket, prefix string) error {
-
-			iter := bucket.List(&blob.ListOptions{
-				Delimiter: "/",
-				Prefix:    prefix,
-			})
-
-			for {
-				obj, err := iter.Next(ctx)
-
-				if err == io.EOF {
-					break
-				}
+			for obj, err := range aa_walk.WalkBucketWithIter(ctx, b.bucket, walk_uri) {
 
 				if err != nil {
-					return fmt.Errorf("Failed to iterate next in bucket for %s, %w", prefix, err)
-				}
-
-				path := obj.Key
-
-				if obj.IsDir {
-
-					err := list(ctx, bucket, path)
-
-					if err != nil {
-						return fmt.Errorf("Failed to list bucket for %s, %w", path, err)
+					if !yield("", err) {
+						break
 					}
-
-					continue
 				}
 
-				yield(path, nil)
+				// Put the leading slash back because that's what everything else likes
+				path := fmt.Sprintf("/%s", obj.Key)
+
+				if !yield(path, nil) {
+					break
+				}
 			}
-
-			return nil
-		}
-
-		err := list(ctx, b.bucket, uri)
-
-		if err != nil {
-			yield("", err)
 		}
 	}
 }
 
 // NewReader returns an `io.ReadSeekCloser` instance for the record named 'key' in 'b'.
 func (b *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.ReadSeekCloser, error) {
+
+	// exists, err := b.bucket.Exists(ctx, key)
+	// slog.Info("WTF", "key", key, "exists", exists, "error", err)
 
 	r, err := b.bucket.NewReader(ctx, key, nil)
 	return r, err

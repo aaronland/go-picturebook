@@ -43,11 +43,21 @@ func (m *ProgressBarMonitor) Signal(ctx context.Context, ev *Event) error {
 
 // Clear removes the current progress bar.
 func (m *ProgressBarMonitor) Clear() error {
+
+	if m.progressbar == nil {
+		return nil
+	}
+
 	m.progressbar.Reset()
 	return m.progressbar.Clear()
 }
 
 // Close terminates the progress bar.
 func (m *ProgressBarMonitor) Close() error {
+
+	if m.progressbar == nil {
+		return nil
+	}
+
 	return m.progressbar.Close()
 }

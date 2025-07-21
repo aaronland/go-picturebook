@@ -1,36 +1,36 @@
 # github.com/MaxHalford/halfgone v0.0.0-20171017091812-482157b86ccb
 ## explicit
 github.com/MaxHalford/halfgone
-# github.com/aaronland/go-image v1.3.1
-## explicit; go 1.22.4
-github.com/aaronland/go-image/colour
-github.com/aaronland/go-image/decode
-github.com/aaronland/go-image/encode
-github.com/aaronland/go-image/exif
-github.com/aaronland/go-image/imaging
-github.com/aaronland/go-image/rotate
-github.com/aaronland/go-image/transform
-# github.com/aaronland/go-image-contour v1.0.2
-## explicit; go 1.20
-github.com/aaronland/go-image-contour
-# github.com/aaronland/go-image-halftone v0.1.0
-## explicit; go 1.18
-github.com/aaronland/go-image-halftone
-# github.com/aaronland/go-mimetypes v0.0.2
-## explicit; go 1.12
-github.com/aaronland/go-mimetypes
-github.com/aaronland/go-mimetypes/lookup
+# github.com/aaronland/go-image-contour/v2 v2.1.0
+## explicit; go 1.24
+github.com/aaronland/go-image-contour/v2
+# github.com/aaronland/go-image-halftone/v2 v2.0.0
+## explicit; go 1.24
+github.com/aaronland/go-image-halftone/v2
+# github.com/aaronland/go-image/v2 v2.1.2
+## explicit; go 1.24
+github.com/aaronland/go-image/v2/colour
+github.com/aaronland/go-image/v2/decode
+github.com/aaronland/go-image/v2/encode
+github.com/aaronland/go-image/v2/exif
+github.com/aaronland/go-image/v2/imaging
+github.com/aaronland/go-image/v2/rotate
+github.com/aaronland/go-image/v2/transform
 # github.com/aaronland/go-roster v1.0.0
 ## explicit; go 1.16
 github.com/aaronland/go-roster
-# github.com/aaronland/gocloud-blob v0.4.0
-## explicit; go 1.23
+# github.com/aaronland/gocloud-blob v0.6.1
+## explicit; go 1.24
 github.com/aaronland/gocloud-blob/bucket
+github.com/aaronland/gocloud-blob/walk
 # github.com/dsoprea/go-exif/v3 v3.0.1
 ## explicit; go 1.12
 github.com/dsoprea/go-exif/v3
 github.com/dsoprea/go-exif/v3/common
 github.com/dsoprea/go-exif/v3/undefined
+# github.com/dsoprea/go-heic-exif-extractor/v2 v2.0.0-20210512044107-62067e44c235
+## explicit; go 1.12
+github.com/dsoprea/go-heic-exif-extractor/v2
 # github.com/dsoprea/go-iptc v0.0.0-20200609062250-162ae6b44feb
 ## explicit; go 1.13
 github.com/dsoprea/go-iptc
@@ -40,14 +40,22 @@ github.com/dsoprea/go-jpeg-image-structure/v2
 # github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd
 ## explicit; go 1.13
 github.com/dsoprea/go-logging
+github.com/dsoprea/go-logging/v2
 # github.com/dsoprea/go-photoshop-info-format v0.0.0-20200609050348-3db9b63b202c
 ## explicit; go 1.13
 github.com/dsoprea/go-photoshop-info-format
+# github.com/dsoprea/go-png-image-structure/v2 v2.0.0-20210512210324-29b889a6093d
+## explicit; go 1.12
+github.com/dsoprea/go-png-image-structure/v2
+# github.com/dsoprea/go-tiff-image-structure/v2 v2.0.0-20221003165014-8ecc4f52edca
+## explicit; go 1.12
+github.com/dsoprea/go-tiff-image-structure/v2
 # github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349
 ## explicit; go 1.12
+github.com/dsoprea/go-utility/v2/data
 github.com/dsoprea/go-utility/v2/filesystem
 github.com/dsoprea/go-utility/v2/image
-# github.com/fogleman/colormap v0.0.0-20180829212827-f273ae61505a
+# github.com/fogleman/colormap v0.0.0-20240324153029-3da9a245d155
 ## explicit
 github.com/fogleman/colormap
 # github.com/fogleman/contourmap v0.0.0-20190814184649-9f61d36c4199
@@ -56,9 +64,22 @@ github.com/fogleman/contourmap
 # github.com/fogleman/gg v1.3.0
 ## explicit
 github.com/fogleman/gg
+# github.com/gabriel-vasile/mimetype v1.4.9
+## explicit; go 1.23.0
+github.com/gabriel-vasile/mimetype
+github.com/gabriel-vasile/mimetype/internal/charset
+github.com/gabriel-vasile/mimetype/internal/json
+github.com/gabriel-vasile/mimetype/internal/magic
 # github.com/go-errors/errors v1.4.2
 ## explicit; go 1.14
 github.com/go-errors/errors
+# github.com/go-logr/logr v1.4.3
+## explicit; go 1.18
+github.com/go-logr/logr
+github.com/go-logr/logr/funcr
+# github.com/go-logr/stdr v1.2.2
+## explicit; go 1.16
+github.com/go-logr/stdr
 # github.com/go-pdf/fpdf v0.9.0
 ## explicit; go 1.20
 github.com/go-pdf/fpdf
@@ -76,14 +97,11 @@ github.com/golang/geo/r2
 github.com/golang/geo/r3
 github.com/golang/geo/s1
 github.com/golang/geo/s2
-# github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
-## explicit
-github.com/golang/groupcache/lru
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
-# github.com/googleapis/gax-go/v2 v2.13.0
-## explicit; go 1.20
+# github.com/googleapis/gax-go/v2 v2.15.0
+## explicit; go 1.23.0
 github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
@@ -125,62 +143,103 @@ github.com/rivo/uniseg
 github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/mknote
 github.com/rwcarlsen/goexif/tiff
-# github.com/schollz/progressbar/v3 v3.17.1
+# github.com/schollz/progressbar/v3 v3.18.0
 ## explicit; go 1.22
 github.com/schollz/progressbar/v3
-# github.com/sfomuseum/go-exif-update v0.1.3
+# github.com/sfomuseum/go-exif-update v0.2.0
 ## explicit; go 1.22.4
 github.com/sfomuseum/go-exif-update
 github.com/sfomuseum/go-exif-update/tags
-# github.com/sfomuseum/go-flags v0.10.0
-## explicit; go 1.16
+# github.com/sfomuseum/go-flags v0.11.0
+## explicit; go 1.22
 github.com/sfomuseum/go-flags/flagset
 github.com/sfomuseum/go-flags/multi
 # github.com/sfomuseum/go-font-ocra v0.0.3
 ## explicit; go 1.18
 github.com/sfomuseum/go-font-ocra
 github.com/sfomuseum/go-font-ocra/fonts
+# github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15
+## explicit; go 1.21
+github.com/strukturag/libheif-go
 # github.com/whosonfirst/go-ioutil v1.0.2
 ## explicit; go 1.16
 github.com/whosonfirst/go-ioutil
-# go.opencensus.io v0.24.0
+# go.opentelemetry.io/auto/sdk v1.1.0
+## explicit; go 1.22.0
+go.opentelemetry.io/auto/sdk
+go.opentelemetry.io/auto/sdk/internal/telemetry
+# go.opentelemetry.io/otel v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel
+go.opentelemetry.io/otel/attribute
+go.opentelemetry.io/otel/attribute/internal
+go.opentelemetry.io/otel/baggage
+go.opentelemetry.io/otel/codes
+go.opentelemetry.io/otel/internal/baggage
+go.opentelemetry.io/otel/internal/global
+go.opentelemetry.io/otel/propagation
+go.opentelemetry.io/otel/semconv/v1.26.0
+go.opentelemetry.io/otel/semconv/v1.34.0
+# go.opentelemetry.io/otel/metric v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/metric
+go.opentelemetry.io/otel/metric/embedded
+go.opentelemetry.io/otel/metric/noop
+# go.opentelemetry.io/otel/sdk v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/sdk
+go.opentelemetry.io/otel/sdk/instrumentation
+go.opentelemetry.io/otel/sdk/internal/x
+go.opentelemetry.io/otel/sdk/resource
+# go.opentelemetry.io/otel/sdk/metric v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/sdk/metric
+go.opentelemetry.io/otel/sdk/metric/exemplar
+go.opentelemetry.io/otel/sdk/metric/internal
+go.opentelemetry.io/otel/sdk/metric/internal/aggregate
+go.opentelemetry.io/otel/sdk/metric/internal/x
+go.opentelemetry.io/otel/sdk/metric/metricdata
+# go.opentelemetry.io/otel/trace v1.37.0
+## explicit; go 1.23.0
+go.opentelemetry.io/otel/trace
+go.opentelemetry.io/otel/trace/embedded
+go.opentelemetry.io/otel/trace/internal/telemetry
+go.opentelemetry.io/otel/trace/noop
+# go4.org v0.0.0-20200411211856-f5505b9728dd
 ## explicit; go 1.13
-go.opencensus.io
-go.opencensus.io/internal
-go.opencensus.io/internal/tagencoding
-go.opencensus.io/metric/metricdata
-go.opencensus.io/metric/metricproducer
-go.opencensus.io/plugin/ocgrpc
-go.opencensus.io/resource
-go.opencensus.io/stats
-go.opencensus.io/stats/internal
-go.opencensus.io/stats/view
-go.opencensus.io/tag
-go.opencensus.io/trace
-go.opencensus.io/trace/internal
-go.opencensus.io/trace/propagation
-go.opencensus.io/trace/tracestate
-# gocloud.dev v0.40.0
-## explicit; go 1.21.0
+go4.org/media/heif
+go4.org/media/heif/bmff
+# gocloud.dev v0.43.0
+## explicit; go 1.24
 gocloud.dev/blob
 gocloud.dev/blob/driver
 gocloud.dev/blob/fileblob
 gocloud.dev/gcerrors
 gocloud.dev/internal/escape
 gocloud.dev/internal/gcerr
-gocloud.dev/internal/oc
 gocloud.dev/internal/openurl
+gocloud.dev/internal/otel
 gocloud.dev/internal/retry
-# golang.org/x/image v0.18.0
-## explicit; go 1.18
+# golang.org/x/image v0.27.0
+## explicit; go 1.23.0
+golang.org/x/image/bmp
+golang.org/x/image/ccitt
 golang.org/x/image/draw
 golang.org/x/image/font
 golang.org/x/image/font/basicfont
 golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
-# golang.org/x/net v0.38.0
+golang.org/x/image/riff
+golang.org/x/image/tiff
+golang.org/x/image/tiff/lzw
+golang.org/x/image/vp8
+golang.org/x/image/vp8l
+golang.org/x/image/webp
+# golang.org/x/net v0.42.0
 ## explicit; go 1.23.0
 golang.org/x/net/context
+golang.org/x/net/html
+golang.org/x/net/html/atom
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
@@ -188,42 +247,46 @@ golang.org/x/net/idna
 golang.org/x/net/internal/httpcommon
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.31.0
+# golang.org/x/sys v0.34.0
 ## explicit; go 1.23.0
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.30.0
+golang.org/x/sys/windows/registry
+# golang.org/x/term v0.33.0
 ## explicit; go 1.23.0
 golang.org/x/term
-# golang.org/x/text v0.23.0
+# golang.org/x/text v0.27.0
 ## explicit; go 1.23.0
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9
+# golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 ## explicit; go 1.18
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/api v0.191.0
-## explicit; go 1.20
+# google.golang.org/api v0.242.0
+## explicit; go 1.23.0
 google.golang.org/api/googleapi
 google.golang.org/api/internal/third_party/uritemplates
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20240812133136-8ffd90a71988
-## explicit; go 1.20
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250715232539-7130f93afb79
+## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/rpc/code
 google.golang.org/genproto/googleapis/rpc/errdetails
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.65.0
-## explicit; go 1.21
+# google.golang.org/grpc v1.73.0
+## explicit; go 1.23.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
 google.golang.org/grpc/balancer
 google.golang.org/grpc/balancer/base
+google.golang.org/grpc/balancer/endpointsharding
 google.golang.org/grpc/balancer/grpclb/state
 google.golang.org/grpc/balancer/pickfirst
+google.golang.org/grpc/balancer/pickfirst/internal
+google.golang.org/grpc/balancer/pickfirst/pickfirstleaf
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/channelz
@@ -233,7 +296,9 @@ google.golang.org/grpc/credentials
 google.golang.org/grpc/credentials/insecure
 google.golang.org/grpc/encoding
 google.golang.org/grpc/encoding/proto
+google.golang.org/grpc/experimental/stats
 google.golang.org/grpc/grpclog
+google.golang.org/grpc/grpclog/internal
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
 google.golang.org/grpc/internal/balancer/gracefulswitch
@@ -249,17 +314,21 @@ google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/idle
 google.golang.org/grpc/internal/metadata
 google.golang.org/grpc/internal/pretty
+google.golang.org/grpc/internal/proxyattributes
 google.golang.org/grpc/internal/resolver
+google.golang.org/grpc/internal/resolver/delegatingresolver
 google.golang.org/grpc/internal/resolver/dns
 google.golang.org/grpc/internal/resolver/dns/internal
 google.golang.org/grpc/internal/resolver/passthrough
 google.golang.org/grpc/internal/resolver/unix
 google.golang.org/grpc/internal/serviceconfig
+google.golang.org/grpc/internal/stats
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/internal/transport/networktype
 google.golang.org/grpc/keepalive
+google.golang.org/grpc/mem
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer
 google.golang.org/grpc/resolver
@@ -268,8 +337,8 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.34.2
-## explicit; go 1.20
+# google.golang.org/protobuf v1.36.6
+## explicit; go 1.22
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -290,6 +359,7 @@ google.golang.org/protobuf/internal/genid
 google.golang.org/protobuf/internal/impl
 google.golang.org/protobuf/internal/order
 google.golang.org/protobuf/internal/pragma
+google.golang.org/protobuf/internal/protolazy
 google.golang.org/protobuf/internal/set
 google.golang.org/protobuf/internal/strs
 google.golang.org/protobuf/internal/version

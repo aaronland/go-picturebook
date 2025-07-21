@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aaronland/go-image/decode"
-	"github.com/aaronland/go-image/rotate"
+	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-picturebook/bucket"
 	"github.com/aaronland/go-picturebook/tempfile"
 )
@@ -61,34 +60,17 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket bucket.Buck
 
 	defer r.Close()
 
-	o, err := rotate.GetImageOrientation(ctx, r)
+	// decode.DecodeImage assumes Rotate: true by default
+	// but being explicit to make the code a little clear
 
-	if err != nil {
-		return "", fmt.Errorf("Failed to derive orientation for %s, %w", path, err)
+	decode_opts := &decode.DecodeImageOptions{
+		Rotate: true,
 	}
 
-	_, err = r.Seek(0, 0)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to rewind %s, %w", path, err)
-	}
-
-	dec, err := decode.NewDecoder(ctx, path)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to create new decoder, %w", err)
-	}
-
-	im, _, err := dec.Decode(ctx, r)
+	rotated, _, _, err := decode.DecodeImageWithOptions(ctx, r, decode_opts)
 
 	if err != nil {
 		return "", fmt.Errorf("Failed to decode image for %s, %w", path, err)
-	}
-
-	rotated, err := rotate.RotateImageWithOrientation(ctx, im, o)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to rotate %s, %w", path, err)
 	}
 
 	tmpfile, _, err := tempfile.TempFileWithImage(ctx, target_bucket, rotated)

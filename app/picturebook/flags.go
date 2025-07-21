@@ -194,10 +194,11 @@ func DefaultFlagSet(ctx context.Context) (*flag.FlagSet, error) {
 	fs.Var(&filter_uris, "filter", desc_filters)
 	fs.Var(&process_uris, "process", desc_processes)
 
-	fs.StringVar(&source_uri, "source-uri", "", desc_buckets)
+	desc_buckets_source := fmt.Sprintf("%s If empty then the code will automatically assume file:/// which allows the passing in of plain-vanilla paths on the local filesystem", desc_buckets)
+	fs.StringVar(&source_uri, "source-uri", "", desc_buckets_source)
 
 	desc_buckets_target := fmt.Sprintf("%s If empty then the code will try to use the operating system's 'current working directory' where applicable.", desc_buckets)
-	fs.StringVar(&target_uri, "target-uri", "", desc_buckets_target)
+	fs.StringVar(&target_uri, "target-uri", "cwd://", desc_buckets_target)
 
 	desc_buckets_tmp := fmt.Sprintf("%s If empty the operating system's temporary directory will be used.", desc_buckets)
 	fs.StringVar(&tmpfile_uri, "tmpfile-uri", "", desc_buckets_tmp)
