@@ -910,7 +910,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		ReadDpi:   false,
 		ImageType: format,
 	}
-
+	
 	var r io.ReadCloser
 
 	if is_tempfile {
@@ -932,7 +932,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	info.SetDpi(pb.Options.DPI)
-
+	
 	logger.Debug("Dimensions", slog.Float64("width", w), slog.Float64("height", h))
 
 	if w == 0.0 || h == 0.0 {
