@@ -62,11 +62,11 @@ func (f *RotateProcess) Transform(ctx context.Context, source_bucket bucket.Buck
 
 	// decode.DecodeImage assumes Rotate: true by default
 	// but being explicit to make the code a little clear
-	
+
 	decode_opts := &decode.DecodeImageOptions{
 		Rotate: true,
 	}
-	
+
 	rotated, _, _, err := decode.DecodeImageWithOptions(ctx, r, decode_opts)
 
 	if err != nil {

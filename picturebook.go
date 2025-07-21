@@ -758,7 +758,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	decode_opts := &decode.DecodeImageOptions{
 		Rotate: false,
 	}
-	
+
 	im, im_format, _, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {

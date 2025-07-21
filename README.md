@@ -20,7 +20,7 @@ go build -mod vendor -o bin/picturebook cmd/picturebook/main.go
 Create a PDF file (a "picturebook") from a folder (containing images).
 
 ```
-$> ./bin/picturebook -h
+$> > ./bin/picturebook -h
   -bleed float
     	An additional bleed area to add (on all four sides) to the size of your picturebook.
   -border float
@@ -59,14 +59,16 @@ $> ./bin/picturebook -h
     	The orientation of your picturebook. Valid orientations are: 'P' and 'L' for portrait and landscape mode respectively. (default "P")
   -process value
     	A valid process.Process URI. Valid schemes are: colorspace://, colourspace://, contour://, halftone://, null://, rotate://.
+  -progress-monitor-uri string
+    	A registered aaronland/go-picturebook/progress.Monitor URI (default "progressbar://")
   -size string
     	A common paper size to use for the size of your picturebook. Valid sizes are: "a3", "a4", "a5", "letter", "legal", or "tabloid". (default "letter")
   -sort string
     	A valid sort.Sorter URI. Valid schemes are: exif://, modtime://.
   -source-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will automatically assume file:/// which allows the passing in of plain-vanilla paths on the local filesystem
   -target-uri string
-    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' where applicable.
+    	A valid GoCloud blob URI to specify where files should be read from. Available schemes are: file://. If no URI scheme is included then the file:// scheme is assumed. If empty then the code will try to use the operating system's 'current working directory' where applicable. (default "cwd://")
   -text string
     	A valid text.Text URI. Valid schemes are: json://.
   -tmpfile-uri string
@@ -82,9 +84,17 @@ $> ./bin/picturebook -h
 For example:
 
 ```
+$> ./bin/picturebook /PATH/TO/go-picturebook/example/images
+```
+
+This will create a new file called `picturebook.pdf` in the current directory.
+
+That is the simplest way to use the `picturebook` tool and depends on defaults being automatically assigned to the `-source-uri` and `-target-uri` flags. It is functionally the same as this:
+
+```
 $> ./bin/picturebook \
 	-source-uri file:///PATH/TO/go-picturebook/example \
-	-target-uri file:///PATH/TO/go-picturebook/example \
+	-target-uri file:///PATH/TO/go-picturebook/ \
 	images
 ```
 
@@ -303,9 +313,10 @@ Sort images, in ascending order, by their modification times. If two or more ima
 
 ## See also
 
-* https://github.com/aaronland/go-picturebook-flickr
 * https://github.com/go-pdf/fpdf
 * https://github.com/aaronland/go-image
 * https://github.com/aaronland/go-image-halftone
 * https://github.com/aaronland/go-image-contour
+* https://github.com/aaronland/go-picturebook-flickr
+* https://github.com/sfomuseum/go-picturebook-sfomuseum
 * https://gocloud.dev/howto/blob/

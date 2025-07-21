@@ -88,6 +88,10 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		margin_right = margin
 	}
 
+	if source_uri == "" {
+		source_uri = "file:///"
+	}
+
 	if target_uri == "cwd://" {
 
 		cwd, err := os.Getwd()
