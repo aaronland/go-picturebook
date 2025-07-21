@@ -764,11 +764,12 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	im, im_format, _, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {
-		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
+		logger.Error("Failed to decode image", "error", err)
+		return nil
 	}
 
 	if im == nil {
-		logger.Warn("Image decoded but did not return an image object, skipping.")
+		logger.Error("Image decoded but did not return an image object, skipping.")
 		return nil
 	}
 

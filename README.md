@@ -311,6 +311,22 @@ Sort images, in ascending order, by their EXIF `DateTime` property. If EXIF data
 
 Sort images, in ascending order, by their modification times. If two or more images have the same modification they will sorted again by their file size.
 
+## Supported image formats
+
+Under the hood this package uses the [aaronland/go-image/v2](https://github.com/aaronland/go-image) package to decode image files. The following image decoders are supported by default:
+
+* `image/bmp`
+* `image/gif`
+* `image/heic` (if built with `libheif` tag)
+* `image/jpeg`
+* `image/png`
+* `image/tiff`
+* `image/webp`
+
+### HEIC images
+
+By default this package supports decoding HEIC images using the [strukturag/libheif-go](http://github.com/strukturag/libheif-go) package which, in turn, depends on the presence of the `libheif` library but when you are compiling your code (or the command line tools) you will need to pass in the `-tags libheif` flag.
+
 ## See also
 
 * https://github.com/go-pdf/fpdf
