@@ -585,7 +585,8 @@ func (pb *PictureBook) AddPictures(ctx context.Context, paths []string) error {
 		}
 
 		if err != nil {
-			slog.Warn("Failed to add picture", "path", pic.Path, "error", err)
+			slog.Error("Failed to add picture", "path", pic.Path, "error", err)
+			return err
 		}
 	}
 
@@ -754,16 +755,21 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	defer im_r.Close()
 
-	im, format, _, err := decode.DecodeImage(ctx, im_r)
+	im, im_format, _, err := decode.DecodeImage(ctx, im_r)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
 	}
 
-	// START OF put me somewhere in aaronland/go-image ... maybe?
-	// trap fpdf "16-bit depth not supported in PNG file" errors
+	format := strings.Replace(im_format, "image/", "", 1)
 
-	if format == "png" {
+	switch format {
+	case "jpeg", "jpg", "gif":
+		// pass
+	case "png":
+
+		// START OF put me somewhere in aaronland/go-image ... maybe?
+		// trap fpdf "16-bit depth not supported in PNG file" errors
 
 		buf := new(bytes.Buffer)
 
@@ -802,9 +808,14 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 			is_tempfile = true
 		}
-	}
 
-	// END OF put me somewhere in aaronland/go-image ... maybe?
+		// END OF put me somewhere in aaronland/go-image ... maybe?
+
+	default:
+
+		logger.Warn("Image format not supported yet, skipping", "format", format)
+		return nil
+	}
 
 	dims := im.Bounds()
 
@@ -910,7 +921,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		ReadDpi:   false,
 		ImageType: format,
 	}
-	
+
 	var r io.ReadCloser
 
 	if is_tempfile {
@@ -932,7 +943,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 	}
 
 	info.SetDpi(pb.Options.DPI)
-	
+
 	logger.Debug("Dimensions", slog.Float64("width", w), slog.Float64("height", h))
 
 	if w == 0.0 || h == 0.0 {

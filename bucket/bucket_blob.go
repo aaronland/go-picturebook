@@ -19,7 +19,7 @@ var bucket_mu = new(sync.Map)
 // BlobBucket implements the `Bucket` interface using a `gocloud.dev/blob.Bucket` instance.
 type BlobBucket struct {
 	Bucket
-	bucket     *blob.Bucket
+	bucket *blob.Bucket
 }
 
 func init() {
@@ -63,7 +63,7 @@ func NewBlobBucket(ctx context.Context, uri string) (Bucket, error) {
 	}
 
 	s := &BlobBucket{
-		bucket:     b,
+		bucket: b,
 	}
 
 	return s, nil
@@ -103,7 +103,7 @@ func (b *BlobBucket) NewReader(ctx context.Context, key string, opts any) (io.Re
 
 	// exists, err := b.bucket.Exists(ctx, key)
 	// slog.Info("WTF", "key", key, "exists", exists, "error", err)
-	
+
 	r, err := b.bucket.NewReader(ctx, key, nil)
 	return r, err
 }
