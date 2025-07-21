@@ -755,7 +755,11 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 
 	defer im_r.Close()
 
-	im, im_format, _, err := decode.DecodeImage(ctx, im_r)
+	decode_opts := &decode.DecodeImageOptions{
+		Rotate: false,
+	}
+	
+	im, im_format, _, err := decode.DecodeImageWithOptions(ctx, im_r, decode_opts)
 
 	if err != nil {
 		return fmt.Errorf("Failed to decode image for %s, %w", abs_path, err)
