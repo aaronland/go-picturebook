@@ -38,7 +38,7 @@ func WalkBucketWithPrefix(ctx context.Context, bucket *blob.Bucket, prefix strin
 	return nil
 }
 
-// WalkBucketWithIter will iterate 'bucket' for files parented by 'prefix' and yield an `iter.Seq2[*blob.ListObject, error]` instance for each file it encounters. 
+// WalkBucketWithIter will iterate 'bucket' for files parented by 'prefix' and yield an `iter.Seq2[*blob.ListObject, error]` instance for each file it encounters.
 func WalkBucketWithIter(ctx context.Context, bucket *blob.Bucket, prefix string) iter.Seq2[*blob.ListObject, error] {
 
 	return func(yield func(obj *blob.ListObject, err error) bool) {

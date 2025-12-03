@@ -8,8 +8,8 @@ import (
 	_ "log/slog"
 	"strings"
 
-	aa_bucket "github.com/aaronland/gocloud-blob/bucket"
-	aa_walk "github.com/aaronland/gocloud-blob/walk"
+	aa_bucket "github.com/aaronland/gocloud/blob/bucket"
+	aa_walk "github.com/aaronland/gocloud/blob/walk"
 	"gocloud.dev/blob"
 	"sync"
 )
