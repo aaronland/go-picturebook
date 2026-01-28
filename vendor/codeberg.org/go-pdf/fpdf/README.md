@@ -1,12 +1,12 @@
 # GoFPDF document generator
 
-[![GitHub release](https://img.shields.io/github/release/go-pdf/fpdf.svg)](https://github.com/go-pdf/fpdf/releases)
-[![CI](https://github.com/go-pdf/fpdf/workflows/CI/badge.svg)](https://github.com/go-pdf/fpdf/actions)
+[![GitHub release](https://img.shields.io/github/release/go-pdf/fpdf.svg)](https://codeberg.org/go-pdf/fpdf/releases)
+[![CI](https://codeberg.org/go-pdf/fpdf/workflows/CI/badge.svg)](https://codeberg.org/go-pdf/fpdf/actions)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/go-pdf/fpdf/master/LICENSE)
-[![Report](https://goreportcard.com/badge/github.com/go-pdf/fpdf)](https://goreportcard.com/report/github.com/go-pdf/fpdf)
-[![GoDoc](https://img.shields.io/badge/godoc-GoFPDF-blue.svg)](https://godoc.org/github.com/go-pdf/fpdf)
+[![Report](https://goreportcard.com/badge/codeberg.org/go-pdf/fpdf)](https://goreportcard.com/report/codeberg.org/go-pdf/fpdf)
+[![GoDoc](https://img.shields.io/badge/godoc-GoFPDF-blue.svg)](https://godoc.org/codeberg.org/go-pdf/fpdf)
 
-![](https://github.com/go-pdf/fpdf/raw/master/image/logo_gofpdf.jpg)
+![](https://codeberg.org/go-pdf/fpdf/raw/master/image/logo_gofpdf.jpg)
 
 Package `go-pdf/fpdf` implements a PDF document generator with high level
 support for text, drawing and images.
@@ -51,13 +51,13 @@ page encodings for languages that have fewer than 256 glyphs.
 To install the package on your system, run
 
 ``` shell
-go get github.com/go-pdf/fpdf
+go get codeberg.org/go-pdf/fpdf
 ```
 
 Later, to receive updates, run
 
 ``` shell
-go get -u -v github.com/go-pdf/fpdf/...
+go get -u -v codeberg.org/go-pdf/fpdf/...
 ```
 
 ## Quick Start
@@ -73,7 +73,7 @@ err := pdf.OutputFileAndClose("hello.pdf")
 ```
 
 See the functions in the
-[fpdf\_test.go](https://github.com/go-pdf/fpdf/blob/master/fpdf_test.go)
+[fpdf\_test.go](https://codeberg.org/go-pdf/fpdf/blob/master/fpdf_test.go)
 file (shown as examples in this documentation) for more advanced PDF
 examples.
 
@@ -121,7 +121,7 @@ the tests complete.
 
 Please note that these examples run in the context of a test. In order
 run an example as a standalone application, you’ll need to examine
-[fpdf\_test.go](https://github.com/go-pdf/fpdf/blob/master/fpdf_test.go)
+[fpdf\_test.go](https://codeberg.org/go-pdf/fpdf/blob/master/fpdf_test.go)
 for some helper routines, for example `exampleFilename()` and
 `summary()`.
 
@@ -192,7 +192,7 @@ Here are guidelines for making submissions. Your change should
   - be properly documented
   - be formatted with `go fmt`
   - include an example in
-    [fpdf\_test.go](https://github.com/go-pdf/fpdf/blob/master/fpdf_test.go)
+    [fpdf\_test.go](https://codeberg.org/go-pdf/fpdf/blob/master/fpdf_test.go)
     if appropriate
   - conform to the standards of [golint](https://github.com/golang/lint)
     and [go vet](https://golang.org/cmd/vet/), that is, `golint .` and

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-pdf/fpdf"
+	"codeberg.org/go-pdf/fpdf"
 )
 
 func PrepareText(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt string) []string {

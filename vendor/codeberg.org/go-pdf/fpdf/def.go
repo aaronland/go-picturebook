@@ -421,24 +421,46 @@ type Pdf interface {
 	Err() bool
 	Error() error
 	GetAlpha() (alpha float64, blendModeStr string)
+	GetAuthor() string
 	GetAutoPageBreak() (auto bool, margin float64)
+	GetCatalogSort() bool
 	GetCellMargin() float64
+	GetCompression() bool
 	GetConversionRatio() float64
+	GetCreationDate() time.Time
+	GetCreator() string
+	GetDisplayMode() (zoomStr, layoutStr string)
 	GetDrawColor() (int, int, int)
 	GetDrawSpotColor() (name string, c, m, y, k byte)
 	GetFillColor() (int, int, int)
 	GetFillSpotColor() (name string, c, m, y, k byte)
 	GetFontDesc(familyStr, styleStr string) FontDescType
+	GetFontFamily() string
+	GetFontLoader() FontLoader
+	GetFontLocation() string
 	GetFontSize() (ptSize, unitSize float64)
+	GetFontStyle() string
 	GetImageInfo(imageStr string) (info *ImageInfoType)
+	GetJavascript() string
+	GetKeywords() string
+	GetLang() string
+	GetLineCapStyle() string
+	GetLineJoinStyle() string
 	GetLineWidth() float64
 	GetMargins() (left, top, right, bottom float64)
-	GetPageSizeStr(sizeStr string) (size SizeType)
+	GetModificationDate() time.Time
 	GetPageSize() (width, height float64)
+	GetPageSizeStr(sizeStr string) (size SizeType)
+	GetProducer() string
 	GetStringWidth(s string) float64
+	GetSubject() string
 	GetTextColor() (int, int, int)
 	GetTextSpotColor() (name string, c, m, y, k byte)
+	GetTitle() string
+	GetUnderlineThickness() float64
+	GetWordSpacing() float64
 	GetX() float64
+	GetXmpMetadata() []byte
 	GetXY() (float64, float64)
 	GetY() float64
 	HTMLBasicNew() (html HTMLBasicType)
@@ -634,6 +656,7 @@ type Fpdf struct {
 	footerFncLpi     func(bool)                 // function provided by app and called to write footer with last page flag
 	zoomMode         string                     // zoom display mode
 	layoutMode       string                     // layout display mode
+	nXMP             int                        // XMP object number
 	xmp              []byte                     // XMP metadata
 	producer         string                     // producer
 	title            string                     // title
