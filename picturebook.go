@@ -24,7 +24,7 @@ import (
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/go-pdf/fpdf"
+	"codeberg.org/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
 )
 

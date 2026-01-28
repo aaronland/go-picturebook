@@ -3,7 +3,7 @@ package text
 import (
 	"testing"
 
-	"github.com/go-pdf/fpdf"
+	"codeberg.org/go-pdf/fpdf"	
 )
 
 func TestPrepareText(t *testing.T) {

@@ -3,16 +3,16 @@ module github.com/aaronland/go-picturebook
 go 1.25.0
 
 require (
+	codeberg.org/go-pdf/fpdf v0.11.1
 	github.com/aaronland/go-image-contour/v2 v2.1.0
 	github.com/aaronland/go-image-halftone/v2 v2.0.0
 	github.com/aaronland/go-image/v2 v2.1.4
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/gocloud v1.0.2
-	github.com/gabriel-vasile/mimetype v1.4.11
-	github.com/go-pdf/fpdf v0.9.0
+	github.com/gabriel-vasile/mimetype v1.4.12
 	github.com/google/uuid v1.6.0
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
-	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/schollz/progressbar/v3 v3.19.0
 	github.com/sfomuseum/go-flags v0.12.1
 	github.com/sfomuseum/go-font-ocra v0.0.3
 	gocloud.dev v0.44.0
