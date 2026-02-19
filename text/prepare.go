@@ -16,9 +16,9 @@ func prepareTextWithSeparator(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt st
 
 	prepped := make([]string, 0)
 
-	lines := strings.Split(txt, "\n")
+	lines := strings.SplitSeq(txt, "\n")
 
-	for _, ln := range lines {
+	for ln := range lines {
 
 		ln_w := pdf.GetStringWidth(ln) * dpi
 
@@ -45,7 +45,7 @@ func prepareTextWithSeparator(pdf *fpdf.Fpdf, dpi float64, max_w float64, txt st
 		last_phrase := ""
 		phrase := ""
 
-		for i := 0; i < count; i++ {
+		for i := range count {
 
 			if i == 0 {
 				phrase = words[i]

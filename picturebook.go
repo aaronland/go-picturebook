@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"codeberg.org/go-pdf/fpdf"
 	"github.com/aaronland/go-image/v2/decode"
 	"github.com/aaronland/go-image/v2/rotate"
 	"github.com/aaronland/go-picturebook/bucket"
@@ -24,7 +25,6 @@ import (
 	"github.com/aaronland/go-picturebook/tempfile"
 	"github.com/aaronland/go-picturebook/text"
 	"github.com/gabriel-vasile/mimetype"
-	"codeberg.org/go-pdf/fpdf"
 	"github.com/sfomuseum/go-font-ocra"
 )
 
@@ -1113,7 +1113,7 @@ func (pb *PictureBook) AddPicture(ctx context.Context, pagenum int, pic *picture
 		current_x := x
 		current_y := y
 
-		for _, txt := range strings.Split(caption, "\n") {
+		for txt := range strings.SplitSeq(caption, "\n") {
 
 			txt = strings.TrimSpace(txt)
 
