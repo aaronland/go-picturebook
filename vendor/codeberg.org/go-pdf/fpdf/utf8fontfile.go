@@ -25,6 +25,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 )
 
@@ -128,7 +129,7 @@ func (utf *utf8FontFile) generateTableDescriptions() {
 	_ = utf.readUint16()
 	utf.tableDescriptions = make(map[string]*tableDescription)
 
-	for i := 0; i < tablesCount; i++ {
+	for range tablesCount {
 		record := tableDescription{
 			name:     utf.readTableName(),
 			checksum: []int{utf.readUint16(), utf.readUint16()},
@@ -272,12 +273,7 @@ func arrayKeys(arr map[int]string) []int {
 }
 
 func inArray(s int, arr []int) bool {
-	for _, i := range arr {
-		if s == i {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(arr, s)
 }
 
 func (utf *utf8FontFile) parseNAMETable() int {
@@ -292,7 +288,7 @@ func (utf *utf8FontFile) parseNAMETable() int {
 	names := map[int]string{1: "", 2: "", 3: "", 4: "", 6: ""}
 	keys := arrayKeys(names)
 	counter := len(names)
-	for i := 0; i < nameCount; i++ {
+	for range nameCount {
 		system := utf.readUint16()
 		code := utf.readUint16()
 		local := utf.readUint16()
@@ -455,7 +451,7 @@ func (utf *utf8FontFile) parseCMAPTable(format int) int {
 	utf.skip(2)
 	cmapTableCount := utf.readUint16()
 	cidCMAPPosition := 0
-	for i := 0; i < cmapTableCount; i++ {
+	for range cmapTableCount {
 		system := utf.readUint16()
 		coded := utf.readUint16()
 		position := utf.readUint32()
@@ -503,7 +499,7 @@ func (utf *utf8FontFile) generateCMAP() map[int][]int {
 	utf.skip(2)
 	cmapTableCount := utf.readUint16()
 	runeCmapPosition := 0
-	for i := 0; i < cmapTableCount; i++ {
+	for range cmapTableCount {
 		system := utf.readUint16()
 		coder := utf.readUint16()
 		position := utf.readUint32()
@@ -839,7 +835,7 @@ func (utf *utf8FontFile) parseHMTXTable(numberOfHMetrics, numSymbols int, symbol
 	utf.CharWidths = make([]int, 256*256)
 	charCount := 0
 	arr = unpackUint16Array(utf.getRange(start, numberOfHMetrics*4))
-	for symbol := 0; symbol < numberOfHMetrics; symbol++ {
+	for symbol := range numberOfHMetrics {
 		arrayWidths = arr[(symbol*2)+1]
 		if _, OK := symbolToChar[symbol]; OK || symbol == 0 {
 
@@ -865,7 +861,7 @@ func (utf *utf8FontFile) parseHMTXTable(numberOfHMetrics, numSymbols int, symbol
 		}
 	}
 	diff := numSymbols - numberOfHMetrics
-	for pos := 0; pos < diff; pos++ {
+	for pos := range diff {
 		symbol := pos + numberOfHMetrics
 		if _, OK := symbolToChar[symbol]; OK {
 			for _, char := range symbolToChar[symbol] {
@@ -931,25 +927,25 @@ func (utf *utf8FontFile) generateSCCSDictionaries(runeCmapPosition int, symbolCh
 	segmentSize := utf.readUint16() / 2
 	utf.skip(6)
 	completers := make([]int, 0)
-	for i := 0; i < segmentSize; i++ {
+	for range segmentSize {
 		completers = append(completers, utf.readUint16())
 	}
 	utf.skip(2)
 	beginners := make([]int, 0)
-	for i := 0; i < segmentSize; i++ {
+	for range segmentSize {
 		beginners = append(beginners, utf.readUint16())
 	}
 	sizes := make([]int, 0)
-	for i := 0; i < segmentSize; i++ {
+	for range segmentSize {
 		sizes = append(sizes, int(utf.readInt16()))
 	}
 	readerPositionStart := utf.fileReader.readerPosition
 	positions := make([]int, 0)
-	for i := 0; i < segmentSize; i++ {
+	for range segmentSize {
 		positions = append(positions, utf.readUint16())
 	}
 	var symbol int
-	for n := 0; n < segmentSize; n++ {
+	for n := range segmentSize {
 		completePosition := completers[n] + 1
 		for char := beginners[n]; char < completePosition; char++ {
 			if positions[n] == 0 {
@@ -973,13 +969,6 @@ func (utf *utf8FontFile) generateSCCSDictionaries(runeCmapPosition int, symbolCh
 			symbolCharDictionary[symbol] = append(symbolCharDictionary[symbol], char)
 		}
 	}
-}
-
-func max(i, n int) int {
-	if n > i {
-		return n
-	}
-	return i
 }
 
 func (utf *utf8FontFile) assembleTables() []byte {

@@ -198,6 +198,7 @@ Here are guidelines for making submissions. Your change should
     and [go vet](https://golang.org/cmd/vet/), that is, `golint .` and
     `go vet .` should not generate any warnings
   - not diminish [test coverage](https://blog.golang.org/cover)
+  - not include AI-generated code nor any AI-slop
 
 [Pull requests](https://help.github.com/articles/using-pull-requests/)
 are the preferred means of accepting your changes.

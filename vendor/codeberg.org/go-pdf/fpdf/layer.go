@@ -23,6 +23,8 @@ package fpdf
 // Routines in this file are translated from
 // http://www.fpdf.org/en/script/script97.php
 
+import "strings"
+
 type layerType struct {
 	name    string
 	visible bool
@@ -110,15 +112,15 @@ func (f *Fpdf) layerPutResourceDict() {
 
 func (f *Fpdf) layerPutCatalog() {
 	if len(f.layer.list) > 0 {
-		onStr := ""
+		var onStr strings.Builder
 		offStr := ""
 		for _, layer := range f.layer.list {
-			onStr += sprintf("%d 0 R ", layer.objNum)
+			onStr.WriteString(sprintf("%d 0 R ", layer.objNum))
 			if !layer.visible {
 				offStr += sprintf("%d 0 R ", layer.objNum)
 			}
 		}
-		f.outf("/OCProperties <</OCGs [%s] /D <</OFF [%s] /Order [%s]>>>>", onStr, offStr, onStr)
+		f.outf("/OCProperties <</OCGs [%s] /D <</OFF [%s] /Order [%s]>>>>", onStr.String(), offStr, onStr.String())
 		if f.layer.openLayerPane {
 			f.out("/PageMode /UseOC")
 		}

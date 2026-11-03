@@ -84,7 +84,7 @@ func TtfParse(fileStr string) (TtfRec TtfType, err error) {
 	t.Skip(3 * 2) // searchRange, entrySelector, rangeShift
 	t.tables = make(map[string]uint32)
 	var tag string
-	for j := 0; j < numTables; j++ {
+	for range numTables {
 		tag, err = t.ReadStr(4)
 		if err != nil {
 			return
@@ -191,7 +191,7 @@ func (t *ttfParser) ParseCmap() (err error) {
 	t.Skip(2) // version
 	numTables := int(t.ReadUShort())
 	offset31 := int64(0)
-	for j := 0; j < numTables; j++ {
+	for range numTables {
 		platformID := t.ReadUShort()
 		encodingID := t.ReadUShort()
 		offset = int64(t.ReadULong())
@@ -221,21 +221,21 @@ func (t *ttfParser) ParseCmap() (err error) {
 	t.Skip(2 * 2) // length, language
 	segCount := int(t.ReadUShort() / 2)
 	t.Skip(3 * 2) // searchRange, entrySelector, rangeShift
-	for j := 0; j < segCount; j++ {
+	for range segCount {
 		endCount = append(endCount, t.ReadUShort())
 	}
 	t.Skip(2) // reservedPad
-	for j := 0; j < segCount; j++ {
+	for range segCount {
 		startCount = append(startCount, t.ReadUShort())
 	}
-	for j := 0; j < segCount; j++ {
+	for range segCount {
 		idDelta = append(idDelta, t.ReadShort())
 	}
 	offset, _ = t.f.Seek(int64(0), io.SeekCurrent)
-	for j := 0; j < segCount; j++ {
+	for range segCount {
 		idRangeOffset = append(idRangeOffset, t.ReadUShort())
 	}
-	for j := 0; j < segCount; j++ {
+	for j := range segCount {
 		c1 := startCount[j]
 		c2 := endCount[j]
 		d := idDelta[j]

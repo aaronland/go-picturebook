@@ -35,6 +35,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"maps"
 	"math"
 	"os"
 	"path"
@@ -55,7 +56,7 @@ type fmtBuffer struct {
 	bytes.Buffer
 }
 
-func (b *fmtBuffer) printf(fmtStr string, args ...interface{}) {
+func (b *fmtBuffer) printf(fmtStr string, args ...any) {
 	b.Buffer.WriteString(fmt.Sprintf(fmtStr, args...))
 }
 
@@ -144,6 +145,7 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.stdPageSizes["a5"] = SizeType{420.94, 595.28}
 	f.stdPageSizes["a6"] = SizeType{297.64, 420.94}
 	f.stdPageSizes["a7"] = SizeType{209.76, 297.64}
+	f.stdPageSizes["a8"] = SizeType{147.40, 209.76}
 	f.stdPageSizes["a2"] = SizeType{1190.55, 1683.78}
 	f.stdPageSizes["a1"] = SizeType{1683.78, 2383.94}
 	f.stdPageSizes["letter"] = SizeType{612, 792}
@@ -240,7 +242,7 @@ func NewCustom(init *InitType) (f *Fpdf) {
 // string will be replaced with "mm".
 //
 // sizeStr specifies the page size. Acceptable values are "A1", "A2", "A3", "A4", "A5",
-// "A6", "A7", "Letter", "Legal", or "Tabloid". An empty string will be replaced with "A4".
+// "A6", "A7", "A8", "Letter", "Legal", or "Tabloid". An empty string will be replaced with "A4".
 //
 // fontDirStr specifies the file system location in which font resources will
 // be found. An empty string is replaced with ".". This argument only needs to
@@ -275,7 +277,7 @@ func (f *Fpdf) ClearError() {
 //
 // See the documentation for printing in the standard fmt package for details
 // about fmtStr and args.
-func (f *Fpdf) SetErrorf(fmtStr string, args ...interface{}) {
+func (f *Fpdf) SetErrorf(fmtStr string, args ...any) {
 	if f.err == nil {
 		f.err = fmt.Errorf(fmtStr, args...)
 	}
@@ -699,6 +701,14 @@ func (f *Fpdf) GetXmpMetadata() []byte {
 // SetXmpMetadata defines XMP metadata that will be embedded with the document.
 func (f *Fpdf) SetXmpMetadata(xmpStream []byte) {
 	f.xmp = xmpStream
+}
+
+// AddOutputIntent adds an output intent with ICC color profile
+func (f *Fpdf) AddOutputIntent(outputIntent OutputIntentType) {
+	f.outputIntents = append(f.outputIntents, outputIntent)
+	if f.pdfVersion < pdfVers1_4 {
+		f.pdfVersion = pdfVers1_4
+	}
 }
 
 // AliasNbPages defines an alias for the total number of pages. It will be
@@ -2091,7 +2101,7 @@ func (f *Fpdf) addFont(familyStr, styleStr, fileStr string, isUTF8 bool) {
 
 func makeSubsetRange(end int) map[int]int {
 	answer := make(map[int]int)
-	for i := 0; i < end; i++ {
+	for i := range end {
 		answer[i] = 0
 	}
 	return answer
@@ -2780,7 +2790,7 @@ func (f *Fpdf) CellFormat(w, h float64, txtStr, borderStr string, ln int,
 			t := strings.Split(txtStr, " ")
 			shift := float64((wmax - strSize)) / float64(len(t)-1)
 			numt := len(t)
-			for i := 0; i < numt; i++ {
+			for i := range numt {
 				tx := t[i]
 				tx = "(" + f.escape(utf8toutf16(tx, false)) + ")"
 				s.printf("%s ", tx)
@@ -2860,7 +2870,7 @@ func (f *Fpdf) Cell(w, h float64, txtStr string) {
 // Cellf is a simpler printf-style version of CellFormat with no fill, border,
 // links or special alignment. See documentation for the fmt package for
 // details on fmtStr and args.
-func (f *Fpdf) Cellf(w, h float64, fmtStr string, args ...interface{}) {
+func (f *Fpdf) Cellf(w, h float64, fmtStr string, args ...any) {
 	f.CellFormat(w, h, sprintf(fmtStr, args...), "", 0, "L", false, 0, "")
 }
 
@@ -3251,7 +3261,7 @@ func (f *Fpdf) Write(h float64, txtStr string) {
 
 // Writef is like Write but uses printf-style formatting. See the documentation
 // for package fmt for more details on fmtStr and args.
-func (f *Fpdf) Writef(h float64, fmtStr string, args ...interface{}) {
+func (f *Fpdf) Writef(h float64, fmtStr string, args ...any) {
 	f.write(h, sprintf(fmtStr, args...), 0, "")
 }
 
@@ -3613,16 +3623,12 @@ func (f *Fpdf) GetImageInfo(imageStr string) (info *ImageInfoType) {
 
 // ImportObjects imports objects from gofpdi into current document
 func (f *Fpdf) ImportObjects(objs map[string][]byte) {
-	for k, v := range objs {
-		f.importedObjs[k] = v
-	}
+	maps.Copy(f.importedObjs, objs)
 }
 
 // ImportObjPos imports object hash positions from gofpdi
 func (f *Fpdf) ImportObjPos(objPos map[string]map[int]string) {
-	for k, v := range objPos {
-		f.importedObjPos[k] = v
-	}
+	maps.Copy(f.importedObjPos, objPos)
 }
 
 // putImportedTemplates writes the imported template objects to the PDF
@@ -3673,7 +3679,7 @@ func (f *Fpdf) putImportedTemplates() {
 	}
 
 	// Now, put objects
-	for i = 0; i < len(objsIDData); i++ {
+	for i = range objsIDData {
 		f.newobj()
 		f.out(string(objsIDData[i]))
 	}
@@ -3688,9 +3694,7 @@ func (f *Fpdf) UseImportedTemplate(tplName string, scaleX float64, scaleY float6
 // ImportTemplates imports gofpdi template names into importedTplObjs for
 // inclusion in the procset dictionary
 func (f *Fpdf) ImportTemplates(tpls map[string]string) {
-	for tplName, tplID := range tpls {
-		f.importedTplObjs[tplName] = tplID
-	}
+	maps.Copy(f.importedTplObjs, tpls)
 }
 
 // GetConversionRatio returns the conversion ratio based on the unit given when
@@ -3874,9 +3878,7 @@ func (f *Fpdf) beginpage(orientationStr string, size SizeType) {
 	f.page++
 	// add the default page boxes, if any exist, to the page
 	f.pageBoxes[f.page] = make(map[string]PageBox)
-	for box, pb := range f.defPageBoxes {
-		f.pageBoxes[f.page][box] = pb
-	}
+	maps.Copy(f.pageBoxes[f.page], f.defPageBoxes)
 	f.pages = append(f.pages, bytes.NewBufferString(""))
 	f.pageLinks = append(f.pageLinks, make([]linkType, 0))
 	f.pageAttachments = append(f.pageAttachments, []annotationAttach{})
@@ -3961,7 +3963,7 @@ func (f *Fpdf) textstring(s string) string {
 
 func blankCount(str string) (count int) {
 	l := len(str)
-	for j := 0; j < l; j++ {
+	for j := range l {
 		if byte(' ') == str[j] {
 			count++
 		}
@@ -4140,7 +4142,7 @@ func (f *Fpdf) RawWriteBuf(r io.Reader) {
 }
 
 // outf adds a formatted line to the document
-func (f *Fpdf) outf(fmtStr string, args ...interface{}) {
+func (f *Fpdf) outf(fmtStr string, args ...any) {
 	f.out(sprintf(fmtStr, args...))
 }
 
@@ -4248,7 +4250,7 @@ func (f *Fpdf) RegisterAlias(alias, replacement string) {
 }
 
 func (f *Fpdf) replaceAliases() {
-	for mode := 0; mode < 2; mode++ {
+	for mode := range 2 {
 		for alias, replacement := range f.aliasMap {
 			if mode == 1 {
 				alias = utf8toutf16(alias, false)
@@ -4618,7 +4620,7 @@ func (f *Fpdf) generateCIDFontMap(font *fontDefType, LastRune int) {
 					rangeID = prevCid
 					r := untypedKeyMap{
 						valueSet: make([]int, 0),
-						keySet:   make([]interface{}, 0),
+						keySet:   make([]any, 0),
 					}
 					cidArray[rangeID] = &r
 					cidArrayKeys = append(cidArrayKeys, rangeID)
@@ -4633,7 +4635,7 @@ func (f *Fpdf) generateCIDFontMap(font *fontDefType, LastRune int) {
 					rangeID = cid
 					r := untypedKeyMap{
 						valueSet: make([]int, 0),
-						keySet:   make([]interface{}, 0),
+						keySet:   make([]any, 0),
 					}
 					cidArray[rangeID] = &r
 					cidArrayKeys = append(cidArrayKeys, rangeID)
@@ -4647,7 +4649,7 @@ func (f *Fpdf) generateCIDFontMap(font *fontDefType, LastRune int) {
 			rangeID = cid
 			r := untypedKeyMap{
 				valueSet: make([]int, 0),
-				keySet:   make([]interface{}, 0),
+				keySet:   make([]any, 0),
 			}
 			cidArray[rangeID] = &r
 			cidArrayKeys = append(cidArrayKeys, rangeID)
@@ -5048,6 +5050,7 @@ func (f *Fpdf) putinfo() {
 func (f *Fpdf) putcatalog() {
 	f.out("/Type /Catalog")
 	f.out("/Pages 1 0 R")
+	f.putOutputIntents()
 	if f.lang != "" {
 		f.outf("/Lang (%s)", f.lang)
 	}
@@ -5179,6 +5182,43 @@ func (f *Fpdf) putbookmarks() {
 	}
 }
 
+func (f *Fpdf) putOutputIntents() {
+	if len(f.outputIntents) <= 0 {
+		return
+	}
+
+	f.out("/OutputIntents [")
+	for index, oi := range f.outputIntents {
+		infoSegment := ""
+		if oi.Info != "" {
+			infoSegment = fmt.Sprintf("/Info (%s) ", oi.Info)
+		}
+		f.outf(
+			`<< /Type /OutputIntent /S /%s /OutputConditionIdentifier (%s) %s/DestOutputProfile %d 0 R >>`,
+			oi.SubtypeIdent, oi.OutputConditionIdentifier, infoSegment, f.outputIntentStartN+index,
+		)
+	}
+	f.out("]")
+}
+
+func (f *Fpdf) putOutputIntentStreams() {
+	if len(f.outputIntents) <= 0 {
+		return
+	}
+
+	f.outputIntentStartN = f.n + 1
+	for _, oi := range f.outputIntents {
+		f.newobj()
+		mem := xmem.compress(oi.ICCProfile)
+		compressedICC := mem.bytes()
+		f.outf("<< /N 3 /Alternate /DeviceRGB /Length %d /Filter /FlateDecode >>", len(compressedICC))
+		f.putstream(compressedICC)
+		f.out("endobj")
+
+		mem.release()
+	}
+}
+
 func (f *Fpdf) enddoc() {
 	if f.err != nil {
 		return
@@ -5203,6 +5243,8 @@ func (f *Fpdf) enddoc() {
 	f.putinfo()
 	f.out(">>")
 	f.out("endobj")
+	// Output intent color profile streams
+	f.putOutputIntentStreams()
 	// 	Catalog
 	f.newobj()
 	f.out("<<")

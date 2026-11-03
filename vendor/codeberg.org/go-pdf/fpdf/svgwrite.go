@@ -20,6 +20,12 @@
 
 package fpdf
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 // SVGBasicWrite renders the paths encoded in the basic SVG image specified by
 // sb. The scale value is used to convert the coordinates in the path to the
 // unit of measure specified in New(). If scale is 0, SVGBasicWrite automatically adapts the SVG document
@@ -32,7 +38,7 @@ func (f *Fpdf) SVGBasicWrite(sb *SVGBasicType, scale float64) {
 	originX, originY := f.GetXY()
 	var x, y, newX, newY float64
 	var cx0, cy0, cx1, cy1 float64
-	var path []SVGBasicSegmentType
+	var path SVGBasicPath
 	var seg SVGBasicSegmentType
 	var startX, startY float64
 	if scale == 0.0 {
@@ -50,10 +56,10 @@ func (f *Fpdf) SVGBasicWrite(sb *SVGBasicType, scale float64) {
 	val := func(arg int) (float64, float64) {
 		return xval(arg), yval(arg + 1)
 	}
-	for j := 0; j < len(sb.Segments) && f.Ok(); j++ {
-		path = sb.Segments[j]
-		for k := 0; k < len(path) && f.Ok(); k++ {
-			seg = path[k]
+	for j := 0; j < len(sb.Paths) && f.Ok(); j++ {
+		path = sb.Paths[j]
+		for k := 0; k < len(path.Segments) && f.Ok(); k++ {
+			seg = path.Segments[k]
 			switch seg.Cmd {
 			case 'M':
 				x, y = val(0)
@@ -95,15 +101,16 @@ func (f *Fpdf) SVGBasicWrite(sb *SVGBasicType, scale float64) {
 // SVGBasicDraw renders the paths in the provided SVGBasicType, but each SVG shape is written
 // as a path that can be filled.
 //
-// styleStr can be "F" for filled, "D" for outlined only, or "DF" or
-// "FD" for outlined and filled. An empty string will be replaced with
-// "D". Drawing uses the current draw color and line width centered on
-// the ellipse's perimeter. Filling uses the current fill color.
+// styleStr can be "F" for filled, "D" for outlined only, "DF" or "FD" for
+// outlined and filled, or "_" for dynamically use the style of the original
+// SVG. An empty string will be replaced with "D". Drawing uses the current line
+// width centered on the ellipse's perimeter. Unless styleStr is "_", drawing and
+// filling uses the current draw & fill color, respectively.
 func (f *Fpdf) SVGBasicDraw(sb *SVGBasicType, scale float64, styleStr string) {
 	originX, originY := f.GetXY()
 	var newX, newY float64
 	var cx0, cy0, cx1, cy1 float64
-	var path []SVGBasicSegmentType
+	var path SVGBasicPath
 	var seg SVGBasicSegmentType
 	var startX, startY float64
 	if scale == 0.0 {
@@ -121,10 +128,25 @@ func (f *Fpdf) SVGBasicDraw(sb *SVGBasicType, scale float64, styleStr string) {
 	val := func(arg int) (float64, float64) {
 		return xval(arg), yval(arg + 1)
 	}
-	for j := 0; j < len(sb.Segments) && f.Ok(); j++ {
-		path = sb.Segments[j]
-		for k := 0; k < len(path) && f.Ok(); k++ {
-			seg = path[k]
+	for j := 0; j < len(sb.Paths) && f.Ok(); j++ {
+		path = sb.Paths[j]
+		styleStr := styleStr
+		if styleStr == "_" {
+			styleStr = ""
+			if path.Fill != "" && path.Fill != "none" {
+				r, g, b := hexToRGB(path.Fill)
+				f.SetFillColor(r, g, b)
+				styleStr += "F"
+			}
+			if path.Stroke != "" && path.Stroke != "none" {
+				r, g, b := hexToRGB(path.Stroke)
+				f.SetDrawColor(r, g, b)
+				styleStr += "D"
+			}
+		}
+
+		for k := 0; k < len(path.Segments) && f.Ok(); k++ {
+			seg = path.Segments[k]
 			switch seg.Cmd {
 			case 'M':
 				startX, startY = val(0)
@@ -155,4 +177,27 @@ func (f *Fpdf) SVGBasicDraw(sb *SVGBasicType, scale float64, styleStr string) {
 			}
 		}
 	}
+}
+
+func hexToRGB(hex string) (int, int, int) {
+	hex = strings.TrimPrefix(hex, "#")
+
+	if len(hex) != 6 {
+		return 0, 0, 0
+	}
+
+	r, err := strconv.ParseInt(hex[0:2], 16, 0)
+	if err != nil {
+		panic(fmt.Sprintf("invalid red component: %v", err))
+	}
+	g, err := strconv.ParseInt(hex[2:4], 16, 0)
+	if err != nil {
+		panic(fmt.Sprintf("invalid green component: %v", err))
+	}
+	b, err := strconv.ParseInt(hex[4:6], 16, 0)
+	if err != nil {
+		panic(fmt.Sprintf("invalid blue component: %v", err))
+	}
+
+	return int(r), int(g), int(b)
 }

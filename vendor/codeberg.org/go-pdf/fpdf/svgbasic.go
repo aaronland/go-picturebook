@@ -120,7 +120,7 @@ func pathParse(pathStr string, adjustToPt float64) (segs []SVGBasicSegmentType, 
 	setup := func(n int) {
 		// It is not strictly necessary to clear arguments, but result may be clearer
 		// to caller
-		for j := 0; j < len(seg.Arg); j++ {
+		for j := range len(seg.Arg) {
 			seg.Arg[j] = 0.0
 		}
 		argJ = 0
@@ -197,8 +197,16 @@ func pathParse(pathStr string, adjustToPt float64) (segs []SVGBasicSegmentType, 
 // SVGBasicType aggregates the information needed to describe a multi-segment
 // basic vector image
 type SVGBasicType struct {
-	Wd, Ht   float64
-	Segments [][]SVGBasicSegmentType
+	Wd, Ht float64
+	Paths  []SVGBasicPath
+}
+
+// SVGBasicPath contains segments to draw, including their optional stroke
+// and fill color to be used by SVGBasicDraw
+type SVGBasicPath struct {
+	Stroke   string
+	Fill     string
+	Segments []SVGBasicSegmentType
 }
 
 // parseFloatWithUnit parses a float and its unit, e.g. "42pt".
@@ -256,6 +264,8 @@ func SVGBasicParse(buf []byte) (sig SVGBasicType, err error) {
 		Height float64 `xml:"height,attr"`
 		X      float64 `xml:"x,attr"`
 		Y      float64 `xml:"y,attr"`
+		Stroke string  `xml:"stroke,attr"`
+		Fill   string  `xml:"fill,attr"`
 	}
 	type srcType struct {
 		Wd    string     `xml:"width,attr"`
@@ -279,37 +289,34 @@ func SVGBasicParse(buf []byte) (sig SVGBasicType, err error) {
 		}
 		if wd > 0 && ht > 0 {
 			sig.Wd, sig.Ht = wd, ht
-			var segs []SVGBasicSegmentType
 			for _, path := range src.Paths {
 				if err == nil {
-					segs, err = pathParse(path.D, adjustToPt)
+					segs, err := pathParse(path.D, adjustToPt)
 					if err == nil {
-						sig.Segments = append(sig.Segments, segs)
+						sig.Paths = append(sig.Paths, SVGBasicPath{Segments: segs})
 					}
 				}
 			}
 			for _, rect := range src.Rects {
-				segs = nil
-				segs = append(segs, SVGBasicSegmentType{
-					Cmd: 'M',
-					Arg: [6]float64{rect.X * adjustToPt, rect.Y * adjustToPt},
+				sig.Paths = append(sig.Paths, SVGBasicPath{
+					Stroke: rect.Stroke,
+					Fill:   rect.Fill,
+					Segments: []SVGBasicSegmentType{{
+						Cmd: 'M',
+						Arg: [6]float64{rect.X * adjustToPt, rect.Y * adjustToPt},
+					}, {
+						Cmd: 'L',
+						Arg: [6]float64{(rect.X + rect.Width) * adjustToPt, rect.Y * adjustToPt},
+					}, {
+						Cmd: 'L',
+						Arg: [6]float64{(rect.X + rect.Width) * adjustToPt, (rect.Y + rect.Height) * adjustToPt},
+					}, {
+						Cmd: 'L',
+						Arg: [6]float64{rect.X * adjustToPt, (rect.Y + rect.Height) * adjustToPt},
+					}, {
+						Cmd: 'Z',
+					}},
 				})
-				segs = append(segs, SVGBasicSegmentType{
-					Cmd: 'L',
-					Arg: [6]float64{(rect.X + rect.Width) * adjustToPt, rect.Y * adjustToPt},
-				})
-				segs = append(segs, SVGBasicSegmentType{
-					Cmd: 'L',
-					Arg: [6]float64{(rect.X + rect.Width) * adjustToPt, (rect.Y + rect.Height) * adjustToPt},
-				})
-				segs = append(segs, SVGBasicSegmentType{
-					Cmd: 'L',
-					Arg: [6]float64{rect.X * adjustToPt, (rect.Y + rect.Height) * adjustToPt},
-				})
-				segs = append(segs, SVGBasicSegmentType{
-					Cmd: 'Z',
-				})
-				sig.Segments = append(sig.Segments, segs)
 			}
 		} else {
 			err = fmt.Errorf("unacceptable values for basic SVG extent: %.2f x %.2f",

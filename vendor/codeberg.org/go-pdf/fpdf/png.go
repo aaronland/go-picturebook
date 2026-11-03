@@ -187,12 +187,12 @@ func (f *Fpdf) parsepngstream(r *rbuffer, readdpi bool) (info *ImageInfoType) {
 			color.p = data[:sz] // reuse decompressed data buffer.
 			alpha.p = make([]byte, sz)
 			var pos, elPos int
-			for i := 0; i < height; i++ {
+			for i := range height {
 				pos = (1 + length) * i
 				color.u8(data[pos])
 				alpha.u8(data[pos])
 				elPos = pos + 1
-				for k := 0; k < width; k++ {
+				for range width {
 					color.u8(data[elPos])
 					alpha.u8(data[elPos+1])
 					elPos += 2
@@ -207,12 +207,12 @@ func (f *Fpdf) parsepngstream(r *rbuffer, readdpi bool) (info *ImageInfoType) {
 			color.p = data[:sz*3+height] // reuse decompressed data buffer.
 			alpha.p = make([]byte, sz+height)
 			var pos, elPos int
-			for i := 0; i < height; i++ {
+			for i := range height {
 				pos = (1 + length) * i
 				color.u8(data[pos])
 				alpha.u8(data[pos])
 				elPos = pos + 1
-				for k := 0; k < width; k++ {
+				for range width {
 					tmp := data[elPos : elPos+4]
 					color.u8(tmp[0])
 					color.u8(tmp[1])

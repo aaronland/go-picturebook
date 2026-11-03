@@ -131,7 +131,7 @@ func (p *afmParser) parseCharMetric(fnt *fontInfoType) error {
 		Wd   int
 	}
 	var ch metric
-	for _, v := range strings.Split(p.s.Text(), ";") {
+	for v := range strings.SplitSeq(p.s.Text(), ";") {
 		v = strings.TrimSpace(v)
 		if v == "" {
 			continue

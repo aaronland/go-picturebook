@@ -57,7 +57,7 @@ func writeBytes(leadStr string, startPos int, sl []byte) {
 	max = len(sl)
 	for pos < max {
 		fmt.Printf(" ")
-		for k := 0; k < 8; k++ {
+		for range 8 {
 			if pos < max {
 				fmt.Printf(" %02x", sl[pos])
 			} else {
@@ -96,15 +96,9 @@ func CompareBytes(sl1, sl2 []byte, printDiff bool) (err error) {
 
 	len1 = len(sl1)
 	len2 = len(sl2)
-	length = len1
-	if length > len2 {
-		length = len2
-	}
+	length = min(len1, len2)
 	for posStart < length-1 {
-		posEnd = posStart + 16
-		if posEnd > length {
-			posEnd = length
-		}
+		posEnd = min(posStart+16, length)
 		if !checkBytes(posStart, sl1[posStart:posEnd], sl2[posStart:posEnd], printDiff) {
 			diffs = true
 		}

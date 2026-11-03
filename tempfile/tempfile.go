@@ -5,21 +5,17 @@ import (
 	"context"
 	"fmt"
 	"image"
-
+	"uuid"
+	
 	"github.com/aaronland/go-image/v2/encode"
 	"github.com/aaronland/go-picturebook/bucket"
-	"github.com/google/uuid"
 )
 
 // TempFileWithImage will write a new JPEG file in 'bucket' derived from 'im'. The return values are the
 // filename of the temporary file, its image format and any errors produced during writing.
 func TempFileWithImage(ctx context.Context, bucket bucket.Bucket, im image.Image) (string, string, error) {
 
-	id, err := uuid.NewUUID()
-
-	if err != nil {
-		return "", "", fmt.Errorf("Failed to generate new UUID, %w", err)
-	}
+	id := uuid.New()
 
 	fname := fmt.Sprintf("picturebook-%s.jpg", id.String())
 
