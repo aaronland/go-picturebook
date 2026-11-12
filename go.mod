@@ -1,6 +1,6 @@
 module github.com/aaronland/go-picturebook
 
-go 1.27.3
+go 1.27.4
 
 require (
 	codeberg.org/go-pdf/fpdf v0.12.0
@@ -8,13 +8,13 @@ require (
 	github.com/aaronland/go-image-halftone/v2 v2.0.0
 	github.com/aaronland/go-image/v2 v2.2.2
 	github.com/aaronland/go-roster v1.0.0
-	github.com/aaronland/gocloud v1.3.4
+	github.com/aaronland/gocloud v1.3.6
 	github.com/gabriel-vasile/mimetype v1.4.16
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/schollz/progressbar/v3 v3.19.1
 	github.com/sfomuseum/go-flags v0.12.1
 	github.com/sfomuseum/go-font-ocra v0.0.3
-	gocloud.dev v0.47.0
+	gocloud.dev v0.49.0
 )
 
 require (
@@ -39,7 +39,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/googleapis/gax-go/v2 v2.24.1 // indirect
+	github.com/googleapis/gax-go/v2 v2.27.0 // indirect
 	github.com/mandykoh/go-parallel v0.1.0 // indirect
 	github.com/mandykoh/prism v0.35.3 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
@@ -49,11 +49,12 @@ require (
 	github.com/strukturag/libheif-go v0.0.0-20250130134905-55b3482bea15 // indirect
 	github.com/whosonfirst/go-ioutil v1.0.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel v1.46.0 // indirect
-	go.opentelemetry.io/otel/metric v1.46.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
-	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	go.opentelemetry.io/otel v1.47.0 // indirect
+	go.opentelemetry.io/otel/log v1.47.0 // indirect
+	go.opentelemetry.io/otel/metric v1.47.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.47.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.47.0 // indirect
+	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/image v0.45.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
@@ -61,9 +62,9 @@ require (
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
-	google.golang.org/api v0.297.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260904194346-d0f1323225a4 // indirect
-	google.golang.org/grpc v1.83.2 // indirect
+	google.golang.org/api v0.308.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261019180522-ce908d29299b // indirect
+	google.golang.org/grpc v1.84.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
